@@ -29,7 +29,7 @@ A minimum of *7 major* modules is required. Two Minor Modules count as one Major
 
 ### User Management
 - **Major: Standard user management** → Sign up, log in, password reset, and keep the same user across tournaments.  
-- **Major: Remote authentication** → Log in using Google, GitHub, or another external provider.  
+- **Major: Remote authentication** → Log in using Google, GitHub, Facebook or another external provider.  
 
 ### Gameplay & User Experience
 - **Major: Remote players** → Play Pong against someone online, not just on the same keyboard.  
@@ -64,4 +64,34 @@ A minimum of *7 major* modules is required. Two Minor Modules count as one Major
 
 ### Server-Side Pong
 - **Major: Server-side Pong + API** → Game logic runs on the server, with an API so clients can connect.  
-- **Major: CLI vs Web gameplay** → Allow someone in the command line to play against someone in the web app.  
+- **Major: CLI vs Web gameplay** → Allow someone in the command line to play against someone in the web app.
+
+## Risk Factors
+
+## ✅ Safe Majors (good value, realistic to implement)
+- **Backend framework** → Lets you avoid raw PHP, makes backend cleaner.  
+- **2FA + JWT** → Security upgrade, relatively standard to implement.  
+- **Live chat** → Fun feature, easy to demo during evaluation.  
+- **AI opponent** → Demo-friendly (play vs computer), not too complex if simple AI.  
+
+## 🟢 Easy Minors (good fillers, low effort)
+- **Database** → Almost mandatory if you store users/scores.  
+- **Game customization** → Simple settings (colors, themes).  
+- **Stats dashboard** → Just display graphs/tables of wins/losses.  
+- **Support on all devices** → Responsive design (CSS media queries).  
+- **Browser compatibility** → Test across browsers, small tweaks.  
+- **Multiple languages** → Add i18n (translation files).  
+- **Accessibility features** → High contrast, screen reader support.  
+- **SSR integration** → Use a framework’s built-in SSR (e.g., Next.js).  
+
+## ⚠️ Risky / Heavy Majors (cool, but time-consuming or tricky)
+- **Blockchain scores** → Complex and heavy for little evaluation gain.  
+- **Remote authentication** → OAuth/SSO can be a headache if you haven’t done it before.  
+- **Remote players** → Network latency, real-time sync = hard to debug.  
+- **Multiplayer >2 players** → More complex game logic.  
+- **Add another game** → Too much extra work.  
+- **WAF + Vault** → Enterprise-level setup, can take a lot of time.  
+- **Microservices backend** → Good for learning, but adds infrastructure complexity.  
+- **Advanced 3D graphics** → Cool, but risky if nobody on team knows WebGL/Three.js.  
+- **Server-side Pong + API** → Needs redesign of Pong logic.  
+- **CLI vs Web Pong** → Extra integration layer, harder to polish.  
