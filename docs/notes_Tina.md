@@ -1,4 +1,4 @@
-# Mandatory minimum
+## Mandatory minimum
 
 ## Basic Website Setup
   - SPA (single page app) with Typescript frontend  
