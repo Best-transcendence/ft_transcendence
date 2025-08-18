@@ -63,7 +63,10 @@ A minimum of *7 major* modules is required. Two Minor Modules count as one Major
 - **Minor: Server-Side Rendering (SSR)** → Render pages on the server before sending them, faster load and SEO friendly.
 
 ### Server-Side Pong
-- **Major: Server-side Pong + API** → Game logic runs on the server, with an API so clients can connect.
+- **Major: Server-side Pong + API** → Game logic runs on the server, with an API so clients can connect. (Each browser might run the game slightly differently. One player could cheat by changing their browser code
+ball.x = myPaddle.x;   // force the ball to always hit my paddle
+opponent.score = 0;    // reset opponent score
+myScore = 999;         // give myself infinite points. Accepts only player inputs (up/down), never trusts client monitor position. Syncing between two browsers is messy (you need to constantly exchange ball positions, paddle moves, etc.)
 - **Major: CLI vs Web gameplay** → Command Line Interface. Allow someone in the command line to play against someone in the web app.
 
 ## Risk Map
@@ -96,5 +99,5 @@ A minimum of *7 major* modules is required. Two Minor Modules count as one Major
 - **WAF + Vault** → Production-level setup, can take a lot of time.
 - **Microservices backend** → Good for learning, but adds infrastructure complexity. 
 - **Advanced 3D graphics** → Risky if nobody on team knows WebGL/Three.js before. 
-- **Server-side Pong + API** → Needs redesign of Pong logic.  
+- **Server-side Pong + API** → Needs redesign of simple Pong logic.  
 - **CLI vs Web Pong** → Extra integration layer: frontend-backend connection.
