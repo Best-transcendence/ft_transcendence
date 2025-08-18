@@ -43,14 +43,14 @@ A minimum of *7 major* modules is required. Two Minor Modules count as one Major
 - **Minor: Stats dashboard** → Show charts/tables with wins, losses, rankings, etc.  
 
 ### Cybersecurity
-- **Major: WAF + Vault** → Web Application Firewall to block attacks, and Vault to securely store secrets (passwords, keys).  
+- **Major: WAF + Vault** → Web Application Firewall to block attacks, and Vault to securely store secrets (passwords, keys). CI/CD pipeline asks Vault for temporary DB credentials instead of storing passwords in Git. WAF protects the deployed apps that your CI/CD pipeline delivers to production.
 - **Minor: GDPR compliance** → Follow privacy laws: anonymize data, let users delete accounts.  
-- **Major: 2FA + JWT** → Add Two-Factor Authentication (extra login code) and JWT tokens for secure sessions.  
+- **Major: 2FA + JWT** → Add Two-Factor Authentication (extra login code) and JWT (JSON Web Token, e.g.:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...) tokens for secure sessions, instead of sending your username/password on every request
 
 ### DevOps
-- **Major: Log management** → Collect and centralize logs (errors, activity).  
+- **Major: Log management** → Collect and centralize logs (errors, activity). Good for debugging. 
 - **Minor: Monitoring system** → Track server performance, uptime, and alerts.  
-- **Major: Microservices backend** → Split the app into small services (auth service, game service, chat service, etc.).  
+- **Major: Microservices backend** → Split the app into small services (auth service, game service, chat service, etc.). Each doing one job, each service runs in its own container (Docker). They talk to each other via APIs (HTTP, WebSockets, etc.). If something crashes probably others can stay alive. 
 
 ### Graphics
 - **Major: Advanced 3D** → Use 3D graphics (like WebGL or Three.js) to make the game look more advanced.  
@@ -59,39 +59,42 @@ A minimum of *7 major* modules is required. Two Minor Modules count as one Major
 - **Minor: Support on all devices** → Works on desktop, tablet, and mobile.  
 - **Minor: Browser compatibility** → Works on Chrome, Firefox, Safari, Edge, etc.  
 - **Minor: Multiple languages** → Translate UI into different languages.  
-- **Minor: Accessibility features** → Add support for visually impaired players (screen readers, high contrast).  
-- **Minor: Server-Side Rendering (SSR)** → Render pages on the server before sending them → faster load and SEO friendly.  
+- **Minor: Accessibility features** → Add support for visually/physically impaired players (no mouse usage, screen readers, high contrast).  
+- **Minor: Server-Side Rendering (SSR)** → Render pages on the server before sending them, faster load and SEO friendly.
 
 ### Server-Side Pong
-- **Major: Server-side Pong + API** → Game logic runs on the server, with an API so clients can connect.  
-- **Major: CLI vs Web gameplay** → Allow someone in the command line to play against someone in the web app.
+- **Major: Server-side Pong + API** → Game logic runs on the server, with an API so clients can connect.
+- **Major: CLI vs Web gameplay** → Command Line Interface. Allow someone in the command line to play against someone in the web app.
 
-## Risk Factors
+## Risk Map
 
-## ✅ Safe Majors (good value, realistic to implement)
-- **Backend framework** → Lets you avoid raw PHP, makes backend cleaner.  
+## 🟢 Low Risk (Safe / Predictable)
+- **Backend framework (Major)** → Lets you avoid raw PHP, makes backend cleaner.
 - **2FA + JWT** → Security upgrade, relatively standard to implement.  
-- **Live chat** → Fun feature, easy to demo during evaluation.  
-- **AI opponent** → Demo-friendly (play vs computer), not too complex if simple AI.  
-
-## 🟢 Easy Minors (good fillers, low effort)
-- **Database** → Almost mandatory if you store users/scores.  
-- **Game customization** → Simple settings (colors, themes).  
-- **Stats dashboard** → Just display graphs/tables of wins/losses.  
+- **Live chat (Major)** → Straightforward with websockets.  
+- **AI opponent (Major)** → Demo-friendly (play vs computer), not too complex if simple AI.  
+- **Database (Minor)** → Almost mandatory if you store users/scores.  
+- **Game customization (Minor)** → Simple settings (colors, themes).  
+- **Stats dashboard (Minor)** → Just display graphs/tables of wins/losses.  
 - **Support on all devices** → Responsive design (CSS media queries).  
 - **Browser compatibility** → Test across browsers, small tweaks.  
 - **Multiple languages** → Add i18n (translation files).  
 - **Accessibility features** → High contrast, screen reader support.  
-- **SSR integration** → Use a framework’s built-in SSR (e.g., Next.js).  
+- **SSR integration (Minor)** → Use framework built-ins (e.g., Next.js). (The framework already has that feature included by default.)
+- **Frontend framework/toolkit (Minor)** — React/Vue/Angular basics are well documented.
+
+## 🟡 Medium Risk (Manageable with Planning)
+- **Standard user management (Major)** → Account lifecycle, resets, edge cases.  
+- **Remote authentication (Major)** → Redirects/tokens/config can be really hard.  
+- **Monitoring system (Minor)** → Prometheus/Grafana setup, exporters, alerts.
 
 ## ⚠️ Risky / Heavy Majors (cool, but time-consuming or tricky)
-- **Blockchain scores** → Complex and heavy for little evaluation gain.  
-- **Remote authentication** → OAuth/SSO can be a headache if you haven’t done it before.  
-- **Remote players** → Network latency, real-time sync = hard to debug.  
-- **Multiplayer >2 players** → More complex game logic.  
-- **Add another game** → Too much extra work.  
-- **WAF + Vault** → Enterprise-level setup, can take a lot of time.  
-- **Microservices backend** → Good for learning, but adds infrastructure complexity.  
-- **Advanced 3D graphics** → Cool, but risky if nobody on team knows WebGL/Three.js.  
+- **Blockchain scores** → Complex and heavy for little evaluation gain.
+- **Remote players** → Netcode, network latency, reconnection handling: hard to debug.
+- **Multiplayer > 2 players** → More complex game logic.
+- **Add another game** → Just extra work.
+- **WAF + Vault** → Production-level setup, can take a lot of time.
+- **Microservices backend** → Good for learning, but adds infrastructure complexity. 
+- **Advanced 3D graphics** → Risky if nobody on team knows WebGL/Three.js before. 
 - **Server-side Pong + API** → Needs redesign of Pong logic.  
-- **CLI vs Web Pong** → Extra integration layer, harder to polish.  
+- **CLI vs Web Pong** → Extra integration layer: frontend-backend connection.
