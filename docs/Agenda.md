@@ -1,15 +1,3 @@
-# Camille
-- AI, CyberSecurity
-
-# Yulia
--
-
-# Juan
-- 
-
-# Tina
-- Backend, AI, Graphics, Authentication
-
 # 📌 PROJECT SEGMENTS
 
 ## 🎨 Frontend & UI
@@ -182,4 +170,5 @@ Each module is built in this order for safety:
 - [ ] All modules tested against eval sheet (no visible errors).
 - [ ] Document “what/why/how” for every module in `/docs/` + README.
 - [ ] Run full stack from scratch with `docker-compose up --build`.
+
 
