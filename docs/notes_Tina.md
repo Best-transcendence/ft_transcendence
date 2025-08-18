@@ -71,7 +71,7 @@ myScore = 999;         // give myself infinite points. Accepts only player input
 
 ## Risk Map
 
-## 🟢 Low Risk (Safe / Predictable)
+### 🟢 Low Risk (Safe / Predictable)
 - **Backend framework (Major)** → Lets you avoid raw PHP, makes backend cleaner.
 - **2FA + JWT** → Security upgrade, relatively standard to implement.  
 - **Live chat (Major)** → Straightforward with websockets.  
@@ -86,12 +86,12 @@ myScore = 999;         // give myself infinite points. Accepts only player input
 - **SSR integration (Minor)** → Use framework built-ins (e.g., Next.js). (The framework already has that feature included by default.)
 - **Frontend framework/toolkit (Minor)** — React/Vue/Angular basics are well documented.
 
-## 🟡 Medium Risk (Manageable with Planning)
+### 🟡 Medium Risk (Manageable with Planning)
 - **Standard user management (Major)** → Account lifecycle, resets, edge cases.  
 - **Remote authentication (Major)** → Redirects/tokens/config can be really hard.  
 - **Monitoring system (Minor)** → Prometheus/Grafana setup, exporters, alerts.
 
-## ⚠️ Risky / Heavy Majors (cool, but time-consuming or tricky)
+### 🔴 High Risk (Heavy / Time-Consuming)
 - **Blockchain scores** → Complex and heavy for little evaluation gain.
 - **Remote players** → Netcode, network latency, reconnection handling: hard to debug.
 - **Multiplayer > 2 players** → More complex game logic.
