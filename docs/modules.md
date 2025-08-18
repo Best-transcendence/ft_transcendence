@@ -15,7 +15,7 @@
   - Major module: Multiplayer (more than 2 players in the same game) - JUAN: 9
   - Major module: Add another game with user history and matchmaking - SKIP 
   - Minor module: Game customization options - JUAN: 8
-  - Major module: Live chat - ADDED
+  - Major module: Live chat - ADD
 
 ## AI-Algo
   - Major module: Introduce an AI opponent - CAMILLE: 10
@@ -24,7 +24,7 @@
 ## Cybersecurity
   - Major module: Implement WAF/ModSecurity with a hardened configuration and HashiCorp Vault for secrets management - RESEARCH (CAMILLE AND JUAN)
   - Minor module: GDPR compliance options with user anonymization, local data management, and Account Deletion - RESEARCH (CAMILLE AND JUAN)
-  - Major module: Implement Two-Factor Authentication (2FA) and JWT - ADDED
+  - Major module: Implement Two-Factor Authentication (2FA) and JWT - ADD
 
 ## Devops
   - Major module: Infrastructure setup for log management. - YULIA, CAMILLE
