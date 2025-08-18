@@ -1,12 +1,14 @@
 # Overview
 
 ## Web
+
   ◦ Major module: Use a framework to build the backend - ADD
   ◦ Minor module: Use a framework or a toolkit to build the frontend - RESEARCH
   ◦ Minor module: Use a database for the backend -  YULIA: 10, JUAN:8
   ◦ Major module: Store the score of a tournament in the Blockchain - CAMILLE: 9, JUAN: 8
 
 ## User Management
+
   ◦ Major module: Standard user management, authentication, users across
   tournaments - YULIA OPTIONAL, CAMILLE
   ◦ Major module: Implementing a remote authentication - TINA: 9, CAMILLE
