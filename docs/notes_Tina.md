@@ -18,9 +18,6 @@
 ### Devops
   - Major module: Infrastructure setup for log management. - YULIA, CAMILLE, it would help debugging for all of us
 
-### Graphics
-  - Major module: Use advanced 3D techniques. - RESEARCH (JUAN)
-
 ### Accessibility
   - Minor module: Support on all devices. - TINA: 10, quick and small responsive design changes
   - Minor module: Expanding browser compatibility. - BONUS, probably nothing to do
@@ -50,6 +47,9 @@ complicated
   - Minor module: Supports multiple languages. - RESEARCH CAMILLE, not so much extra work, not the most important but a really useful feature for accessibility
 
 ## NOT RECOMMENDED MODULES
+### Graphics
+  - Major module: Use advanced 3D techniques. - RESEARCH (JUAN)
+
 ### Gameplay and user experience
   - Major module: Remote players - SKIP
   - Major module: Add another game with user history and matchmaking - SKIP
