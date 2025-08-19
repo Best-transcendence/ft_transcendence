@@ -48,7 +48,7 @@
 | O7 | Multiple languages (i18n)               | 3               | 8,9                      |
 | O8 | Store tournament scores on Blockchain   | 11              | -                        |
 
-## My Recommended Modules
+# My Recommended Modules
 (I explain my opinion at the end of every line)
 🫶
 ### Web
@@ -75,7 +75,7 @@
   - Minor module: Add accessibility features for visually impaired users. - RESEARCH JUAN, TINA, almost nothing to do, easy to implement in the workflow
   - Minor module: Server-Side Rendering (SSR) integration. - RESEARCH CAMILLE, TINA, YULIA, it is a built-in in the framework as I mentioned beyond *"React → Next.js - built on top of React (SSR/SSG, routing, data fetching, auth-friendly)"*
 
-## Only If Modules
+# Only If Modules
 🤔
 ### Web
   - Major module: Store the score of a tournament in the Blockchain - CAMILLE: 9, JUAN: 8, really complex, but it wouldn't influence the workflow, probably just could be implemented close to the end of the project and then you can count with the time
@@ -98,7 +98,7 @@ complicated
 ### Accessibility
   - Minor module: Supports multiple languages. - RESEARCH CAMILLE, not so much extra work, not the most important but a really useful feature for accessibility
 
-## Not Recommended Modules
+# Not Recommended Modules
 🙅‍♀️
 ### Graphics
   - Major module: Use advanced 3D techniques. - RESEARCH (JUAN), not so useful if none of us into graphics and time-consuming
@@ -138,7 +138,7 @@ A minimum of *7 major* modules is required. Two Minor Modules count as one Major
   - Input validation (client/server depending on setup) (user input checks: email, passwrod, alias/nickname, Client-side validation = checked in the browser with JavaScript before sending, Server-side validation = checked again on the backend)
   - Secrets in `.env` (not in git)  
 
-## Module explanation
+# Module explanation
 
 ### Web
 - **Major: Backend framework** → Use something like Django, NestJS, or Express instead of plain PHP.  
@@ -188,7 +188,7 @@ opponent.score = 0;    // reset opponent score
 myScore = 999;         // give myself infinite points. Accepts only player inputs (up/down), never trusts client monitor position. Syncing between two browsers is messy (you need to constantly exchange ball positions, paddle moves, etc.)
 - **Major: CLI vs Web gameplay** → Command Line Interface. Allow someone in the command line to play against someone in the web app.
 
-## Risk Map
+# Risk Map
 
 ### 🟢 Low Risk (Safe / Predictable)
 - **Backend framework (Major)** → Lets you avoid raw PHP, makes backend cleaner.
