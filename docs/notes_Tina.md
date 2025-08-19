@@ -1,6 +1,6 @@
 # 📑 Table of Contents
 
-- [1. Build Order (strict deps + parallelism)](#1-build-order-strict-deps--parallelism)
+- [1.Development Roadmap](#1-development-roadmap)
 - [2. Optional Workstreams](#2-optional-workstreams)
 - [3. My Recommended Modules](#3-my-recommended-modules)
 - [4. Only If (Optional but Considerable)](#4-only-if-optional-but-considerable)
@@ -13,7 +13,7 @@
   - [🔴 High Risk (Heavy / Time-Consuming)](#-high-risk-heavy--time-consuming)
 
 
-# Build Order (strict deps + parallelism)
+# Development Roadmap
 
 | #  | Workstream                         | Must come after | Can run in parallel with |
 |----|------------------------------------|-----------------|--------------------------|
