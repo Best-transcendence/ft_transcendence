@@ -5,9 +5,6 @@
   - Minor module: Use a framework or a toolkit to build the frontend - RESEARCH, must write TypeScript, so we can use React → Next.js - built on top of React (SSR/SSG, routing, data fetching, auth-friendly)
   - Minor module: Use a database for the backend -  YULIA: 10, JUAN:8, kinda mandatory
 
-### User Management
-  - Major module: Implementing a remote authentication - TINA: 9, CAMILLE
-
 ### Gameplay and user experience
   - Major module: Live chat - ADDED
 
@@ -37,6 +34,9 @@
 ### Gameplay and user experience
   - Major module: Multiplayer (more than 2 players in the same game) - JUAN: 9
   - Minor module: Game customization options - JUAN: 8
+
+### User Management
+  - Major module: Implementing a remote authentication - TINA: 9, CAMILLE
 
 ### Cybersecurity
   - Major module: Implement WAF/ModSecurity with a hardened configuration and HashiCorp Vault for secrets management - RESEARCH (CAMILLE AND JUAN), TINA:9, jobmarket, hands-on experience,
