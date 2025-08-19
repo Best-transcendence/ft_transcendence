@@ -133,7 +133,7 @@ A minimum of *7 major* modules is required. Two Minor Modules count as one Major
   - Input validation (client/server depending on setup) (user input checks: email, passwrod, alias/nickname, Client-side validation = checked in the browser with JavaScript before sending, Server-side validation = checked again on the backend)
   - Secrets in `.env` (not in git)  
 
-## Modules explanation
+## Module explanation
 
 ### Web
 - **Major: Backend framework** → Use something like Django, NestJS, or Express instead of plain PHP.  
