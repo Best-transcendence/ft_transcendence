@@ -1,3 +1,37 @@
+# Build Order (strict deps + parallelism)
+
+1. **Backend framework (NestJS)**
+2. **Database (Postgres + Prisma)**
+3. **Frontend framework (Next.js + TS)**
+4. **DevOps: log management**
+5. **Auth: JWT + 2FA**
+6. **SSR integration patterns (confirm)**
+7. **Live chat (WebSockets)**
+8. **Responsive (all devices)**
+9. **Accessibility features (visually impaired)**
+10. **AI opponent**
+11. **User & game stats dashboards**
+12. **Expanded browser compatibility (BONUS)**
+
+---
+
+## Parallelization Notes
+
+- **(3) Frontend framework** can start **in parallel with (1) Backend framework**.  
+- **(4) DevOps (log management)** can start as soon as **(1) Backend** has basic routes.  
+- **(5) Auth (JWT + 2FA)** requires **(2) Database** to be ready.  
+- **(7) Live chat** requires both **(5) Auth (JWT + 2FA)** and **(2) Database**.  
+
+
+Store tournament scores on Blockchain
+Multiplayer (>2 players)
+Game customization options
+Remote authentication (IdP/OAuth/SAML)
+WAF + Vault (secrets mgmt)
+GDPR toolkit (anonymize/local storage/delete)
+Microservices architecture
+Multiple languages (i18n)
+
 ## My Recommended Modules
 (I deleted what we skipp, I didn't explained what we already added, others I explained at the end of the actual line)
 ### Web
@@ -26,29 +60,29 @@
 
 ## ONLY IF
 ### Web
-  - Major module: Store the score of a tournament in the Blockchain - CAMILLE: 9, JUAN: 8
+  - Major module: Store the score of a tournament in the Blockchain - CAMILLE: 9, JUAN: 8, really complex, but it wouldn't influence the workflow, probably just could be implemented close to the end of the project and then you can count with the time
 
 ### Gameplay and user experience
-  - Major module: Multiplayer (more than 2 players in the same game) - JUAN: 9
-  - Minor module: Game customization options - JUAN: 8
+  - Major module: Multiplayer (more than 2 players in the same game) - JUAN: 9, I don't recommend, it would require a more complex game logic and a lot additional at the end, but maybe if we set up a good plan how to execute
+  - Minor module: Game customization options - JUAN: 8, good and simple extra if we are good in time close to the end
 
 ### User Management
-  - Major module: Implementing a remote authentication - TINA: 9, CAMILLE
+  - Major module: Implementing a remote authentication - TINA: 9, CAMILLE, popular feature nowadays, can be really hard to implement, we could try to do when we do the other authentication
 
 ### Cybersecurity
   - Major module: Implement WAF/ModSecurity with a hardened configuration and HashiCorp Vault for secrets management - RESEARCH (CAMILLE AND JUAN), TINA:9, jobmarket, hands-on experience,
 complicated
-  - Minor module: GDPR compliance options with user anonymization, local data management, and Account Deletion - RESEARCH (CAMILLE AND JUAN)
+  - Minor module: GDPR compliance options with user anonymization, local data management, and Account Deletion - RESEARCH (CAMILLE AND JUAN), good hands-on experience but require more time
 
 ### Devops
-  - Major module: Designing the backend as microservices. - REASEARCH, YULIA: 10
+  - Major module: Designing the backend as microservices. - REASEARCH, YULIA: 10, I don't recommend, but maybe if we can make a good plan on it and explain how it affects the project what we should take care of it and everybody could follow during the process, I just think it would require a lot of extra care regarding the whole workflow
 
 ### Accessibility
   - Minor module: Supports multiple languages. - RESEARCH CAMILLE, not so much extra work, not the most important but a really useful feature for accessibility
 
 ## NOT RECOMMENDED MODULES
 ### Graphics
-  - Major module: Use advanced 3D techniques. - RESEARCH (JUAN)
+  - Major module: Use advanced 3D techniques. - RESEARCH (JUAN), not so useful if none of us into graphics and time-consuming
 
 ### Gameplay and user experience
   - Major module: Remote players - SKIP
