@@ -1,66 +1,66 @@
-# My Recommended Modules
+## My Recommended Modules
 (I deleted what we skipp, I didn't explained what we already added, others I explained at the end of the actual line)
-## Web
+### Web
   - Major module: Use a framework to build the backend - ADDED
   - Minor module: Use a framework or a toolkit to build the frontend - RESEARCH, must write TypeScript, so we can use React → Next.js - built on top of React (SSR/SSG, routing, data fetching, auth-friendly)
   - Minor module: Use a database for the backend -  YULIA: 10, JUAN:8, kinda mandatory
 
-## User Management
+### User Management
   - Major module: Implementing a remote authentication - TINA: 9, CAMILLE
 
-## Gameplay and user experience
+### Gameplay and user experience
   - Major module: Live chat - ADDED
 
-## AI-Algo
+### AI-Algo
   - Major module: Introduce an AI opponent - CAMILLE: 10, TINA, really good to show a demo
   - Minor module: User and game stats dashboards - CAMILLE : 7, TINA: 9, YULIA, easy, traditional feature
 
-## Cybersecurity
+### Cybersecurity
   - Major module: Implement Two-Factor Authentication (2FA) and JWT - ADDED
 
-## Devops
+### Devops
   - Major module: Infrastructure setup for log management. - YULIA, CAMILLE, it would help debugging for all of us
 
-## Graphics
+### Graphics
   - Major module: Use advanced 3D techniques. - RESEARCH (JUAN)
 
-## Accessibility
+### Accessibility
   - Minor module: Support on all devices. - TINA: 10, quick and small responsive design changes
   - Minor module: Expanding browser compatibility. - BONUS, probably nothing to do
   - Minor module: Add accessibility features for visually impaired users. - RESEARCH JUAN, TINA, almost nothing to do, easy to implement in the workflow
   - Minor module: Server-Side Rendering (SSR) integration. - RESEARCH CAMILLE, TINA, YULIA, it is a built-in in the framework as I mentioned beyond *"React → Next.js - built on top of React (SSR/SSG, routing, data fetching, auth-friendly)"*
 
 ## ONLY IF
-## Web
+### Web
   - Major module: Store the score of a tournament in the Blockchain - CAMILLE: 9, JUAN: 8
 
-## Gameplay and user experience
+### Gameplay and user experience
   - Major module: Multiplayer (more than 2 players in the same game) - JUAN: 9
   - Minor module: Game customization options - JUAN: 8
 
-## Cybersecurity
+### Cybersecurity
   - Major module: Implement WAF/ModSecurity with a hardened configuration and HashiCorp Vault for secrets management - RESEARCH (CAMILLE AND JUAN), TINA:9, jobmarket, hands-on experience,
 complicated
   - Minor module: GDPR compliance options with user anonymization, local data management, and Account Deletion - RESEARCH (CAMILLE AND JUAN)
 
-## Devops
+### Devops
   - Major module: Designing the backend as microservices. - REASEARCH, YULIA: 10
 
-## Accessibility
+### Accessibility
   - Minor module: Supports multiple languages. - RESEARCH CAMILLE, not so much extra work, not the most important but a really useful feature for accessibility
 
 ## NOT RECOMMENDED MODULES
-## Gameplay and user experience
+### Gameplay and user experience
   - Major module: Remote players - SKIP
   - Major module: Add another game with user history and matchmaking - SKIP
 
-## Devops
+### Devops
   - Minor module: Monitoring system. - SKIP
 
-## User Management
+### User Management
   - Major module: Standard user management, authentication, users across tournaments - YULIA OPTIONAL, CAMILLE, doesn't teach you too many new things, time-consuming with the edge cases
 
-## Server-Side Pong
+### Server-Side Pong
   - Major module: Replace basic Pong with server-side Pong and implement an API. - RESEARCH YULIA, CAMILLE, too risky regarding the infrastructure
   - Major module: Enabling Pong gameplay via CLI against web users with API integration. - RESEARCH JUAN, TINA, I don't see it as useful
 
