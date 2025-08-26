@@ -23,7 +23,9 @@
 
 ## 🗄️ Backend (NestJS + Postgres + Prisma)
 - [ ] Sets up **NestJS backend** with REST + WebSocket endpoints.
-- [ ] Connects to **Postgres via Prisma ORM**.
+- [ ] Connects to **Postgres via Prisma ORM**. (Yulia) Subject: "The designated database for all DB instances in your project is SQLite This choice
+ensure data consistency and compatibility across all project components and may
+be a prerequisite for other modules, such as the backend Framework module." Do we choose Postgres? Let's discuss
 - [ ] Implements **Auth (JWT + 2FA)** with secure cookies.
 - [ ] Manages users, profiles, tournament data, match history.
 - [ ] Exposes APIs for chat, tournaments, stats.
@@ -69,7 +71,7 @@
 
 **Backend**
 - [ ] Init NestJS project with health check route.
-- [ ] Connect Postgres + Prisma schema init.
+- [ ] Connect Postgres + Prisma schema init. (Yulia) let's verify or DB choice, see above
 
 **Frontend**
 - [ ] Setup Next.js + TS scaffold with routes `/login`, `/register`, `/tournament`, `/play`.
@@ -175,3 +177,4 @@
 - [ ] Document “what/why/how” in `/docs/` + README.
 
 - [ ] Run full stack fresh via `docker-compose up --build`.
+
