@@ -77,19 +77,29 @@
 **Game**
 - [ ] Static Pong canvas placeholder.
 
+**Additional from Yulia**
+- [ ] (Yulia) Set up pre-commit hooks for linting and formatting (I can show how to do)
+
 **Goal:** One-command stack launches; SPA + backend health check visible.
 
 ---
 
 ## 🟢 Week 2 — Authentication & Local Pong
+
+**Pre-coding stage** (Backend → Frontend)
+- [ ] (Yulia) Define `api_contracts.md` for login/register/profile — Backend writes it first, then shares with Frontend.
+
 **Backend**
 - [ ] Implement register/login APIs (hashed passwords).
 - [ ] Add JWT + session cookies.
 - [ ] Add 2FA module.
+- [ ] (Yulia) - Set up Swagger (NestJS) for all future API docs (`/api/docs`).
+- [ ] (Yulia) - Add structured logging (NestJS Logger or custom middleware).
 
 **Frontend**
 - [ ] Build login/register pages with error handling.
 - [ ] Navbar updates on auth state.
+- [ ] (Yulia - optional) add very basic logger
 
 **Game**
 - [ ] Implement local Pong (2 players, scoring, win condition).
@@ -154,7 +164,7 @@
 - **Frontend**: Stats dashboard (Major).
 
 ## 🟦 Week 8
-- **Infra**: Microservices split (Major).
+- **Infra**: Microservices split (Major). - (Yulia) I am thinking about putting one thing to microservice - auth is a good candidate. If we decide on it, refactoring can be done earlier. So we don't break whole code before eval. We can postpone decision for later now.
 - **Frontend**: Multi-language support (Minor).
 - **All**: Documentation + defense prep.
 
@@ -163,4 +173,5 @@
 # ✅ Final Defense Prep
 - [ ] All modules tested against eval sheet (no visible errors).
 - [ ] Document “what/why/how” in `/docs/` + README.
+
 - [ ] Run full stack fresh via `docker-compose up --build`.
