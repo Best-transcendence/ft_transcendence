@@ -23,7 +23,9 @@
 
 ## 🗄️ Backend (NestJS + Postgres + Prisma)
 - [ ] Sets up **NestJS backend** with REST + WebSocket endpoints.
-- [ ] Connects to **Postgres via Prisma ORM**.
+- [ ] Connects to **Postgres via Prisma ORM**. (Yulia) Subject: "The designated database for all DB instances in your project is SQLite This choice
+ensure data consistency and compatibility across all project components and may
+be a prerequisite for other modules, such as the backend Framework module." Do we choose Postgres? Let's discuss
 - [ ] Implements **Auth (JWT + 2FA)** with secure cookies.
 - [ ] Manages users, profiles, tournament data, match history.
 - [ ] Exposes APIs for chat, tournaments, stats.
@@ -69,7 +71,7 @@
 
 **Backend**
 - [ ] Init NestJS project with health check route.
-- [ ] Connect Postgres + Prisma schema init.
+- [ ] Connect Postgres + Prisma schema init. (Yulia) let's verify or DB choice, see above
 
 **Frontend**
 - [ ] Setup Next.js + TS scaffold with routes `/login`, `/register`, `/tournament`, `/play`.
@@ -77,19 +79,29 @@
 **Game**
 - [ ] Static Pong canvas placeholder.
 
+**Additional from Yulia**
+- [ ] (Yulia) Set up pre-commit hooks for linting and formatting (I can show how to do)
+
 **Goal:** One-command stack launches; SPA + backend health check visible.
 
 ---
 
 ## 🟢 Week 2 — Authentication & Local Pong
+
+**Pre-coding stage** (Backend → Frontend)
+- [ ] (Yulia) Define `api_contracts.md` for login/register/profile — Backend writes it first, then shares with Frontend.
+
 **Backend**
 - [ ] Implement register/login APIs (hashed passwords).
 - [ ] Add JWT + session cookies.
 - [ ] Add 2FA module.
+- [ ] (Yulia) - Set up Swagger (NestJS) for all future API docs (`/api/docs`).
+- [ ] (Yulia) - Add structured logging (NestJS Logger or custom middleware).
 
 **Frontend**
 - [ ] Build login/register pages with error handling.
 - [ ] Navbar updates on auth state.
+- [ ] (Yulia - optional) add very basic logger
 
 **Game**
 - [ ] Implement local Pong (2 players, scoring, win condition).
@@ -154,7 +166,7 @@
 - **Frontend**: Stats dashboard (Major).
 
 ## 🟦 Week 8
-- **Infra**: Microservices split (Major).
+- **Infra**: Microservices split (Major). - (Yulia) I am thinking about putting one thing to microservice - auth is a good candidate. If we decide on it, refactoring can be done earlier. So we don't break whole code before eval. We can postpone decision for later now.
 - **Frontend**: Multi-language support (Minor).
 - **All**: Documentation + defense prep.
 
@@ -163,4 +175,6 @@
 # ✅ Final Defense Prep
 - [ ] All modules tested against eval sheet (no visible errors).
 - [ ] Document “what/why/how” in `/docs/` + README.
+
 - [ ] Run full stack fresh via `docker-compose up --build`.
+
