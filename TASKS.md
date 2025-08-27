@@ -23,10 +23,10 @@
 
 #### Repository & Git Setup
 - [ ] **[URGENT]** Assign task owners for each major area
-  - [ ] Frontend Lead: `[UNASSIGNED]`
-  - [ ] Backend Lead: `[UNASSIGNED]`  
-  - [ ] Game Engine Lead: `[UNASSIGNED]`
-  - [ ] Infrastructure Lead: `[UNASSIGNED]`
+  - [ ] Frontend Lead: `[Juan]`
+  - [ ] Backend Lead: `[Yulia]`  
+  - [ ] Game Engine Lead: `[Camille]`
+  - [ ] Infrastructure Lead: `[Tina]`
 - [ ] Create `develop` branch from main
 - [ ] Set up branch protection rules (require PR reviews)
 - [ ] Create basic folder structure:
