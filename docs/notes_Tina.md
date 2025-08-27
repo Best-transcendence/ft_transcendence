@@ -18,10 +18,10 @@
 
 # Roles
 
-Camille - Game
-Yulia - Backend
-Juan - Frontend
-Tina - Infrastructure/DevOps
+- Camille - Game
+- Yulia - Backend
+- Juan - Frontend
+- Tina - Infrastructure/DevOps
 
 # Development Roadmap
 
