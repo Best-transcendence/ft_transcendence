@@ -3,10 +3,10 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const users = [
-    { email: 'yioffe@example.com', name: 'Yulia' },
-    { email: 'thuy-ngu@example.com', name: 'Tina' },
-    { email: 'juan-pma@example.com', name: 'Juan' },
-    { email: 'cbouvet@example.com', name: 'Camille' },
+    { email: 'yioffe@example.com', name: 'Yulia', password: 'q' },
+    { email: 'thuy-ngu@example.com', name: 'Tina', password: 'q' },
+    { email: 'juan-pma@example.com', name: 'Juan', password: 'q' },
+    { email: 'cbouvet@example.com', name: 'Camille', password: 'q' },
 ];
 
 async function main() {
