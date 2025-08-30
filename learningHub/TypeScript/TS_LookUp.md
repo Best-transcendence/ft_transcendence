@@ -1,10 +1,10 @@
 # 🔍︎ 🇹 🇸‌ Look-Up Chart  🔍︎
 
 ## 📖 Preface
-This is a comparative C++ VS JS chart.<br>
+This is a comparative C++ vs JS vs TS chart.<br>
 It aims at clearing out doubts quickly and finding key information easily.<br>
 <br>
-For additional doubts -> feel free to consult the [JS Dive-In](JS_DiveIn.md) available in this repo.
+For additional doubts -> feel free to consult the [TS Dive-In](TS_DiveIn.md) available in this repo.
 
 
 

@@ -1,9 +1,9 @@
 # 🧑‍💻 ｡ 🇹ype🇸cript ｡ 🧑‍💻
 
 Here's the LearningHub for TypeScript - AKA TS.<br><br>
-This learning stands on the shoulders of the JS learningHub.
+This learning stands on the shoulders of the [JS learningHub](../JavaScript/).<br>
 As TS is a subset of JS, it is important to be clear with JS's specificities beforehand.<br>
-💻 <br><br>
+
 Contents:
 
 ## 🔍︎ TS Look-Up chart
