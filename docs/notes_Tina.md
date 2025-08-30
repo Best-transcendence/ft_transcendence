@@ -31,28 +31,28 @@
 | 1  | Backend framework (Node.js+Fastify)| 0               | 3                        |
 | 2  | Database (SQLight + Prisma)        | 0               | —                        |
 | 3  | Frontend framework (TS+Tailwind/R) | 0               | 1                        | - React has SSR integration
-| O6 | Microservices architecture         | 1,2,4,5,7       | 2                        | - we can decide later
-| 4  | DevOps: log management             | 1               | 5, 8                     | - internal with backend/frontend
-| 5  | Standard User Management           | 2               | 4, 8                     |
-| O4 | WAF + Vault (secrets mgmt)         | 4               | 5,6,8                    |
-| 6  | Auth: JWT + 2FA                    | 2               | 4, 8                     |
-| 7  | SSR integration patterns (confirm) | 1,3             | 4, 8                     | - if it's built-in in the frontend framework (we can use React)
-| 9  | Responsive (all devices)           | 3               | 4,5,6,7                  |
-| 10 | Accessibility features             | 3               | 4,5,6,7,8                |
-| 11 | AI opponent                        | 1,2,5,7         | 11                       |
-| 12 | User & game stats dashboards       | 2,4,5,6         | 10                       |
-| 13 | Expanded browser compatibility     | 3,8,9           | —                        |
+| 4  | Microservices architecture         | -               | 2                        | - we can decide later
+| 5  | DevOps: log management             | 1               | 8, 10                    | - internal with backend/frontend
+| 6  | Standard User Management           | 1, 2            | 4, 7, 3                  |
+| 7  | WAF + Vault (secrets mgmt)         | 5               | 8, 9, 10                 |
+| 8  | Auth: JWT + 2FA                    | 2               | 5, 10                    |
+| 9  | SSR integration patterns (confirm) | 1,3             | 5, 10                    | - if it's built-in in the frontend framework (we can use React)
+| 10 | Responsive (all devices)           | 3               | 6, 7, 8, 9               |
+| 11 | Accessibility features             | 3               | 6, 7, 8, 9, 10           |
+| 12 | AI opponent                        | 1,2,8           | 13                       |
+| 13 | User & game stats dashboards       | 2,5,8,9         | 12                       |
+| 14 | Expanded browser compatibility     | 3,12,13         | —                        |
 
 
 # Supplementary Roadmap
 
 | #O | Workstream                              | Must come after | Can run in parallel with |
 |----|-----------------------------------------|-----------------|--------------------------|
-| O2 | Game customization options              | 3,7             | 8,11                     |
-| O3 | Remote authentication (IdP/OAuth/SAML)  | 5               | 6,8                      | - if we have time after 2FA
-| O5 | GDPR toolkit (anonymize/local/delete)   | 2,5             | 11                       |
-| O7 | Multiple languages (i18n)               | 3               | 8,9                      |
-| O8 | Store tournament scores on Blockchain   | 12              | -                        |
+| O1 | Game customization options              | 3,7             | 8,11                     |
+| O2 | Remote authentication (IdP/OAuth/SAML)  | 5               | 6,8                      | - if we have time after 2FA
+| O3 | GDPR toolkit (anonymize/local/delete)   | 2,5             | 11                       |
+| O4 | Multiple languages (i18n)               | 3               | 8,9                      |
+| O5 | Store tournament scores on Blockchain   | 12              | -                        |
 
 # My Recommended Modules
 (I explain my opinion at the end of every line)
