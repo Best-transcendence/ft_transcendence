@@ -6,21 +6,21 @@ A **glossary** is also available in the last chapter to address JS specific jarg
 Happy to help with any point that might not be clear!<br>
 
 ## 🗂️ Contents
-1\) [Language & runtime model](#Language-&-runtime-model);<br>
-2\) [Values & types](#Values-&-types);<br>
-3\) [Variables & scope](#Variables-&-scope);<br>
-4\) [Objects & property basics](#Objects-&-property-basics);<br>
-5\) [Prototype, constructors, new, classes](#Prototype,-constructors,-new,-classes);<br>
-6\) [Functions, arrow functions, closures](#Functions,-arrow-functions,-closures);<br>
-7\) [Arrow functions vs regular functions](#Arrow-functions-vs-regular-functions);<br>
-8\) [Arrays, iterables, and iteration](#Arrays,-iterables,-and-iteration);<br>
-9\) [Generators & yield](#Generators-&-yield);<br>
-10\) [Maps, Sets, WeakMaps, WeakSets](#Maps,-Sets,-WeakMaps,-WeakSet);<br>
-11\) [Promises, async/await, and the event loop](#Promises,-async/await,-and-the-event-loop);<br>
-12\) [Error handling](#Error-handling);<br>
-13\) [Memory & lifetimes](#Memory-&-lifetimes);<br>
-14\) [Modules](#Modules);<br>
-15\) [Glossary](#Glossary).<br><br>
+1) [Language & runtime model](#language--runtime-model)<br>
+2) [Values & types](#values--types)<br>
+3) [Variables & scope](#variables--scope)<br>
+4) [Objects & property basics](#objects--property-basics)<br>
+5) [Prototype, constructors, new, classes](#prototype-constructors-new-classes)<br>
+6) [Functions, arrow functions, closures](#functions-arrow-functions-closures)<br>
+7) [Arrow functions vs regular functions](#arrow-functions-vs-regular-functions)<br>
+8) [Arrays, iterables, and iteration](#arrays-iterables-and-iteration)<br>
+9) [Generators & yield](#generators--yield)<br>
+10) [Maps, Sets, WeakMaps, WeakSets](#maps-sets-weakmaps-weaksets)<br>
+11) [Promises, async/await, and the event loop](#promises-asyncawait-and-the-event-loop)<br>
+12) [Error handling](#error-handling)<br>
+13) [Memory & lifetimes](#memory--lifetimes)<br>
+14) [Modules](#modules)<br>
+15) [Glossary](#glossary)<br>
 
 
 
