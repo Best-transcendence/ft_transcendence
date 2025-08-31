@@ -8,8 +8,8 @@ This README explains how to run the **backend** of the project using Fastify, SQ
 
 ```bash
 git clone git@github.com:Best-transcendence/ft_transcendence.git
-cd ft_transcendence/backend
 git checkout 4-basic-backend-in-fastify
+cd ft_transcendence/backend
 ```
 
 ---
