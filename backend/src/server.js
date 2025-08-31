@@ -11,6 +11,7 @@ dotenv.config();
 // basic logging setup
 const app = Fastify({ logger: true });
 
+// QUESTION: check why we need twice the swagger registration
 await app.register(fastifySwagger, {
     swagger: {
         info: {
@@ -37,6 +38,7 @@ app.register(prismaPlugin);
 app.register(usersRoutes, { prefix: '/users' });
 app.register(rootRoute);
 
+// QUESTION: read more about async/await in this context
 const start = async () => {
     try {
         await app.listen({ port: process.env.PORT || 3000 });
