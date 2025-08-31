@@ -19,7 +19,7 @@ await app.register(fastifySwagger, {
             description: 'Auto-generated docs',
             version: '0.1.0',
         },
-        host: 'localhost:3000',
+        host: 'localhost:3001',
         schemes: ['http'],
         consumes: ['application/json'],
         produces: ['application/json'],
@@ -41,8 +41,8 @@ app.register(rootRoute);
 // QUESTION: read more about async/await in this context
 const start = async () => {
     try {
-        await app.listen({ port: process.env.PORT || 3000 });
-        console.log(`Server running at http://localhost:${process.env.PORT || 3000}`);
+        await app.listen({ port: process.env.PORT || 3001 });
+        console.log(`Server running at http://localhost:${process.env.PORT || 3001}`);
     } catch (err) {
         app.log.error(err);
         process.exit(1);

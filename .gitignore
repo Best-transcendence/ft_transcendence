@@ -89,3 +89,5 @@ backend/npm-debug.log*
 # Frontend (если будет)
 frontend/node_modules/
 frontend/dist/
+
+/generated/prisma
