@@ -1,3 +1,5 @@
+<!-- TODO: update aligned with the project -->
+
 # 🏓 ft_transcendence - Real-time Pong Tournament Platform
 
 A modern, full-stack web application implementing the classic Pong game with tournaments, real-time multiplayer, and advanced features built with Next.js, NestJS, and WebSocket technology.

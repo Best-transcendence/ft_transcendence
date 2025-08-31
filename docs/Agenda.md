@@ -18,10 +18,10 @@
 
 # Roles
 
-- Camille - Game
-- Yulia - Backend
-- Juan - Frontend
-- Tina - Infrastructure/DevOps
+- Frontend Lead: `[Juan]`
+- Backend Lead: `[Yulia]`  
+- Game Engine Lead: `[Camille]`
+- Infrastructure Lead: `[Tina]`
 
 # Development Roadmap
 
