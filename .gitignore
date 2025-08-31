@@ -1,5 +1,4 @@
 # Environment variables
-.env
 .env.local
 .env.development.local
 .env.test.local
@@ -81,7 +80,6 @@ game/assets/cache/
 
 # Backend (Fastify + Prisma)
 backend/node_modules/
-backend/.env
 backend/prisma/dev.db
 backend/prisma/*.db-journal
 backend/dist/
@@ -90,5 +88,4 @@ backend/npm-debug.log*
 
 # Frontend (если будет)
 frontend/node_modules/
-frontend/.env
 frontend/dist/
