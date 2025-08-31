@@ -80,6 +80,7 @@ export default function LoginPage() {
             </div>
 
             <div>
+				{/* TODO: add password validation */}
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
