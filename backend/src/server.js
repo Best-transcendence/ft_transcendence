@@ -5,12 +5,24 @@ import usersRoutes from './routes/users.js';
 import rootRoute from './routes/root.js';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
+import fastifyCors from '@fastify/cors';
 
 dotenv.config();
 
 // basic logging setup
 const app = Fastify({ logger: true });
 
+// ____________ FRONT END CONNECTION TEST ______
+
+await app.register(fastifyCors, {
+  origin: "http://localhost:1234", // The frontend end point with fastify Cross-Origin Resource Sharing
+  credentials: true,
+});
+
+import authRoutes from './routes/auth.js'; // File where we check if the parameters passed are corrct. 
+app.register(authRoutes);
+
+//_______________________________________________
 // QUESTION: check why we need twice the swagger registration
 await app.register(fastifySwagger, {
     swagger: {

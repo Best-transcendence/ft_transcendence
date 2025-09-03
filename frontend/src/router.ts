@@ -1,5 +1,6 @@
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage } from "./pages/LobbyPage";
+import { login } from "./services/api";
 
 export function router() {
   const app = document.getElementById("app")!;
@@ -25,10 +26,21 @@ export function router() {
 /* Example: add listeners after rendering LoginPage */
 function attachLoginListeners() {
   const form = document.getElementById("login-form");
-  form?.addEventListener("submit", (e) => {
-    e.preventDefault();
+
+form?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = (document.querySelector("input[type='text']") as HTMLInputElement).value;
+  const password = (document.querySelector("input[type='password']") as HTMLInputElement).value;
+
+  try {
+    const user = await login(email, password);
+    console.log("Logged in:", user);
     window.location.hash = "lobby"; // navigate to lobby
-  });
+  } catch (err) {
+    alert("Login failed ❌");
+  }
+});
 
   const guest = document.getElementById("guest-login");
   guest?.addEventListener("click", () => {

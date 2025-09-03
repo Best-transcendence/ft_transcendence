@@ -100,10 +100,33 @@ Frontend will be available at 👉 `http://localhost:8080`
 
 We follow a **branching strategy** to stay organized:
 
+### Main branches:
+
+* **`main`** → stable, production-ready.
+* **`develop`** → integration branch (all features get merged here first).
+
+### Feature branches:
+
+Each new task/feature = new branch from `dev`.
+Naming convention:
+
+```
+feature/<short-description>
+
+int this case is
+
+frontend
+```
+
+Examples:
+
+* `feature/login-page`
+* `feature/router`
+* `feature/pong-2d`
 
 ### Workflow:
 
-1. Start from latest `develop`:
+1. Start from latest `dev`:
 
    ```bash
    git checkout dev
