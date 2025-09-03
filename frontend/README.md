@@ -58,35 +58,14 @@ npm install
 npm install -D tailwindcss postcss autoprefixer
 ```
 
-### 2. Run the dev server
+### 2. Run the server
 
 ```bash
-npm run start
+npm run dev
 ```
 
 SPA will be available at 👉 `http://localhost:1234`
 
-### 3. Build for production
-
-```bash
-npm run build
-```
-
-Builds static files into `/dist`.
-
----
-
-## 🐳 Run in Docker
-
-From the **project root**:
-
-```bash
-docker-compose up --build
-```
-
-Frontend will be available at 👉 `http://localhost:8080`
-
----
 
 ## 📦 Available Scripts
 
@@ -95,34 +74,6 @@ Frontend will be available at 👉 `http://localhost:8080`
 * `npm run tailwind:build` → Rebuilds Tailwind CSS.
 
 ---
-
-## 🔀 Git Workflow (Agile)
-
-We follow a **branching strategy** to stay organized:
-
-### Main branches:
-
-* **`main`** → stable, production-ready.
-* **`develop`** → integration branch (all features get merged here first).
-
-### Feature branches:
-
-Each new task/feature = new branch from `develop`.
-Naming convention:
-
-```
-feature/<short-description>
-
-int this case is
-
-frontend
-```
-
-Examples:
-
-* `feature/login-page`
-* `feature/router`
-* `feature/pong-2d`
 
 ### Workflow:
 
