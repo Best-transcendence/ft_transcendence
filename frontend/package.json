@@ -1,6 +1,7 @@
 {
   "name": "services",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "start": "parcel public/index.html --open",
     "build": "parcel build public/index.html",
