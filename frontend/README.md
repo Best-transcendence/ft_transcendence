@@ -60,6 +60,11 @@ npm install -D tailwindcss postcss autoprefixer
 
 ### 2. Run the server
 
+*In case you changed something on the frontend*
+```bash
+rm -rf dist .parcel-cache
+```
+
 ```bash
 npm run dev
 ```
