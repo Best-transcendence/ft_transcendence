@@ -107,7 +107,7 @@ We follow a **branching strategy** to stay organized:
 
 ### Feature branches:
 
-Each new task/feature = new branch from `dev`.
+Each new task/feature = new branch from `develop`.
 Naming convention:
 
 ```
@@ -126,11 +126,11 @@ Examples:
 
 ### Workflow:
 
-1. Start from latest `dev`:
+1. Start from latest `develop`:
 
    ```bash
-   git checkout dev
-   git pull origin dev
+   git checkout develop
+   git pull origin develop
    git checkout -b feature/login-page
    ```
 2. Do your work & commit often.
@@ -139,9 +139,9 @@ Examples:
    ```bash
    git push origin feature/login-page
    ```
-4. Open a Pull Request into `dev`.
+4. Open a Pull Request into `develop`.
 5. Another teammate reviews → then merge.
-6. When a sprint ends, `dev` → `main` (stable release).
+6. When a sprint ends, `develop` → `main` (stable release).
 
 ---
 
