@@ -1,7 +1,14 @@
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage } from "./pages/LobbyPage";
 import { login } from "./services/api";
+import { GameIntroPage } from "./pages/GameIntroPage";
 
+//_______ Info
+/*
+The router will set up the routing sistem for the SAP
+with the # for now just to see if everything works.
+
+*/
 export function router() {
   const app = document.getElementById("app")!;
   const page = window.location.hash.replace("#", "") || "login";
@@ -14,6 +21,10 @@ export function router() {
 
     case "lobby":
       app.innerHTML = LobbyPage();
+      break;
+
+    case "GameIntroPage":
+      app.innerHTML = GameIntroPage();
       break;
 
     default:
@@ -36,7 +47,7 @@ form?.addEventListener("submit", async (e) => {
   try {
     const user = await login(email, password);
     console.log("Logged in:", user);
-    window.location.hash = "lobby"; // navigate to lobby
+    window.location.hash = "GameIntroPage"; // navigate to lobby
   } catch (err) {
     alert("Login failed ❌");
   }
