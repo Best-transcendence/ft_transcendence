@@ -1,43 +1,139 @@
-# ft_transcendence Frontend (Next.js + TS + Tailwind)
+---
 
-This README explains how to run the **frontend** of the project using TypeScript with Next.js framework and Tailwind CSS.
+# 🎮 ft\_transcendence – Frontend
 
-## ✅ 1. Clone the Repository
+This branch contains the **frontend part** of the ft\_transcendence project.
+We are building a **vanilla TypeScript SPA** with **TailwindCSS** (Frontend module) and using **Parcel** as bundler.
 
-```bash
-git clone git@github.com:Best-transcendence/ft_transcendence.git
-cd ft_transcendence
-git checkout 3-front_end_login_page
+---
+
+## 🗂️ Project Structure
+
+```
+frontend/
+│── public/
+│    ├── index.html         # Root HTML entry
+│    ├── styles.css         # Tailwind entry
+│    └── assets/            # Images, logos, icons
+│
+│── src/
+│    ├── app.ts             # SPA bootstrap
+│    ├── router.ts          # Simple router
+│    │
+│    ├── pages/             # Screens of the app
+│    │    ├── LoginPage.ts
+│    │    ├── LobbyPage.ts
+│    │    ├── TournamentPage.ts
+│    │    └── GamePage.ts
+│    │
+│    ├── components/        # Reusable UI widgets
+│    │    ├── Button.ts
+│    │    ├── InputField.ts
+│    │    └── ScoreBoard.ts
+│    │
+│    ├── game/              # Game logic
+│    │    ├── Pong2D.ts
+│    │    └── Pong3D.ts
+│    │
+│    └── services/          # API + WebSockets
+│         ├── api.ts
+│         ├── ws.ts
+│         └── auth.ts
+│
+│── package.json
+│── tsconfig.json
+│── tailwind.config.js
+│── Dockerfile
 ```
 
-## DON'T ⚙️ Install Dependencies (just for documentation)
+---
 
-from workspace root
-```bash
-npx create-next-app@latest frontend --typescript --tailwind --eslint
-```
+## ⚙️ Setup & Run (Local Dev)
 
-## 🚀 2. Start the Dev Server
+### 1. Install dependencies
 
 ```bash
 cd frontend
+npm install
+npm install -D tailwindcss postcss autoprefixer
 ```
+
+### 2. Run the dev server
 
 ```bash
-npm run dev
-```
-## 4. Wait for the following signs
-
-✓ Starting...
- ✓ Ready in 19.3s
- ○ Compiling / ...
- ✓ Compiled
-
-## 📖 4. Open login page / default Next.js
-
-Visit:
-```
-http://localhost:3000
-http://localhost:3000/login
+npm run start
 ```
 
+SPA will be available at 👉 `http://localhost:1234`
+
+### 3. Build for production
+
+```bash
+npm run build
+```
+
+Builds static files into `/dist`.
+
+---
+
+## 🐳 Run in Docker
+
+From the **project root**:
+
+```bash
+docker-compose up --build
+```
+
+Frontend will be available at 👉 `http://localhost:8080`
+
+---
+
+## 📦 Available Scripts
+
+* `npm run start` → Runs Parcel dev server (hot reload).
+* `npm run build` → Bundles frontend for production.
+* `npm run tailwind:build` → Rebuilds Tailwind CSS.
+
+---
+
+## 🔀 Git Workflow (Agile)
+
+We follow a **branching strategy** to stay organized:
+
+
+### Workflow:
+
+1. Start from latest `develop`:
+
+   ```bash
+   git checkout dev
+   git pull origin dev
+   git checkout -b feature/login-page
+   ```
+2. Do your work & commit often.
+3. Push your branch:
+
+   ```bash
+   git push origin feature/login-page
+   ```
+4. Open a Pull Request into `dev`.
+5. Another teammate reviews → then merge.
+6. When a sprint ends, `dev` → `main` (stable release).
+
+---
+
+## 🎯 Roadmap (Frontend Leader)
+
+* [x] SPA skeleton with router.
+* [x] TailwindCSS setup.
+* [ ] Login Page.
+* [ ] Lobby Page (choose PvP, AI, Tournament).
+* [ ] Tournament system UI.
+* [ ] Pong2D prototype.
+* [ ] Upgrade to Pong3D (Babylon.js).
+
+---
+
+💡 *This README is only for the **frontend branch**. The full project will also include backend, DB, blockchain, and devops services.*
+
+---
