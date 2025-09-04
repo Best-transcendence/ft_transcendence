@@ -24,6 +24,14 @@ export function LoginPage() {
 
         <!-- Login Form -->
         <form id="login-form" class="flex flex-col gap-4">
+          <!-- Name field (hidden by default) -->
+          <input
+            id="name-field"
+            class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2 hidden"
+            style="focus:ring: var(--color-accent1)"
+            type="text"
+            placeholder="Name"
+          />
           <input
             class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2"
             style="focus:ring: var(--color-accent1)"
@@ -35,6 +43,14 @@ export function LoginPage() {
             style="focus:ring: var(--color-accent1)"
             type="password"
             placeholder="Password"
+          />
+          <!-- Confirm Password field (hidden by default) -->
+          <input
+            id="confirm-password-field"
+            class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2 hidden"
+            style="focus:ring: var(--color-accent1)"
+            type="password"
+            placeholder="Confirm Password"
           />
           <button
             type="submit"
@@ -57,6 +73,15 @@ export function LoginPage() {
         >
           <img src="/assets/google.svg" class="w-5 h-5" />
           Google Sign-in
+        </button>
+
+        <!-- Sign Up Button -->
+        <button
+          id="signup-toggle"
+          class="mt-4 text-sm cursor-pointer bg-transparent border-none"
+          style="color: var(--color-accent2);"
+        >
+          Don't have an account? <span class="font-bold text-blue-600">Sign Up</span>
         </button>
 
         <!-- Guest Option -->
