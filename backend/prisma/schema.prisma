@@ -1,3 +1,4 @@
+// TODO: check if we can leave Prisma, maybe we have to get rid of it before evaluation
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
