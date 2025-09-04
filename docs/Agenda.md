@@ -28,31 +28,31 @@
 | #  | Workstream                         | Must come after | Can run in parallel with |
 |----|------------------------------------|-----------------|--------------------------|
 | 0  | Project Foundations                | —               | —                        |
-| 1  | Backend framework (Node.js+Fastify)| 0               | 3                        |
-| 2  | Database (SQLight + Prisma)        | 0               | —                        |
-| 3  | Frontend framework (TS+Tailwind/R) | 0               | 1                        | - React has SSR integration
-| 4  | Microservices architecture         | -               | 2                        | - we can decide later
-| 5  | DevOps: log management             | 1               | 8, 10                    | - internal with backend/frontend
-| 6  | Standard User Management           | 1, 2            | 4, 7, 3                  |
-| 7  | WAF + Vault (secrets mgmt)         | 5               | 8, 9, 10                 |
-| 8  | Auth: JWT + 2FA                    | 2               | 5, 10                    |
-| 9  | SSR integration patterns (confirm) | 1,3             | 5, 10                    | - if it's built-in in the frontend framework (we can use React)
-| 10 | Responsive (all devices)           | 3               | 6, 7, 8, 9               |
-| 11 | Accessibility features             | 3               | 6, 7, 8, 9, 10           |
-| 12 | AI opponent                        | 1,2,8           | 13                       |
-| 13 | User & game stats dashboards       | 2,5,8,9         | 12                       |
-| 14 | Expanded browser compatibility     | 3,12,13         | —                        |
+| 1  | Backend framework (Node.js+Fastify)| 0               | 3                        | - Major
+| 2  | Database (SQLight + Prisma)        | 0               | —                        | - Minor
+| 3  | Frontend framework (TS+Tailwind/R) | 0               | 1                        | - Minor
+| 4  | Microservices architecture         | -               | 2                        | - Major
+| 5  | DevOps: log management             | 1               | 8, 10                    | - (Major) - internal with backend/frontend
+| 6  | Standard User Management           | 1, 2            | 4, 7, 3                  | - Major
+| 7  | WAF + Vault (secrets mgmt)         | 5               | 8, 9, 10                 | - Major
+| 8  | Auth: JWT + 2FA                    | 2               | 5, 10                    | - Major
+| 9  | SSR integration patterns (confirm) | 1,3             | 5, 10                    | - Minor, if it's built-in in the frontend framework (we can use React)
+| 10 | Responsive (all devices)           | 3               | 6, 7, 8, 9               | - Minor
+| 11 | Accessibility features             | 3               | 6, 7, 8, 9, 10           | - Minor
+| 12 | AI opponent                        | 1,2,8           | 13                       | - Major
+| 13 | User & game stats dashboards       | 2,5,8,9         | 12                       | - Minor
+| 14 | Expanded browser compatibility     | 3,12,13         | —                        | - Minor
 
 
 # Supplementary Roadmap
 
 | #O | Workstream                              | Must come after | Can run in parallel with |
 |----|-----------------------------------------|-----------------|--------------------------|
-| O1 | Game customization options              | 3,7             | 8,11                     |
-| O2 | Remote authentication (IdP/OAuth/SAML)  | 5               | 6,8                      | - if we have time after 2FA
-| O3 | GDPR toolkit (anonymize/local/delete)   | 2,5             | 11                       |
-| O4 | Multiple languages (i18n)               | 3               | 8,9                      |
-| O5 | Store tournament scores on Blockchain   | 12              | -                        |
+| O1 | Game customization options              | 3,7             | 8,11                     | - Minor
+| O2 | Remote authentication (IdP/OAuth/SAML)  | 5               | 6,8                      | - Major, if we have time after 2FA
+| O3 | GDPR toolkit (anonymize/local/delete)   | 2,5             | 11                       | - Minor
+| O4 | Multiple languages (i18n)               | 3               | 8,9                      | - Minor
+| O5 | Store tournament scores on Blockchain   | 12              | -                        | - Major
 
 # My Recommended Modules
 (I explain my opinion at the end of every line)
