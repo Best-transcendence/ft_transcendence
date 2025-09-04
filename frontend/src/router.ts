@@ -42,9 +42,9 @@ function attachLoginListeners() {
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const email = (document.querySelector("input[type='email']") as HTMLInputElement).value;
+  const email = (document.querySelector("input[type='email']") as HTMLInputElement).value.trim();
   const password = (document.querySelector("input[type='password']") as HTMLInputElement).value;
-  const name = (document.getElementById("name-field") as HTMLInputElement)?.value;
+  const name = (document.getElementById("name-field") as HTMLInputElement)?.value?.trim();
   const confirmPassword = (document.getElementById("confirm-password-field") as HTMLInputElement)?.value;
 
   try {
