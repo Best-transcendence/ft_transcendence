@@ -7,7 +7,7 @@ export async function getUsers() {
   return res.json();
 }
 
-// Example: login (dummy for now)
+// Login function
 export async function login(email: string, password: string) {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
@@ -15,6 +15,23 @@ export async function login(email: string, password: string) {
     body: JSON.stringify({ email, password }),
     credentials: "include", // if backend uses cookies/sessions
   });
-  if (!res.ok) throw new Error("Login failed");
+  
+  if (!res.ok) {
+    // Try to get the error message from the backend
+    try {
+      const errorData = await res.json();
+      throw new Error(errorData.error || "Login failed");
+    } catch (parseError) {
+      // Only catch JSON parsing errors, not our thrown errors
+      if (parseError instanceof SyntaxError) {
+        console.log("Failed to parse error response:", parseError);
+        throw new Error("Login failed");
+      } else {
+        // Re-throw our error message
+        throw parseError;
+      }
+    }
+  }
+  
   return res.json();
 }

@@ -6,7 +6,11 @@ export default async function authRoutes(fastify) {
       const { email, password } = request.body;
 
       // Basic input validation
+      console.log("Validation check - email:", email, "password:", password);
+      console.log("!email:", !email, "!password:", !password);
+      
       if (!email || !password) {
+        console.log("Validation failed - returning 400");
         return reply.status(400).send({ error: "Email and password are required" });
       }
 
