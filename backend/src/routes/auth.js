@@ -6,6 +6,7 @@ export default async function authRoutes(fastify) {
 
     // check in DB
     const user = await fastify.prisma.user.findUnique({ where: { email } });
+    // TODO: change this validation to proper user/password
     if (!user || password !== "q") { // Simple check we need to set up a different password policy.
       return reply.status(401).send({ error: "Invalid credentials" });
     }
