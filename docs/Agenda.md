@@ -1,180 +1,229 @@
-# 📌 PROJECT SEGMENTS
+# 📑 Table of Contents
 
-## 🎨 Frontend (Next.js + TypeScript)
-- [ ] Sets up **Next.js SPA/SSR hybrid** with TypeScript.
-- [ ] Implements UI for login, register, tournament flow, Pong canvas, chat.
-- [ ] Ensures **responsive design** (desktop, tablet, mobile).
-- [ ] Adds **accessibility features** (WCAG compliance).
-- [ ] Works closely with Game dev for seamless canvas integration.
-- [ ] Provides **stats dashboard**, **rules/manual/help**, and **end-game screen**.
-- [ ] Ensures smooth navigation (Back/Forward support) and **cross-browser compatibility**.
+- *read third from 1-2*
+- [0. Roles](#roles)
+- [1. Development Roadmap](#development-roadmap)
+- [2. Supplementary Roadmap](#supplementary-roadmap)
+- *read second from 3-5*
+- [3. My Recommended Modules](#my-recommended-modules)
+- [4. Only If Modules](#only-if-modules)
+- [5. Not Recommended Modules](#not-recommended-modules)
+- *read first from 6-8*
+- [6. Mandatory Minimum](#mandatory-minimum)
+- [7. Module Explanation](#modules-explanation)
+- [8. Risk Map](#risk-map)
+  - [🟢 Low Risk (Safe / Predictable)](#-low-risk-safe--predictable)
+  - [🟡 Medium Risk (Manageable with Planning)](#-medium-risk-manageable-with-planning)
+  - [🔴 High Risk (Heavy / Time-Consuming)](#-high-risk-heavy--time-consuming)
 
----
+# Roles
 
-## 🕹️ Game & Mechanics
-- [ ] Builds Pong engine (keyboard 2-player first).
-- [ ] Extends to matchmaking, tournaments, multiplayer, AI opponent.
-- [ ] Adds **live chat** during matches (WebSockets).
-- [ ] Ensures game **feels like classic Pong** while supporting extensions.
-- [ ] Handles **lag/disconnects gracefully** (pause, rejoin, timeout).
-- [ ] Provides customization options (later module).
+- Camille - Game
+- Yulia - Backend
+- Juan - Frontend
+- Tina - Infrastructure/DevOps
 
----
+# Development Roadmap
 
-## 🗄️ Backend (NestJS + Postgres + Prisma)
-- [ ] Sets up **NestJS backend** with REST + WebSocket endpoints.
-- [ ] Connects to **Postgres via Prisma ORM**. (Yulia) Subject: "The designated database for all DB instances in your project is SQLite This choice
-ensure data consistency and compatibility across all project components and may
-be a prerequisite for other modules, such as the backend Framework module." Do we choose Postgres? Let's discuss
-- [ ] Implements **Auth (JWT + 2FA)** with secure cookies.
-- [ ] Manages users, profiles, tournament data, match history.
-- [ ] Exposes APIs for chat, tournaments, stats.
-- [ ] Validates & sanitizes all inputs, protects against **SQLi/XSS**.
-- [ ] Expands later with **OAuth/SAML (remote auth)** and GDPR tooling.
+| #  | Workstream                         | Must come after | Can run in parallel with |
+|----|------------------------------------|-----------------|--------------------------|
+| 0  | Project Foundations                | —               | —                        |
+| 1  | Backend framework (Node.js+Fastify)| 0               | 3                        |
+| 2  | Database (SQLight + Prisma)        | 0               | —                        |
+| 3  | Frontend framework (TS+Tailwind/R) | 0               | 1                        | - React has SSR integration
+| 4  | Microservices architecture         | -               | 2                        | - we can decide later
+| 5  | DevOps: log management             | 1               | 8, 10                    | - internal with backend/frontend
+| 6  | Standard User Management           | 1, 2            | 4, 7, 3                  |
+| 7  | WAF + Vault (secrets mgmt)         | 5               | 8, 9, 10                 |
+| 8  | Auth: JWT + 2FA                    | 2               | 5, 10                    |
+| 9  | SSR integration patterns (confirm) | 1,3             | 5, 10                    | - if it's built-in in the frontend framework (we can use React)
+| 10 | Responsive (all devices)           | 3               | 6, 7, 8, 9               |
+| 11 | Accessibility features             | 3               | 6, 7, 8, 9, 10           |
+| 12 | AI opponent                        | 1,2,8           | 13                       |
+| 13 | User & game stats dashboards       | 2,5,8,9         | 12                       |
+| 14 | Expanded browser compatibility     | 3,12,13         | —                        |
 
----
 
-## ⚙️ Infrastructure & DevOps
-- [ ] Dockerize all services (`docker-compose up --build` at repo root).
-- [ ] Proxy + TLS termination (Nginx or Traefik).
-- [ ] Manages **secrets** with `.env` and Vault later.
-- [ ] Sets up **logging + monitoring** stack.
-- [ ] Provides `.env.example` (ensures `.env` is gitignored).
-- [ ] Adds CI checks for linting, formatting, and type safety.
-- [ ] Ensures HTTPS + WSS across stack.
+# Supplementary Roadmap
 
----
+| #O | Workstream                              | Must come after | Can run in parallel with |
+|----|-----------------------------------------|-----------------|--------------------------|
+| O1 | Game customization options              | 3,7             | 8,11                     |
+| O2 | Remote authentication (IdP/OAuth/SAML)  | 5               | 6,8                      | - if we have time after 2FA
+| O3 | GDPR toolkit (anonymize/local/delete)   | 2,5             | 11                       |
+| O4 | Multiple languages (i18n)               | 3               | 8,9                      |
+| O5 | Store tournament scores on Blockchain   | 12              | -                        |
 
-# 📅 PROJECT ROADMAP
+# My Recommended Modules
+(I explain my opinion at the end of every line)
+🫶
+### Web
+  - Major module: Use a framework to build the backend - ADDED
+  - Minor module: Use a framework or a toolkit to build the frontend - RESEARCH, must write TypeScript, so we can use React → Next.js - built on top of React (SSR/SSG, routing, data fetching, auth-friendly)
+  - Minor module: Use a database for the backend -  YULIA: 10, JUAN:8, kinda mandatory
 
-## 🟢 Week 0 — Foundations
-- [ ] Create repo + branches (`main`, `develop`).
-- [ ] Add `.gitignore`, `.env.example`, `README.md`.
-- [ ] Ensure `.env` is gitignored (eval rule).
-- [ ] Split ownership: Frontend, Game, Backend, Infra.
-- [ ] Create folder skeleton:
-	/docker-compose.yml
-	/frontend/
-	/backend/
-	/proxy/ # nginx/caddy/traefik TLS termination
-	/db/ # migrations or seed for SQLite if used
-	/docs/ # architecture, runbook, eval notes
+### Gameplay and user experience
+  - Major module: Live chat - ADDED
 
-**Goal:** Everyone aligned, repo structure ready.
+### AI-Algo
+  - Major module: Introduce an AI opponent - CAMILLE: 10, TINA, really good to show a demo
+  - Minor module: User and game stats dashboards - CAMILLE : 7, TINA: 9, YULIA, easy, traditional feature
 
----
-## 🟢 Week 1 — Base Infra & Scaffolds
-**Infra**
-- [ ] Docker-compose with services (frontend, backend, db, proxy).
-- [ ] TLS termination with self-signed certs.
-- [ ] Verify `docker-compose up --build` works.
+### Cybersecurity
+  - Major module: Implement Two-Factor Authentication (2FA) and JWT - ADDED
 
-**Backend**
-- [ ] Init NestJS project with health check route.
-- [ ] Connect Postgres + Prisma schema init. (Yulia) let's verify or DB choice, see above
+### Devops
+  - Major module: Infrastructure setup for log management. - YULIA, CAMILLE, it would help debugging for all of us
 
-**Frontend**
-- [ ] Setup Next.js + TS scaffold with routes `/login`, `/register`, `/tournament`, `/play`.
+### Accessibility
+  - Minor module: Support on all devices. - TINA: 10, quick and small responsive design changes
+  - Minor module: Expanding browser compatibility. - BONUS, probably nothing to do
+  - Minor module: Add accessibility features for visually impaired users. - RESEARCH JUAN, TINA, almost nothing to do, easy to implement in the workflow
+  - Minor module: Server-Side Rendering (SSR) integration. - RESEARCH CAMILLE, TINA, YULIA, it is a built-in in the framework as I mentioned beyond *"React → Next.js - built on top of React (SSR/SSG, routing, data fetching, auth-friendly)"*
 
-**Game**
-- [ ] Static Pong canvas placeholder.
+# Only If Modules
+🤔
+### Web
+  - Major module: Store the score of a tournament in the Blockchain - CAMILLE: 9, JUAN: 8, really complex, but it wouldn't influence the workflow, probably just could be implemented close to the end of the project and then you can count with the time
 
-**Additional from Yulia**
-- [ ] (Yulia) Set up pre-commit hooks for linting and formatting (I can show how to do)
+### Gameplay and user experience
+  - Major module: Multiplayer (more than 2 players in the same game) - JUAN: 9, I don't recommend, it would require a more complex game logic and a lot additional at the end, but maybe if we set up a good plan how to execute
+  - Minor module: Game customization options - JUAN: 8, good and simple extra if we are good in time close to the end
 
-**Goal:** One-command stack launches; SPA + backend health check visible.
+### User Management
+  - Major module: Implementing a remote authentication - TINA: 9, CAMILLE, popular feature nowadays, can be really hard to implement, we could try to do when we do the other authentication
 
----
+### Cybersecurity
+  - Major module: Implement WAF/ModSecurity with a hardened configuration and HashiCorp Vault for secrets management - RESEARCH (CAMILLE AND JUAN), TINA:9, jobmarket, hands-on experience,
+complicated
+  - Minor module: GDPR compliance options with user anonymization, local data management, and Account Deletion - RESEARCH (CAMILLE AND JUAN), good hands-on experience but require more time
 
-## 🟢 Week 2 — Authentication & Local Pong
+### Devops
+  - Major module: Designing the backend as microservices. - REASEARCH, YULIA: 10, I don't recommend, but maybe if we can make a good plan on it and explain how it affects the project what we should take care of it and everybody could follow during the process, I just think it would require a lot of extra care regarding the whole workflow
 
-**Pre-coding stage** (Backend → Frontend)
-- [ ] (Yulia) Define `api_contracts.md` for login/register/profile — Backend writes it first, then shares with Frontend.
+### Accessibility
+  - Minor module: Supports multiple languages. - RESEARCH CAMILLE, not so much extra work, not the most important but a really useful feature for accessibility
 
-**Backend**
-- [ ] Implement register/login APIs (hashed passwords).
-- [ ] Add JWT + session cookies.
-- [ ] Add 2FA module.
-- [ ] (Yulia) - Set up Swagger (NestJS) for all future API docs (`/api/docs`).
-- [ ] (Yulia) - Add structured logging (NestJS Logger or custom middleware).
+# Not Recommended Modules
+🙅‍♀️
+### Graphics
+  - Major module: Use advanced 3D techniques. - RESEARCH (JUAN), not so useful if none of us into graphics and time-consuming
 
-**Frontend**
-- [ ] Build login/register pages with error handling.
-- [ ] Navbar updates on auth state.
-- [ ] (Yulia - optional) add very basic logger
+### Gameplay and user experience
+  - Major module: Remote players - SKIP
+  - Major module: Add another game with user history and matchmaking - SKIP
 
-**Game**
-- [ ] Implement local Pong (2 players, scoring, win condition).
-- [ ] Add **rules/manual** + **end-game screen**.
+### Devops
+  - Minor module: Monitoring system. - SKIP
 
-**Infra**
-- [ ] Test `.env` injection + secrets.
-- [ ] Confirm HTTPS works across services.
+### User Management
+  - Major module: Standard user management, authentication, users across tournaments - YULIA OPTIONAL, CAMILLE, doesn't teach you too many new things, time-consuming with the edge cases
 
-**Goal:** Auth + Local Pong working inside SPA.
+### Server-Side Pong
+  - Major module: Replace basic Pong with server-side Pong and implement an API. - RESEARCH YULIA, CAMILLE, too risky regarding the infrastructure
+  - Major module: Enabling Pong gameplay via CLI against web users with API integration. - RESEARCH JUAN, TINA, I don't see it as useful
 
----
+# Mandatory minimum
 
-## 🟢 Week 3 — Tournament & WebSockets
-**Backend**
-- [ ] Tournament APIs (create/join/report).
-- [ ] Store match history in Postgres.
-- [ ] WebSocket gateway for chat/game sync.
+A minimum of *7 major* modules is required. Two Minor Modules count as one Major Module.
 
-**Frontend**
-- [ ] Tournament UI (brackets/list).
-- [ ] Integrate with API.
-- [ ] Live chat panel.
+### Basic Website Setup
+  - SPA (single page app) with Typescript frontend (moving around doesn’t reload the whole page, instead, JavaScript updates only the part of the page that changes)
+  - Runs in Docker with one command (docker-compose up --build)
+  - Works at least in Firefox, no visible errors  
 
-**Game**
-- [ ] Connect tournament matches to Pong.
-- [ ] WebSocket integration for multiplayer sync.
+### Pong Game Basics
+  - Local Pong (2 players on same keyboard)  
+  - Tournament system with aliases + matchmaking (organizes multiple players into a series of matches until a winner is decided, nicknames players type in before the tournament starts, the system automatically decides who plays against who, and in which order)
+  - Same paddle speed for everyone  
 
-**Infra**
-- [ ] Add container healthchecks.
-- [ ] Improve Dockerfile build speed.
+### Security
+  - Passwords hashed (“hashed” means you don’t store the real password in the database, e.g.: password = "hello123" → stored as "5d41402abc4b2a76b9719d911017c592")
+  - Protection against SQL injection / XSS (login field: ' OR '1'='1 can trick and log them without password, <script>alert('Hacked!')</script>, webattacks)
+  - HTTPS everywhere  
+  - Input validation (client/server depending on setup) (user input checks: email, passwrod, alias/nickname, Client-side validation = checked in the browser with JavaScript before sending, Server-side validation = checked again on the backend)
+  - Secrets in `.env` (not in git)  
 
-**Goal:** Play full tournament locally, multiplayer scaffolding set.
+# Module explanation
 
----
+### Web
+- **Major: Backend framework** → Use something like Django, NestJS, or Express instead of plain PHP.  
+- **Minor: Frontend framework/toolkit** → Use React, Vue, or Angular to build the interface.  
+- **Minor: Database** → Store user info, match history, scores, etc.  
+- **Major: Blockchain scores** → Save tournament results on blockchain so they can’t be manipulated.
 
-## 🟢 Week 4 — Stability & Eval Readiness
-- [ ] Check HTTPS + WSS end-to-end.
-- [ ] Ensure SPA works with browser nav + is responsive.
-- [ ] Verify Postgres schema migrations are reproducible.
-- [ ] Test lag/disconnect handling.
-- [ ] Run eval sheet checklist.
+### User Management
+- **Major: Standard user management** → Sign up, log in, password reset, and keep the same user across tournaments.  
+- **Major: Remote authentication** → Log in using Google, GitHub, Facebook or another external provider.  
 
-**Goal:** Core features ✅ ready for defense.
+### Gameplay & User Experience
+- **Major: Remote players** → Play Pong against someone online, not just on the same keyboard.  
+- **Major: Multiplayer (more than 2)** → Support 3+ players in one game.  
+- **Major: Add another game** → Add a second game (besides Pong), with history and matchmaking.  
+- **Minor: Game customization** → Let players change colors, themes, or game speed.  
+- **Major: Live chat** → Players can chat with each other while playing.  
 
----
+### AI–Algo
+- **Major: AI opponent** → Add a computer-controlled player to play against.  
+- **Minor: Stats dashboard** → Show charts/tables with wins, losses, rankings, etc.  
 
-# 🔵 Module Execution (Majors & Minors)
+### Cybersecurity
+- **Major: WAF + Vault** → Web Application Firewall to block attacks, and Vault to securely store secrets (passwords, keys). CI/CD pipeline asks Vault for temporary DB credentials instead of storing passwords in Git. WAF protects the deployed apps that your CI/CD pipeline delivers to production.
+- **Minor: GDPR compliance** → Follow privacy laws: anonymize data, let users delete accounts.  
+- **Major: 2FA + JWT** → Add Two-Factor Authentication (extra login code) and JWT (JSON Web Token, e.g.:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...) tokens for secure sessions, instead of sending your username/password on every request
 
-## 🟦 Week 5
-- **Backend**: Advanced Auth (OAuth/SAML) (Major).
-- **Frontend**: Tailored responsive UI polish (Minor).
-- **Infra**: Centralized logging & monitoring (Minor).
+### DevOps
+- **Major: Log management** → Collect and centralize logs (errors, activity). Good for debugging. 
+- **Minor: Monitoring system** → Track server performance, uptime, and alerts.  
+- **Major: Microservices backend** → Split the app into small services (auth service, game service, chat service, etc.). Each doing one job, each service runs in its own container (Docker). They talk to each other via APIs (HTTP, WebSockets, etc.). If something crashes probably others can stay alive. 
 
-## 🟦 Week 6
-- **Game**: Multiplayer (>2 players) (Major).
-- **Frontend**: Accessibility features (Minor).
-- **Infra**: Secrets mgmt (Vault, WAF) (Major).
+### Graphics
+- **Major: Advanced 3D** → Use 3D graphics (like WebGL or Three.js) to make the game look more advanced.  
 
-## 🟦 Week 7
-- **Game**: AI Opponent (Major).
-- **Frontend**: Stats dashboard (Major).
+### Accessibility
+- **Minor: Support on all devices** → Works on desktop, tablet, and mobile.  
+- **Minor: Browser compatibility** → Works on Chrome, Firefox, Safari, Edge, etc.  
+- **Minor: Multiple languages** → Translate UI into different languages.  
+- **Minor: Accessibility features** → Add support for visually/physically impaired players (no mouse usage, screen readers, high contrast).  
+- **Minor: Server-Side Rendering (SSR)** → Render pages on the server before sending them, faster load and SEO friendly.
 
-## 🟦 Week 8
-- **Infra**: Microservices split (Major). - (Yulia) I am thinking about putting one thing to microservice - auth is a good candidate. If we decide on it, refactoring can be done earlier. So we don't break whole code before eval. We can postpone decision for later now.
-- **Frontend**: Multi-language support (Minor).
-- **All**: Documentation + defense prep.
+### Server-Side Pong
+- **Major: Server-side Pong + API** → Game logic runs on the server, with an API so clients can connect. (Each browser might run the game slightly differently. One player could cheat by changing their browser code
+ball.x = myPaddle.x;   // force the ball to always hit my paddle
+opponent.score = 0;    // reset opponent score
+myScore = 999;         // give myself infinite points. Accepts only player inputs (up/down), never trusts client monitor position. Syncing between two browsers is messy (you need to constantly exchange ball positions, paddle moves, etc.)
+- **Major: CLI vs Web gameplay** → Command Line Interface. Allow someone in the command line to play against someone in the web app.
 
----
+# Risk Map
 
-# ✅ Final Defense Prep
-- [ ] All modules tested against eval sheet (no visible errors).
-- [ ] Document “what/why/how” in `/docs/` + README.
+### 🟢 Low Risk (Safe / Predictable)
+- **Backend framework (Major)** → Lets you avoid raw PHP, makes backend cleaner.
+- **2FA + JWT** → Security upgrade, relatively standard to implement.  
+- **Live chat (Major)** → Straightforward with websockets.  
+- **AI opponent (Major)** → Demo-friendly (play vs computer), not too complex if simple AI.  
+- **Database (Minor)** → Almost mandatory if you store users/scores.  
+- **Game customization (Minor)** → Simple settings (colors, themes).  
+- **Stats dashboard (Minor)** → Just display graphs/tables of wins/losses.  
+- **Support on all devices** → Responsive design (CSS media queries).  
+- **Browser compatibility** → Test across browsers, small tweaks.  
+- **Multiple languages** → Add i18n (translation files).  
+- **Accessibility features** → High contrast, screen reader support.  
+- **SSR integration (Minor)** → Use framework built-ins (e.g., Next.js). (The framework already has that feature included by default.)
+- **Frontend framework/toolkit (Minor)** — React/Vue/Angular basics are well documented.
 
-- [ ] Run full stack fresh via `docker-compose up --build`.
+### 🟡 Medium Risk (Manageable with Planning)
+- **Standard user management (Major)** → Account lifecycle, resets, edge cases.  
+- **Remote authentication (Major)** → Redirects/tokens/config can be really hard.  
+- **Monitoring system (Minor)** → Prometheus/Grafana setup, exporters, alerts.
+- **GDPR compliance (Minor)** — Add user data rights: **anonymization**, **local data management (view/edit/delete)**, and **account deletion**. Needs clear UX + backend flows; not hard, but requires careful handling and testing.
 
+### 🔴 High Risk (Heavy / Time-Consuming)
+- **Blockchain scores** → Complex and heavy for little evaluation gain.
+- **Remote players** → Netcode, network latency, reconnection handling: hard to debug.
+- **Multiplayer > 2 players** → More complex game logic.
+- **Add another game** → Just extra work.
+- **WAF + Vault** → Production-level setup, can take a lot of time.
+- **Microservices backend** → Good for learning, but adds infrastructure complexity. 
+- **Advanced 3D graphics** → Risky if nobody on team knows WebGL/Three.js before. 
+- **Server-side Pong + API** → Needs redesign of simple Pong logic.  
+- **CLI vs Web Pong** → Extra integration layer: frontend-backend connection.

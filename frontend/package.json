@@ -1,0 +1,23 @@
+{
+  "name": "services",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "parcel public/index.html --open",
+    "build": "parcel build public/index.html",
+    "tailwind:build": "tailwindcss -i ./public/styles.css -o ./public/output.css --watch",
+    "dev": "concurrently \"npm run tailwind:build\" \"npm run start\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
+    "parcel": "^2.15.4",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.2"
+  }
+}

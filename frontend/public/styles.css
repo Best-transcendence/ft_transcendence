@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+This is the orange palete, if we want to change the
+colors, just change the colors in the variables and this
+will update automatically the other styles.
+*/
+
+:root {
+  /* Default theme = Cool Night 🌌 */
+  --color-bg-1: #0d0c3d;   /* midnight */
+  --color-bg-2: #1d1f70;   /* royal */
+  --color-accent-1: #5b2ca8; /* indigo */
+  --color-accent-2: #2fd2f7; /* cyan */
+  --color-text: #f5fbb5;   /* moon glow */
+  --color-button: #12749e; /* teal */
+  --color-button-hover: #2d5773; /* pine */
+}
+
+/* 🔥 Warm Fire Theme */
+.theme-fire {
+  --color-bg-1: #8b3b1e;   /* ember brown */
+  --color-bg-2: #ff8a1d;   /* fire orange */
+  --color-accent-1: #ffd53a; /* fire yellow */
+  --color-accent-2: #e14d1a; /* fire red */
+  --color-text: #1d0c0c;   /* dark for contrast */
+  --color-button: #ff8a1d; /* fire orange */
+  --color-button-hover: #e14d1a; /* fire red */
+}
+
+
+body {
+  font-family: var(--font-body);
+}

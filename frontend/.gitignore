@@ -1,9 +1,10 @@
 # Environment variables
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-
+node_modules
 # Dependencies
 node_modules/
 npm-debug.log*
@@ -43,6 +44,9 @@ Thumbs.db
 # Logs
 logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 lerna-debug.log*
 
 # Runtime data
@@ -70,6 +74,7 @@ temp/
 *.tsbuildinfo
 
 # Next.js
+.next/
 .vercel/
 
 # Prisma
@@ -77,17 +82,3 @@ prisma/migrations/dev.db*
 
 # Game assets cache
 game/assets/cache/
-
-# Backend (Fastify + Prisma)
-backend/node_modules/
-backend/prisma/dev.db
-backend/prisma/*.db-journal
-backend/dist/
-backend/*.tsbuildinfo
-backend/npm-debug.log*
-
-# Frontend (если будет)
-frontend/node_modules/
-frontend/dist/
-
-/generated/prisma

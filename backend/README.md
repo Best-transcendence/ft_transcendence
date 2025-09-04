@@ -48,7 +48,7 @@ npm run dev
 You should see logs like:
 
 ```bash
-Server listening at http://127.0.0.1:3000
+Server listening at http://127.0.0.1:3001
 ```
 
 ---
@@ -58,7 +58,7 @@ Server listening at http://127.0.0.1:3000
 Visit:
 
 ```
-http://localhost:3000/api/docs
+http://localhost:3001/api/docs
 ```
 
 There you will see:
@@ -74,7 +74,7 @@ You can do there "Try it out" -> Execute -> Execute and you will see list of use
 You can test it in your browser or using curl:
 
 ```bash
-curl http://localhost:3000/users
+curl http://localhost:3001/users
 ```
 
 Expected response:
