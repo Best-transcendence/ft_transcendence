@@ -818,6 +818,10 @@ video {
   background-color: rgb(192 132 252 / 0.3);
 }
 
+.bg-transparent {
+  background-color: transparent;
+}
+
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
@@ -825,10 +829,6 @@ video {
 
 .bg-white\/90 {
   background-color: rgb(255 255 255 / 0.9);
-}
-
-.bg-transparent {
-  background-color: transparent;
 }
 
 .bg-\[radial-gradient\(ellipse_at_bottom\2c _rgba\(255\2c 165\2c 0\2c 0\.35\)_0\%\2c _transparent_40\%\)\2c radial-gradient\(circle_at_80\%_20\%\2c _rgba\(122\2c 44\2c 208\2c 0\.3\)_0\%\2c _transparent_30\%\)\2c linear-gradient\(180deg\2c _\#140533_0\%\2c _\#3c1282_50\%\2c _\#0a0f3d_100\%\)\] {
@@ -940,6 +940,11 @@ video {
   font-weight: 600;
 }
 
+.text-blue-600 {
+  --tw-text-opacity: 1;
+  color: rgb(37 99 235 / var(--tw-text-opacity, 1));
+}
+
 .text-brand {
   color: var(--color-brand);
 }
@@ -972,11 +977,6 @@ video {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
-}
-
-.text-blue-600 {
-  --tw-text-opacity: 1;
-  color: rgb(37 99 235 / var(--tw-text-opacity, 1));
 }
 
 .shadow {
