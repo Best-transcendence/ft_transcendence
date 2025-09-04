@@ -89,5 +89,6 @@ backend/npm-debug.log*
 # Frontend (если будет)
 frontend/node_modules/
 frontend/dist/
+next-env.d.ts
 
 /generated/prisma

@@ -27,8 +27,8 @@ export function LoginPage() {
           <input
             class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2"
             style="focus:ring: var(--color-accent1)"
-            type="text"
-            placeholder="Username / Alias"
+            type="email"
+            placeholder="Email"
           />
           <input
             class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2"
