@@ -13,7 +13,7 @@ dotenv.config();
 const app = Fastify({ logger: true });
 
 // ____________ FRONT END CONNECTION TEST ______
-
+// TODO: remove this when not needed or change from hardcoding
 await app.register(fastifyCors, {
   origin: "http://localhost:1234", // The frontend end point with fastify Cross-Origin Resource Sharing
   credentials: true,
