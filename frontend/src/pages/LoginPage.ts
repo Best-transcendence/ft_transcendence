@@ -30,7 +30,7 @@ export function LoginPage() {
             class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2 hidden"
             style="focus:ring: var(--color-accent1)"
             type="text"
-            placeholder="Name"
+            placeholder="Name (unique)"
           />
           <input
             class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2"
