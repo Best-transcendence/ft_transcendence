@@ -45,4 +45,60 @@ export default async function authRoutes(fastify) {
       return reply.status(500).send({ error: "Internal server error" });
     }
   });
+
+  fastify.post("/auth/signup", async (request, reply) => {
+    try {
+      console.log("Received signup body________:", request.body);
+
+      const { name, email, password, confirmPassword } = request.body;
+
+      // Basic input validation
+      if (!name || !email || !password || !confirmPassword) {
+        return reply.status(400).send({ error: "All fields are required" });
+      }
+
+      // Email format validation (basic)
+      if (!email.includes('@') || !email.includes('.')) {
+        return reply.status(400).send({ error: "Please enter a valid email address" });
+      }
+
+      // Password validation
+      if (password.length < 1) {
+        return reply.status(400).send({ error: "Password cannot be empty" });
+      }
+
+      // Password confirmation validation
+      if (password !== confirmPassword) {
+        return reply.status(400).send({ error: "Passwords do not match" });
+      }
+
+      // Check if user already exists
+      const existingUser = await fastify.prisma.user.findFirst({ where: { name } });
+      if (existingUser) {
+        return reply.status(400).send({ error: "User with this name already exists" });
+      }
+
+      const existingEmail = await fastify.prisma.user.findUnique({ where: { email } });
+      if (existingEmail) {
+        return reply.status(400).send({ error: "User with this email already exists" });
+      }
+
+      // Create new user
+      const newUser = await fastify.prisma.user.create({
+        data: {
+          name,
+          email,
+          password
+        }
+      });
+
+      return { id: newUser.id, email: newUser.email, name: newUser.name };
+    } catch (error) {
+      // Log the error for debugging
+      fastify.log.error('Signup error:', error);
+      
+      // Return generic error to client (don't expose internal details)
+      return reply.status(500).send({ error: "Internal server error" });
+    }
+  });
 }
