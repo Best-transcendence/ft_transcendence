@@ -15,7 +15,7 @@ export async function login(email: string, password: string) {
     body: JSON.stringify({ email, password }),
     credentials: "include", // if backend uses cookies/sessions
   });
-  
+
   if (!res.ok) {
     // Try to get the error message from the backend
     try {
@@ -32,9 +32,23 @@ export async function login(email: string, password: string) {
       }
     }
   }
-  
+
   return res.json();
 }
+
+// Get current user → GET /auth/me (requires token)_______________________
+export async function getCurrentUser() {
+  const token = localStorage.getItem("jwt"); // 👈 stored after login
+  if (!token) throw new Error("No token found");
+
+  const res = await fetch(`${API_URL}/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) throw new Error("Unauthorized");
+  return await res.json(); // { user }
+}
+//_____________________________________________________________________
 
 export async function signup(name: string, email: string, password: string, confirmPassword: string) {
   const res = await fetch(`${API_URL}/auth/signup`, {
