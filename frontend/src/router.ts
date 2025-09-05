@@ -41,15 +41,23 @@ function attachLoginListeners() {
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const email = (document.querySelector("input[type='text']") as HTMLInputElement).value;
+  const email = (document.querySelector("input[type='email']") as HTMLInputElement).value;
   const password = (document.querySelector("input[type='password']") as HTMLInputElement).value;
 
   try {
     const user = await login(email, password);
     console.log("Logged in:", user);
     window.location.hash = "GameIntroPage"; // navigate to lobby
-  } catch (err) {
-    alert("Login failed ❌");
+  } catch (err: unknown) {
+    // We are checking if DB is up
+    if (typeof err === 'object' && err && 'message' in err && typeof err.message === 'string') {
+      if (err.message.includes('fetch')) {
+        alert("❌ Cannot connect to server. Is the backend running?");
+      } else {
+        // DB is up but wrong credentials
+        alert(`❌ Login failed: ${err.message}`);
+      }
+    }
   }
 });
 
