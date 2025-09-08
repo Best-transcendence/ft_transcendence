@@ -50,9 +50,9 @@ export function ProfilePage()
 <!-- Profile info card -->
 	<div class="bg-white shadow rounded-2xl w-full max-w-lg p-6 space-y-6">
 
-<!-- Name -->
+<!-- Username -->
 		<div class="flex justify-between items-center">
-			<span class="text-gray-500 font-medium">Full Name</span>
+			<span class="text-gray-500 font-medium">Username</span>
 			<span class="text-gray-900">NAME</span>
 		</div>
 
@@ -62,17 +62,13 @@ export function ProfilePage()
 			<span class="text-gray-900">EMAIL</span>
 		</div>
 
-<!-- Username -->
-		<div class="flex justify-between items-center">
-			<span class="text-gray-500 font-medium">Username</span>
-			<span class="text-gray-900">NAME</span>
-		</div>
-
 <!-- Join Date -->
 		<div class="flex justify-between items-center">
 			<span class="text-gray-500 font-medium">Member Since</span>
 			<span class="text-gray-900">DATE</span>
 		</div>
+
+<!-- Join Date -->
 
 	</div>`;
 }
