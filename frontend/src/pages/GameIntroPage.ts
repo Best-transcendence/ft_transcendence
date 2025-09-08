@@ -58,10 +58,10 @@ export async function GameIntroPage() {
       </div>
     `;
   } catch (err) {
-    console.error("Failed to load user ❌:", err);
+    console.error("Failed to load user :", err);
     return `
       <div class="min-h-screen flex items-center justify-center bg-red-100 text-red-600">
-        <p>❌ Failed to load user. Please log in again.</p>
+        <p> Failed to load user. Please log in again.</p>
       </div>
     `;
   }
