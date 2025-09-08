@@ -12,22 +12,27 @@ export async function GameIntroPage() {
                   items-center justify-start
                   bg-gradient-to-b from-theme-bg1 to-theme-bg2
                   text-theme-text p-8">
-        <!-- Header with user info -->
+
+<!-- Header with user info -->
         <div class="w-full
                     flex justify-between items-center
                     mb-10">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10
-                        rounded-full bg-theme-button
-                        flex items-center justify-center
-                        text-white font-bold">
-              ${user.name.charAt(0).toUpperCase()}
-            </div>
-            <div>
+
+<!-- Profile button -->
+		<div class="flex items-center gap-3">
+			<div id="profile-logo"
+				class="w-10 h-10 rounded-full bg-theme-button flex items-center justify-center text-white font-bold cursor-pointer relative">
+				${user.name.charAt(0).toUpperCase()}
+			</div>
+
+<!-- Profile text -->
+			<div>
               <p class="font-semibold">Welcome back, ${user.name}!</p>
               <p class="text-sm text-gray-500">${user.email}</p>
             </div>
           </div>
+
+<!-- Logout button -->
           <button id="logout-btn"
             class="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100">
             Logout

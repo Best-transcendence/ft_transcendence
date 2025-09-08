@@ -2,6 +2,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage } from "./pages/LobbyPage";
 import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
+import { ProfilePage } from "./pages/ProfilePage";
 
 //_______ Info
 /*
@@ -27,6 +28,14 @@ export function router() {
       GameIntroPage().then((html) => {
         app.innerHTML = html;
 
+		// attach profile listener
+		const profileLogo = document.getElementById("profile-logo");
+		profileLogo?.addEventListener("click", () =>
+		{
+			window.location.hash = "profile";
+		});
+
+
         // attach logout listener
         const logoutBtn = document.getElementById("logout-btn");
         logoutBtn?.addEventListener("click", () => {
@@ -35,6 +44,10 @@ export function router() {
         });
       });
       break;
+
+	case "profile":
+	  app.innerHTML = ProfilePage()
+	  break;
 
     default:
       app.innerHTML = `<h1 class="text-red-600 text-3xl text-center mt-10">404 Bro Page Not Found </h1>`;
