@@ -1,6 +1,6 @@
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage } from "./pages/LobbyPage";
-import { login, signup, getCurrentUser } from "./services/api";
+import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
 
 //_______ Info
@@ -23,21 +23,17 @@ export function router() {
       app.innerHTML = LobbyPage();
       break;
 
-    case "GameIntroPage":
-      {
-        getCurrentUser().then((data) => {
-          const user = data.user;
-          app.innerHTML = `
-      <div class="p-8">
-        <h1 class="text-2xl font-bold">Welcome, ${user.name} 👋</h1>
-        <p class="text-gray-600">Email: ${user.email}</p>
-      </div>
-    `;
-        }).catch(() => {
-          // If token invalid, force back to login
+    case "intro":
+      GameIntroPage().then((html) => {
+        app.innerHTML = html;
+
+        // attach logout listener
+        const logoutBtn = document.getElementById("logout-btn");
+        logoutBtn?.addEventListener("click", () => {
+          localStorage.removeItem("jwt");
           window.location.hash = "login";
         });
-      }
+      });
       break;
 
     default:
@@ -83,13 +79,10 @@ function attachLoginListeners() {
         signupToggle?.click();
       } else {
         // Handle login
-        const { token, user } = await login(email, password);
-        // user = await login(email, password);
+        user = await login(email, password);
         console.log("Logged in:", user);
-
-        // Save JWT for later requests
-        localStorage.setItem("jwt", token);
-        window.location.hash = "GameIntroPage"; // navigate to lobby
+        localStorage.setItem("jwt", user.token);
+        window.location.hash = "intro"; // navigate to gamePage
       }
     } catch (err: unknown) {
       // We are checking if DB is up
