@@ -38,7 +38,7 @@ export async function login(email: string, password: string) {
 
 // Get current user → GET /auth/me (requires token)_______________________
 export async function getCurrentUser() {
-  const token = localStorage.getItem("jwt"); // 👈 stored after login
+  const token = localStorage.getItem("jwt");
   if (!token) throw new Error("No token found");
 
   const res = await fetch(`${API_URL}/auth/me`, {
