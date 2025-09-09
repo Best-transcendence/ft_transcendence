@@ -82,8 +82,7 @@ export function LoginPage() {
         <!-- Sign Up Button -->
         <button
           id="signup-toggle"
-          class="mt-4 text-sm cursor-pointer bg-transparent border-none"
-          style="color: var(--color-accent2);"
+          class="mt-4 text-sm cursor-pointer bg-transparent border-none text-theme-bg1"
         >
           Don't have an account? <span class="font-bold text-blue-600">Sign Up</span>
         </button>
@@ -91,8 +90,7 @@ export function LoginPage() {
         <!-- Guest Option -->
         <p
           id="guest-login"
-          class="mt-4 text-sm cursor-pointer"
-          style="color: var(--color-accent2);"
+          class="mt-4 text-sm cursor-pointer text-blue-600"
         >
           Continue as Guest
         </p>
