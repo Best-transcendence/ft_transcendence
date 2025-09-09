@@ -3,6 +3,7 @@ import { LobbyPage } from "./pages/LobbyPage";
 import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { initSidebar } from "./components/SideBar";
 
 //_______ Info
 /*
@@ -27,14 +28,7 @@ export function router() {
     case "intro":
       GameIntroPage().then((html) => {
         app.innerHTML = html;
-
-		// attach profile listener
-		const profileLogo = document.getElementById("profile-logo");
-		profileLogo?.addEventListener("click", () =>
-		{
-			window.location.hash = "profile";
-		});
-
+		initSidebar(); //added sidebar
 
         // attach logout listener
         const logoutBtn = document.getElementById("logout-btn");
@@ -46,8 +40,9 @@ export function router() {
       break;
 
 	case "profile":
-	  app.innerHTML = ProfilePage()
-	  break;
+		app.innerHTML = ProfilePage()
+		initSidebar(); //added sidebar
+		break;
 
     default:
       app.innerHTML = `<h1 class="text-red-600 text-3xl text-center mt-10">404 Bro Page Not Found </h1>`;

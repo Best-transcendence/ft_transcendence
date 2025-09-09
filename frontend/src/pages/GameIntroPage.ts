@@ -1,4 +1,5 @@
 import { getCurrentUser } from "../services/api";
+import { sidebarDisplay } from "../components/SideBar"
 
 export async function GameIntroPage() {
   try {
@@ -32,12 +33,17 @@ export async function GameIntroPage() {
             </div>
           </div>
 
+
 <!-- Logout button -->
           <button id="logout-btn"
             class="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100">
             Logout
           </button>
         </div>
+
+<!-- Sidebar -->
+		${ sidebarDisplay() }
+
 
         <!-- Title -->
         <h1 class="text-4xl font-heading font-bold mb-4">Retro Pong</h1>
