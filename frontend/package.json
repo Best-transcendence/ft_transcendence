@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "parcel public/index.html --open",
+    "start": "parcel public/index.html --open --port ${FRONTEND_PORT:-3000}",
     "build": "parcel build public/index.html",
     "tailwind:build": "tailwindcss -i ./public/styles.css -o ./public/output.css --watch",
     "dev": "concurrently \"npm run tailwind:build\" \"npm run start\""
@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/node": "^24.3.1",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.2.1",
     "parcel": "^2.15.4",
