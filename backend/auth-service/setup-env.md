@@ -10,7 +10,7 @@ DATABASE_URL="file:./prisma/auth.db"
 JWT_SECRET="auth-service-super-secret-jwt-key-change-in-production"
 
 # Service configuration
-AUTH_SERVICE_PORT=3000
+AUTH_SERVICE_PORT=3001
 HOST="localhost"
 
 # Development settings

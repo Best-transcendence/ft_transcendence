@@ -2,7 +2,71 @@
 export default async function authRoutes(fastify) {
   
   // POST /auth/login - Authenticate user and return JWT token
-  fastify.post("/login", async (request, reply) => {
+  fastify.post("/login", {
+    schema: {
+      tags: ['Authentication'],
+      summary: 'User Login',
+      description: 'Authenticate user with email and password, returns JWT token',
+      body: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: { 
+            type: 'string', 
+            format: 'email',
+            description: 'User email address'
+          },
+          password: { 
+            type: 'string', 
+            minLength: 1,
+            description: 'User password'
+          }
+        }
+      },
+      response: {
+        200: {
+          description: 'Successful login',
+          type: 'object',
+          properties: {
+            token: { 
+              type: 'string',
+              description: 'JWT authentication token',
+              example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+            },
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer', example: 1 },
+                name: { type: 'string', example: 'John Doe' },
+                email: { type: 'string', example: 'user@example.com' }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - missing or invalid input',
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Bad Request' }
+          }
+        },
+        401: {
+          description: 'Unauthorized - invalid credentials',
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Invalid credentials' }
+          }
+        },
+        500: {
+          description: 'Internal server error',
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Internal server error' }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
     try {
       console.log("Login attempt received:", request.body); // Debug log for login attempts
 
@@ -60,7 +124,73 @@ export default async function authRoutes(fastify) {
   // NOTE: /me endpoint moved to user-service as it handles user profile data
 
   // POST /auth/signup - Register new user account
-  fastify.post("/signup", async (request, reply) => {
+  fastify.post("/signup", {
+    schema: {
+      tags: ['Authentication'],
+      summary: 'User Registration',
+      description: 'Register a new user account with email, username, and password',
+      body: {
+        type: 'object',
+        required: ['name', 'email', 'password', 'confirmPassword'],
+        properties: {
+          name: { 
+            type: 'string', 
+            minLength: 1,
+            description: 'Unique username for the account'
+          },
+          email: { 
+            type: 'string', 
+            format: 'email',
+            description: 'User email address (must be unique)'
+          },
+          password: { 
+            type: 'string', 
+            minLength: 1,
+            description: 'User password'
+          },
+          confirmPassword: { 
+            type: 'string', 
+            minLength: 1,
+            description: 'Password confirmation (must match password)'
+          }
+        }
+      },
+      response: {
+        200: {
+          description: 'Successful registration',
+          type: 'object',
+          properties: {
+            id: { type: 'integer', example: 1 },
+            name: { type: 'string', example: 'johndoe' },
+            email: { type: 'string', example: 'john@example.com' }
+          }
+        },
+        400: {
+          description: 'Bad request - validation error',
+          type: 'object',
+          properties: {
+            error: { 
+              type: 'string', 
+              examples: [
+                'All fields are required',
+                'Please enter a valid email address',
+                'Passwords do not match',
+                'User with this name already exists',
+                'User with this email already exists'
+              ]
+            }
+          }
+        },
+        500: {
+          description: 'Internal server error',
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Internal server error' }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
     try {
       console.log("User registration attempt:", request.body);
 
