@@ -6,7 +6,7 @@ import rootRoute from './routes/root.js';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 import fastifyCors from '@fastify/cors';
-
+import fastifyJwt from "@fastify/jwt"; // For Login.
 dotenv.config();
 
 // basic logging setup
@@ -19,7 +19,7 @@ await app.register(fastifyCors, {
   credentials: true,
 });
 
-import authRoutes from './routes/auth.js'; // File where we check if the parameters passed are corrct. 
+import authRoutes from './routes/auth.js'; // File where we check if the parameters passed are corrct.
 app.register(authRoutes);
 
 //_______________________________________________
@@ -60,5 +60,13 @@ const start = async () => {
         process.exit(1);
     }
 };
+
+//______________ Export datausers.
+
+// Set up the Jwt to create a token for the front end export name and email.
+await app.register(fastifyJwt, {
+    secret: process.env.JTW_SECRET || "super-secret-pass",
+});
+//___________ get the current user login in the platform
 
 start();

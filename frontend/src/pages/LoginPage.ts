@@ -18,7 +18,7 @@ export function LoginPage() {
       <!-- Login Card -->
       <div class="relative z-10 bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg w-96 text-center">
         <!-- Title -->
-        <h1 class="text-2xl font-heading font-bold mb-6" style="color: var(--color-accent2);">
+        <h1 class="text-2xl font-heading font-bold mb-6 text-theme-bg1"">
           Sign In
         </h1>
 
@@ -33,14 +33,13 @@ export function LoginPage() {
             placeholder="Name (unique)"
           />
           <input
-            class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2"
+            class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-theme-accent1 text-theme-bg1"
             style="focus:ring: var(--color-accent1)"
             type="email"
             placeholder="Email"
           />
           <input
-            class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2"
-            style="focus:ring: var(--color-accent1)"
+            class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-theme-accent1 text-theme-bg1"
             type="password"
             placeholder="Password"
           />
@@ -83,8 +82,7 @@ export function LoginPage() {
         <!-- Sign Up Button -->
         <button
           id="signup-toggle"
-          class="mt-4 text-sm cursor-pointer bg-transparent border-none"
-          style="color: var(--color-accent2);"
+          class="mt-4 text-sm cursor-pointer bg-transparent border-none text-theme-bg1"
         >
           Don't have an account? <span class="font-bold text-blue-600">Sign Up</span>
         </button>
@@ -92,8 +90,7 @@ export function LoginPage() {
         <!-- Guest Option -->
         <p
           id="guest-login"
-          class="mt-4 text-sm cursor-pointer"
-          style="color: var(--color-accent2);"
+          class="mt-4 text-sm cursor-pointer text-blue-600"
         >
           Continue as Guest
         </p>
