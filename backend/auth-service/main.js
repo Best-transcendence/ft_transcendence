@@ -5,6 +5,7 @@ import authRoutes from './routes/auth.js';
 import fastifyJwt from "@fastify/jwt";
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
+import fastifyCors from '@fastify/cors';
 
 // Load environment variables from local .env file
 dotenv.config();
@@ -47,6 +48,16 @@ await app.register(fastifySwaggerUI, {
     },
     staticCSP: true,
     transformSpecificationClone: true,
+});
+
+// Register CORS plugin
+await app.register(fastifyCors, {
+    origin: [
+        'http://localhost:3000',  // Frontend
+        'http://localhost:3003',  // Gateway
+        'http://localhost:3002'   // User service
+    ],
+    credentials: true
 });
 
 // Register JWT plugin for token generation and verification

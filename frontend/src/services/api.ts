@@ -36,12 +36,12 @@ export async function login(email: string, password: string) {
   return res.json();
 }
 
-// Get current user → GET /auth/me (requires token)_______________________
+// Get current user → GET /users/me (requires token)_______________________
 export async function getCurrentUser() {
   const token = localStorage.getItem("jwt");
   if (!token) throw new Error("No token found");
 
-  const res = await fetch(`${API_URL}/auth/me`, {
+  const res = await fetch(`${API_URL}/users/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
