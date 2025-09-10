@@ -314,7 +314,7 @@ NODE_ENV="development"
 ### Test Registration Flow
 ```bash
 # 1. Start all services
-make run-all
+Start all services in separate terminals
 
 # 2. Test signup
 curl -X POST http://localhost:3003/auth/signup \
@@ -367,14 +367,6 @@ All requests include correlation IDs for tracking across services:
 curl http://localhost:3001/health  # Auth Service
 curl http://localhost:3002/health  # User Service  
 curl http://localhost:3003/health  # Gateway
-```
-
-### Service Logs
-```bash
-# View logs for specific service
-make logs-auth    # Auth Service logs
-make logs-user    # User Service logs
-make logs-gateway # Gateway logs
 ```
 
 ---
