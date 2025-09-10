@@ -146,14 +146,3 @@ The gateway logs:
 3. **"Connection refused"**
    - Verify all services are running on correct ports
    - Check firewall settings
-
-### Debug Mode
-Set `NODE_ENV=development` for more verbose logging.
-
-## Next Steps
-
-- Add rate limiting
-- Implement request/response transformation
-- Add metrics and monitoring
-- Implement circuit breaker pattern
-- Add load balancing
