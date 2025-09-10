@@ -946,10 +946,6 @@ video {
   color: rgb(220 38 38 / var(--tw-text-opacity, 1));
 }
 
-.text-theme-accent1 {
-  color: var(--color-accent-1);
-}
-
 .text-theme-bg1 {
   color: var(--color-bg-1);
 }
@@ -965,10 +961,6 @@ video {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
-}
-
-.text-theme-accent2 {
-  color: var(--color-accent-2);
 }
 
 .shadow {

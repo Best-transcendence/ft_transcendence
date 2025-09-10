@@ -1,5 +1,5 @@
 export default async function authRoutes(fastify) {
-  fastify.post("/auth/login", async (request, reply) => {
+  fastify.post("/login", async (request, reply) => {
     try {
       console.log("Received body________:", request.body); // log to debug and check the variables
 
@@ -54,9 +54,9 @@ export default async function authRoutes(fastify) {
       return reply.status(500).send({ error: "Internal server error" });
     }
   });
-  //__________new code . create the auth/me path that is private to connect with the frontend.
+  //__________new code . create the /me path that is private to connect with the frontend.
   // we need to import fastify@jtw
-  fastify.get("/auth/me", async (request, reply) => {
+  fastify.get("/me", async (request, reply) => {
     try {
       // Verify token (throws if invalid)
       await request.jwtVerify();
@@ -72,7 +72,7 @@ export default async function authRoutes(fastify) {
     }
   });
 
-  fastify.post("/auth/signup", async (request, reply) => {
+  fastify.post("/signup", async (request, reply) => {
     try {
       console.log("Received signup body________:", request.body);
 

@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     // Output modern JS (Parcel handles transpile/bundle)
-    "target": "es6",
-    "module": "es6",
+    "target": "es2020",
+    "module": "es2020",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
