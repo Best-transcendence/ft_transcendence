@@ -14,11 +14,11 @@ export default async function (fastify, opts) {
                     items: {
                         type: 'object',
                         properties: {
-                            id: { type: 'integer', example: 1 },
-                            name: { type: 'string', example: 'John Doe' },
-                            email: { type: 'string', example: 'john@example.com' },
-                            profilePicture: { type: 'string', nullable: true, example: 'https://example.com/avatar.jpg' },
-                            bio: { type: 'string', nullable: true, example: 'Pong enthusiast!' },
+                            id: { type: 'integer' },
+                            name: { type: 'string' },
+                            email: { type: 'string' },
+                            profilePicture: { type: 'string', nullable: true },
+                            bio: { type: 'string', nullable: true },
                             createdAt: { type: 'string', format: 'date-time' }
                         }
                     }
@@ -39,6 +39,156 @@ export default async function (fastify, opts) {
         });
     });
 
+    // POST /users/bootstrap - Create or update user profile (called by auth-service)
+    fastify.post('/bootstrap', {
+        schema: {
+            tags: ['User Management'],
+            summary: 'Bootstrap User Profile',
+            description: 'Create or update user profile (idempotent endpoint called by auth-service)',
+            body: {
+                type: 'object',
+                required: ['authUserId', 'name', 'email'],
+                properties: {
+                    authUserId: { 
+                        type: 'integer', 
+                        description: 'User ID from auth-service (must be unique)'
+                    },
+                    name: { 
+                        type: 'string', 
+                        minLength: 1,
+                        description: 'Username (duplicated from auth-service)'
+                    },
+                    email: { 
+                        type: 'string', 
+                        format: 'email',
+                        description: 'User email (duplicated from auth-service)'
+                    }
+                }
+            },
+                response: {
+                200: {
+                    description: 'User profile created or updated successfully',
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        authUserId: { type: 'integer' },
+                        name: { type: 'string' },
+                        email: { type: 'string' },
+                        createdAt: { type: 'string', format: 'date-time' },
+                        updatedAt: { type: 'string', format: 'date-time' }
+                    }
+                },
+                201: {
+                    description: 'User profile created successfully',
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        authUserId: { type: 'integer' },
+                        name: { type: 'string' },
+                        email: { type: 'string' },
+                        createdAt: { type: 'string', format: 'date-time' },
+                        updatedAt: { type: 'string', format: 'date-time' }
+                    }
+                },
+                400: {
+                    description: 'Bad request - validation error',
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' }
+                    }
+                },
+                500: {
+                    description: 'Internal server error',
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' }
+                    }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const { authUserId, name, email } = request.body;
+            const correlationId = request.headers['x-correlation-id'] || `user-${authUserId}-${Date.now()}`;
+
+            // Input validation
+            if (!authUserId || !name || !email) {
+                console.error(`[${correlationId}] Bootstrap validation failed - missing required fields`);
+                return reply.status(400).send({ error: 'authUserId, name, and email are required' });
+            }
+
+            // Email format validation (basic)
+            if (!email.includes('@') || !email.includes('.')) {
+                console.error(`[${correlationId}] Bootstrap validation failed - invalid email format: ${email}`);
+                return reply.status(400).send({ error: 'Invalid email format' });
+            }
+
+            console.log(`[${correlationId}] Bootstrap request for authUserId: ${authUserId}, name: ${name}, email: ${email}`);
+
+            // Check if user profile already exists
+            const existingProfile = await fastify.prisma.userProfile.findUnique({
+                where: { authUserId }
+            });
+
+            if (existingProfile) {
+                // Update existing profile with latest data from auth-service
+                console.log(`[${correlationId}] Updating existing profile for authUserId: ${authUserId}`);
+                
+                const updatedProfile = await fastify.prisma.userProfile.update({
+                    where: { authUserId },
+                    data: {
+                        name,
+                        email,
+                        updatedAt: new Date()
+                    }
+                });
+
+                console.log(`[${correlationId}] Successfully updated profile for authUserId: ${authUserId}`);
+                return reply.status(200).send({
+                    id: updatedProfile.id,
+                    authUserId: updatedProfile.authUserId,
+                    name: updatedProfile.name,
+                    email: updatedProfile.email,
+                    createdAt: updatedProfile.createdAt,
+                    updatedAt: updatedProfile.updatedAt
+                });
+            } else {
+                // Create new user profile
+                console.log(`[${correlationId}] Creating new profile for authUserId: ${authUserId}`);
+                
+                const newProfile = await fastify.prisma.userProfile.create({
+                    data: {
+                        authUserId,
+                        name,
+                        email,
+                        matchHistory: {}, // Initialize as empty object
+                        stats: {} // Initialize as empty object
+                    }
+                });
+
+                console.log(`[${correlationId}] Successfully created profile for authUserId: ${authUserId}`);
+                return reply.status(201).send({
+                    id: newProfile.id,
+                    authUserId: newProfile.authUserId,
+                    name: newProfile.name,
+                    email: newProfile.email,
+                    createdAt: newProfile.createdAt,
+                    updatedAt: newProfile.updatedAt
+                });
+            }
+
+        } catch (error) {
+            const correlationId = request.headers['x-correlation-id'] || 'unknown';
+            console.error(`[${correlationId}] Bootstrap error:`, {
+                error: error.message,
+                authUserId: request.body?.authUserId,
+                stack: error.stack
+            });
+            
+            return reply.status(500).send({ error: 'Internal server error' });
+        }
+    });
+
     // GET /users/me - Get current user profile
     fastify.get("/me", {
         schema: {
@@ -54,10 +204,10 @@ export default async function (fastify, opts) {
                         user: {
                             type: 'object',
                             properties: {
-                                id: { type: 'integer', example: 1 },
-                                authUserId: { type: 'integer', example: 1 },
-                                name: { type: 'string', example: 'John Doe' },
-                                email: { type: 'string', example: 'john@example.com' },
+                                id: { type: 'integer' },
+                                authUserId: { type: 'integer' },
+                                name: { type: 'string' },
+                                email: { type: 'string' },
                                 profilePicture: { type: 'string', nullable: true },
                                 bio: { type: 'string', nullable: true },
                                 matchHistory: { type: 'object' },
@@ -72,7 +222,7 @@ export default async function (fastify, opts) {
                     description: 'Unauthorized - invalid or missing token',
                     type: 'object',
                     properties: {
-                        error: { type: 'string', example: 'Unauthorized' }
+                        error: { type: 'string' }
                     }
                 }
             }

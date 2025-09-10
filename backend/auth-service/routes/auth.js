@@ -237,6 +237,41 @@ export default async function authRoutes(fastify) {
         }
       });
 
+      // Generate correlation ID for tracking across services
+      const correlationId = `auth-${newUser.id}-${Date.now()}`;
+      
+      // Attempt to create user profile in user-service
+      try {
+        const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+        const axios = (await import('axios')).default;
+        
+        console.log(`[${correlationId}] Attempting to bootstrap user profile for authUserId: ${newUser.id}`);
+        
+        await axios.post(`${userServiceUrl}/users/bootstrap`, {
+          authUserId: newUser.id,
+          name: newUser.name,
+          email: newUser.email
+        }, {
+          timeout: 5000, // 5 second timeout
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Correlation-ID': correlationId
+          }
+        });
+
+        console.log(`[${correlationId}] Successfully created user profile for authUserId: ${newUser.id}`);
+      } catch (profileError) {
+        // Log the error but don't fail the signup - user account is created
+        console.error(`[${correlationId}] Failed to bootstrap user profile for authUserId: ${newUser.id}:`, {
+          error: profileError.message,
+          status: profileError.response?.status,
+          data: profileError.response?.data
+        });
+        
+        // Continue with successful response - user account is created in auth-service
+        console.log(`[${correlationId}] Continuing with signup success despite profile creation failure`);
+      }
+
       // Return user data without password for security
       return { id: newUser.id, email: newUser.email, name: newUser.name };
     } catch (error) {
