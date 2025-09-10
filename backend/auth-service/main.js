@@ -6,7 +6,7 @@ import fastifyJwt from "@fastify/jwt";
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 
-// Load environment variables from .env file
+// Load environment variables from local .env file
 dotenv.config();
 
 // Create Fastify server instance with logging

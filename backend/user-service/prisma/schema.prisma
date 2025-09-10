@@ -1,9 +1,7 @@
-// TODO: check if we can leave Prisma, maybe we have to get rid of it before evaluation
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// User Service Database Schema
+// This is the user management microservice database
+// Contains user profiles, friends, and game-related data
+// TODO: check if we can use prisma or have to get rid of it
 
 generator client {
   provider = "prisma-client-js"
@@ -11,14 +9,28 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = env("USER_DATABASE_URL")
 }
 
-// TODO: add more validations later. Including: length, email format, empty strings, etc.
-model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  name     String
-  password String
+// User profile model for user service
+// Contains profile data, friends, and game statistics
+model UserProfile {
+  id          Int      @id @default(autoincrement())
+  authUserId  Int      @unique  // References auth-service user ID
+  name        String   // Duplicated from auth-service for performance
+  email       String   // Duplicated from auth-service for performance
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Profile information
+  profilePicture String?  // URL to profile picture
+  bio           String?   // User bio/description
+  
+  // Friends relationships (many-to-many)
+  friends       UserProfile[] @relation("UserFriends")
+  friendOf      UserProfile[] @relation("UserFriends")
+  
+  // Game data
+  matchHistory  Json?     // Game match history (empty object initially)
+  stats         Json?     // User statistics (empty object initially)
 }
-
