@@ -2,6 +2,41 @@
 
 This backend is built using a **microservices architecture** with Fastify, Prisma, and SQLite. The system is divided into three main services: **Auth Service**, **User Service**, and **API Gateway**.
 
+## 🧩 Microservices Overview
+
+The system is structured using a **microservices architecture**, designed to keep concerns separated and services independently deployable. Here's how it works from the perspective of a request initiated by the frontend:
+
+- **Frontend (Port 3000)**  
+  A single-page application (SPA) that initiates all requests to the backend.  
+  It never talks directly to individual services like Auth or User — instead, it goes through the API Gateway.
+
+- **API Gateway (Port 3003)**  
+  Acts as the **single entry point** for all backend services.  
+  - Routes requests to the correct internal microservice  
+    - `/auth/*` → Auth Service  
+    - `/users/*` → User Service  
+  - Validates JWT tokens for protected routes  
+  - Adds logging, correlation IDs, and error boundaries  
+  - Makes the frontend simpler and more secure
+
+- **Auth Service (Port 3001)**  
+  Handles **user registration, login, and authentication**.  
+  - Stores secure credentials (email, hashed password)  
+  - Issues and validates JWT tokens  
+  - Does not manage user profiles or game data  
+
+- **User Service (Port 3002)**  
+  Manages **user profile data and game-related information**.  
+  - Stores public info like name, avatar, and bio  
+  - Maintains friend relationships, match history, and statistics  
+  - Each record is linked to the Auth Service via `authUserId`  
+  - Supports a `/users/bootstrap` route for creating a new profile after registration
+
+This design allows services to evolve independently. For example, if we later add a `matchmaking` or `notification` service, the frontend doesn't need to change — it will still just talk to the Gateway.
+
+Each service uses its own **SQLite database** and is fully decoupled from others except for intentional HTTP-based communication. This separation makes the system more robust, maintainable, and easier to scale.
+
+
 ## 🏗️ Architecture Overview
 
 ```
