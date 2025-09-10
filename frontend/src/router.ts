@@ -1,9 +1,40 @@
+//Services:
+import { getCurrentUser } from "./services/api";
+//Pages:
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage } from "./pages/LobbyPage";
 import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { ProfilePage } from "./pages/ProfilePage";
-import { initSidebar } from "./components/SideBar";
+//Components:
+import { sideBar } from "./components/SideBar";
+import { logOutBtn } from "./components/LogOutBtn"
+
+
+/*  Centralizing the user data extraction for the
+	protected (AKA logged-in only) pages */
+async function protectedPage(renderer: (user:any) => string | Promise<string>)
+{
+	const app = document.getElementById("app")!;
+
+	try
+	{
+		const data = await getCurrentUser();
+		if (!data?.user)
+			throw new Error("User not logged in");
+
+		const html = await renderer(data.user);
+		app.innerHTML = html;
+
+		sideBar(); //centralise sidebar attach here
+		logOutBtn(); //centralise logout button attach here
+	}
+	catch (err)
+	{
+		console.error("Failed to load user :", err);
+		window.location.hash = "login";
+	}
+};
 
 //_______ Info
 /*
@@ -26,22 +57,11 @@ export function router() {
       break;
 
     case "intro":
-      GameIntroPage().then((html) => {
-        app.innerHTML = html;
-		initSidebar(); //added sidebar
-
-        // attach logout listener
-        const logoutBtn = document.getElementById("logout-btn");
-        logoutBtn?.addEventListener("click", () => {
-          localStorage.removeItem("jwt");
-          window.location.hash = "login";
-        });
-      });
+      protectedPage((user) => GameIntroPage(user)); //go through user data extraction before rendering page
       break;
 
 	case "profile":
-		app.innerHTML = ProfilePage()
-		initSidebar(); //added sidebar
+		protectedPage((user) => ProfilePage(user)); //go through user data extraction before rendering page
 		break;
 
     default:

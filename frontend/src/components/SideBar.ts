@@ -1,27 +1,27 @@
 // Configure sidebar actions
-export function initSidebar()
+export function sideBar()
 {
 	const profileLogo = document.getElementById("profile-logo");
-	const sideMenu = document.getElementById("side-menu");
+	const sideBar = document.getElementById("side-menu");
 
-	if (!profileLogo || !sideMenu)
+	if (!profileLogo || !sideBar)
 		return;
 
 	// Sidebar open+close
 	profileLogo.addEventListener("click", () =>
 	{
-		sideMenu.classList.toggle("-translate-x-full");
-		sideMenu.classList.toggle("translate-x-0");
+		sideBar.classList.toggle("-translate-x-full");
+		sideBar.classList.toggle("translate-x-0");
 	});
 
 	// Option links
-	sideMenu.querySelectorAll("li").forEach(item =>
+	sideBar.querySelectorAll("li").forEach(item =>
 	{
 		item.addEventListener("click", () =>
 		{
 			const option = item.getAttribute("data-action");
-			sideMenu.classList.add("-translate-x-full");
-			sideMenu.classList.remove("translate-x-0");
+			sideBar.classList.add("-translate-x-full");
+			sideBar.classList.remove("translate-x-0");
 
 			switch (option)
 			{
