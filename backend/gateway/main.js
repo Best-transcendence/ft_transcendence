@@ -180,7 +180,7 @@ app.get('/health', {
       }
     }
   }
-}, async (_request, _reply) => {
+}, async (request, _reply) => {
   return { 
     status: 'ok', 
     service: 'gateway',
