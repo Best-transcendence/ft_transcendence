@@ -36,6 +36,87 @@ This design allows services to evolve independently. For example, if we later ad
 
 Each service uses its own **SQLite database** and is fully decoupled from others except for intentional HTTP-based communication. This separation makes the system more robust, maintainable, and easier to scale.
 
+## 🚀 Initial Setup for New Team Members
+
+### Prerequisites & Cleanup
+
+**⚠️ IMPORTANT: Clean up any existing monolithic backend installation first!**
+
+If you previously worked with the monolithic backend, you need to clean up before setting up microservices:
+
+```bash
+# Navigate to project root
+cd /path/to/ft_transcendence
+
+# Remove old monolithic backend files (if they exist)
+rm -rf backend/src/
+rm -rf backend/prisma/
+rm -f backend/server.js
+rm -f backend/package.json
+rm -f backend/package-lock.json
+
+# Remove old database files
+rm -f backend/*.db
+rm -f backend/auth-service/*.db
+rm -f backend/user-service/*.db
+rm -f backend/gateway/*.db
+```
+
+### Pre-commit Hooks Setup
+
+This project uses **pre-commit hooks** to ensure code quality. The hooks automatically run ESLint on backend files before each commit.
+
+**Setup commands:**
+
+```bash
+# 1. Install Husky (Git hooks manager) in project root
+npm install --save-dev husky
+
+# 2. Initialize Husky
+npx husky init
+
+# 3. Create the pre-commit hook
+echo '#!/bin/sh
+if git diff --cached --name-only | grep -q "^backend/"; then
+  echo "🔍 Backend files changed, running linter..."
+  cd backend && npm run lint:fix
+  if [ $? -ne 0 ]; then
+    echo "❌ Linting failed. Please fix the issues before committing."
+    exit 1
+  fi
+  echo "✅ Backend linting passed!"
+fi' > .husky/pre-commit
+
+# 4. Make the hook executable
+chmod +x .husky/pre-commit
+
+# 5. Add prepare script to root package.json
+npm pkg set scripts.prepare="husky"
+```
+
+**What the pre-commit hook does:**
+- ✅ Only runs when files in `backend/` are staged for commit
+- ✅ Automatically runs `npm run lint:fix` to fix auto-fixable issues
+- ✅ Prevents commit if linting fails
+- ✅ Can be bypassed with `git commit --no-verify` if needed
+
+### Code Style Guidelines
+
+**Unused Variables Convention:**
+- Prefix unused parameters with `_` (e.g., `_request`, `_reply`, `_opts`)
+- This tells ESLint to ignore them and makes code intent clear
+- Examples:
+  ```javascript
+  // ✅ Good - unused parameter prefixed with _
+  fastify.get('/health', async (_request, _reply) => {
+    return { status: 'ok' };
+  });
+  
+  // ❌ Bad - will trigger linting warning
+  fastify.get('/health', async (request, reply) => {
+    return { status: 'ok' };
+  });
+  ```
 
 ## 🏗️ Architecture Overview
 
