@@ -21,7 +21,7 @@ await app.register(fastifySwagger, {
             description: 'Authentication microservice for ft_transcendence - handles user login, registration, and JWT token management',
             version: '1.0.0',
         },
-        host: `${process.env.HOST || 'localhost'}:${process.env.AUTH_SERVICE_PORT || 3001}`,
+        host: process.env.AUTH_SERVICE_URL || 'localhost:3001',
         schemes: ['http'],
         consumes: ['application/json'],
         produces: ['application/json'],
@@ -53,9 +53,9 @@ await app.register(fastifySwaggerUI, {
 // Register CORS plugin
 await app.register(fastifyCors, {
     origin: [
-        'http://localhost:3000',  // Frontend
-        'http://localhost:3003',  // Gateway
-        'http://localhost:3002'   // User service
+        process.env.FRONTEND_URL || 'http://localhost:3000',  // Frontend
+        process.env.GATEWAY_URL || 'http://localhost:3003',  // Gateway
+        process.env.USER_SERVICE_URL || 'http://localhost:3002'   // User service
     ],
     credentials: true
 });
@@ -103,12 +103,14 @@ const start = async () => {
         const port = process.env.AUTH_SERVICE_PORT || 3001;
         const host = process.env.HOST || 'localhost';
         
+        // Listen on all interfaces (0.0.0.0) to allow external connections
         await app.listen({ port: port, host: '0.0.0.0' });
         
-        console.log(`🔐 Auth Service running at http://${host}:${port}`);
-        console.log(`📊 Health check: http://${host}:${port}/health`);
-        console.log(`📚 API Documentation: http://${host}:${port}/docs`);
-        console.log(`🔑 Auth endpoints: http://${host}:${port}/auth/login`);
+        const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+        console.log(`🔐 Auth Service running at ${authServiceUrl}`);
+        console.log(`📊 Health check: ${authServiceUrl}/health`);
+        console.log(`📚 API Documentation: ${authServiceUrl}/docs`);
+        console.log(`🔑 Auth endpoints: ${authServiceUrl}/auth/login`);
         
     } catch (err) {
         console.error('Failed to start auth service:');

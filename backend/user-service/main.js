@@ -22,7 +22,7 @@ await app.register(fastifySwagger, {
             description: 'User management microservice for ft_transcendence - handles user profiles, friends, and statistics',
             version: '1.0.0',
         },
-        host: `${process.env.HOST || 'localhost'}:${process.env.USER_SERVICE_PORT || 3002}`,
+        host: process.env.USER_SERVICE_URL || 'localhost:3002',
         schemes: ['http'],
         consumes: ['application/json'],
         produces: ['application/json'],
@@ -104,12 +104,14 @@ const start = async () => {
         const port = process.env.USER_SERVICE_PORT || 3002;
         const host = process.env.HOST || 'localhost';
         
+        // Listen on all interfaces (0.0.0.0) to allow external connections
         await app.listen({ port: port, host: '0.0.0.0' });
         
-        console.log(`👤 User Service running at http://${host}:${port}`);
-        console.log(`📊 Health check: http://${host}:${port}/health`);
-        console.log(`📚 API Documentation: http://${host}:${port}/docs`);
-        console.log(`👥 User endpoints: http://${host}:${port}/users`);
+        const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+        console.log(`👤 User Service running at ${userServiceUrl}`);
+        console.log(`📊 Health check: ${userServiceUrl}/health`);
+        console.log(`📚 API Documentation: ${userServiceUrl}/docs`);
+        console.log(`👥 User endpoints: ${userServiceUrl}/users`);
         
     } catch (err) {
         console.error('Failed to start user service:');

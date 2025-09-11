@@ -3,6 +3,8 @@ export default async function (fastify, opts) {
     
     // GET /users - Get all user profiles
     fastify.get('/', {
+        // Everything in schema is public information only, for documentation purposes (Swagger). 
+        // We have to add it for each endpoint we create.
         schema: {
             tags: ['User Management'],
             summary: 'Get All User Profiles',
@@ -41,6 +43,8 @@ export default async function (fastify, opts) {
 
     // POST /users/bootstrap - Create or update user profile (called by auth-service)
     fastify.post('/bootstrap', {
+        // Everything in schema is public information only, for documentation purposes (Swagger). 
+        // We have to add it for each endpoint we create.
         schema: {
             tags: ['User Management'],
             summary: 'Bootstrap User Profile',
@@ -191,6 +195,8 @@ export default async function (fastify, opts) {
 
     // GET /users/me - Get current user profile
     fastify.get("/me", {
+        // Everything in schema is public information only, for documentation purposes (Swagger). 
+        // We have to add it for each endpoint we create.
         schema: {
             tags: ['User Management'],
             summary: 'Get Current User Profile',

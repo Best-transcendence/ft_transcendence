@@ -27,9 +27,9 @@ const app = Fastify({
 // Register CORS plugin
 await app.register(fastifyCors, {
     origin: [
-        'http://localhost:3000',  // Frontend
-        'http://localhost:3001',  // Auth service
-        'http://localhost:3002'   // User service
+        `http://${process.env.HOST || 'localhost'}:${process.env.FRONTEND_PORT || 3000}`,  // Frontend
+        `http://${process.env.HOST || 'localhost'}:${process.env.AUTH_SERVICE_PORT || 3001}`,  // Auth service
+        `http://${process.env.HOST || 'localhost'}:${process.env.USER_SERVICE_PORT || 3002}`   // User service
     ],
     credentials: true
 });
@@ -48,26 +48,26 @@ await app.register(fastifySwagger, {
                 API Gateway for ft_transcendence microservices - routes requests to individual services.
                 
                 **Service Documentation:**
-                - [Auth Service](http://localhost:3001/docs) - Authentication and JWT handling
-                - [User Service](http://localhost:3002/docs) - User profiles and management
+                - [Auth Service](${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/docs) - Authentication and JWT handling
+                - [User Service](${process.env.USER_SERVICE_URL || 'http://localhost:3002'}/docs) - User profiles and management
                 
                 **Note:** This gateway proxies requests to the individual microservices. 
                 For detailed API schemas and examples, refer to the individual service documentation above.
             `,
             version: '1.0.0',
         },
-        host: `${process.env.HOST || 'localhost'}:${process.env.GATEWAY_PORT || 3003}`,
+        host: process.env.GATEWAY_URL || 'localhost:3003',
         schemes: ['http'],
         consumes: ['application/json'],
         produces: ['application/json'],
         tags: [
             { 
                 name: 'Authentication', 
-                description: 'Auth service endpoints (login, signup) - [See detailed docs](http://localhost:3001/docs)' 
+                description: `Auth service endpoints (login, signup) - [See detailed docs](${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/docs)` 
             },
             { 
                 name: 'User Management', 
-                description: 'User service endpoints (profiles, data) - [See detailed docs](http://localhost:3002/docs)' 
+                description: `User service endpoints (profiles, data) - [See detailed docs](${process.env.USER_SERVICE_URL || 'http://localhost:3002'}/docs)` 
             },
             { name: 'Health', description: 'Service health checks' }
         ],
@@ -172,8 +172,8 @@ app.get('/health', {
                     services: {
                         type: 'object',
                         properties: {
-                            authService: { type: 'string', example: 'http://localhost:3001' },
-                            userService: { type: 'string', example: 'http://localhost:3002' }
+                            authService: { type: 'string', example: process.env.AUTH_SERVICE_URL || 'http://localhost:3001' },
+                            userService: { type: 'string', example: process.env.USER_SERVICE_URL || 'http://localhost:3002' }
                         }
                     }
                 }
@@ -206,7 +206,7 @@ app.register(async function (fastify) {
         schema: {
             tags: ['Authentication'],
             summary: 'Auth Service Endpoints',
-            description: 'Authentication endpoints - [See detailed docs](http://localhost:3001/docs)'
+            description: `Authentication endpoints - [See detailed docs](${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/docs)`
         }
     });
 });
@@ -225,7 +225,7 @@ app.register(async function (fastify) {
         schema: {
             tags: ['User Management'],
             summary: 'User Service Endpoints',
-            description: 'User management endpoints - [See detailed docs](http://localhost:3002/docs)'
+            description: `User management endpoints - [See detailed docs](${process.env.USER_SERVICE_URL || 'http://localhost:3002'}/docs)`
         },
         preHandler: (request, reply, done) => {
             // Only validate JWT for /users/me endpoint
@@ -243,13 +243,15 @@ const start = async () => {
         const port = process.env.GATEWAY_PORT || 3003;
         const host = process.env.HOST || 'localhost';
         
+        // Listen on all interfaces (0.0.0.0) to allow external connections
         await app.listen({ port: port, host: '0.0.0.0' });
         
-        console.log(`🚪 Gateway Service running at http://${host}:${port}`);
-        console.log(`📊 Health check: http://${host}:${port}/health`);
-        console.log(`📚 API Documentation: http://${host}:${port}/docs`);
-        console.log(`🔐 Auth endpoints: http://${host}:${port}/auth/login`);
-        console.log(`👥 User endpoints: http://${host}:${port}/users`);
+        const gatewayUrl = process.env.GATEWAY_URL || `http://${host}:${port}`;
+        console.log(`🚪 Gateway Service running at ${gatewayUrl}`);
+        console.log(`📊 Health check: ${gatewayUrl}/health`);
+        console.log(`📚 API Documentation: ${gatewayUrl}/docs`);
+        console.log(`🔐 Auth endpoints: ${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/login`);
+        console.log(`👥 User endpoints: ${process.env.USER_SERVICE_URL || 'http://localhost:3002'}`);
         
     } catch (err) {
         console.error('Failed to start gateway service:');

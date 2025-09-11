@@ -3,6 +3,8 @@ export default async function authRoutes(fastify) {
   
   // POST /auth/login - Authenticate user and return JWT token
   fastify.post("/login", {
+    // Everything in schema is public information only, for documentation purposes (Swagger). 
+    // We have to add it for each endpoint we create.
     schema: {
       tags: ['Authentication'],
       summary: 'User Login',
@@ -125,6 +127,8 @@ export default async function authRoutes(fastify) {
 
   // POST /auth/signup - Register new user account
   fastify.post("/signup", {
+    // Everything in schema is public information only, for documentation purposes (Swagger). 
+    // We have to add it for each endpoint we create.
     schema: {
       tags: ['Authentication'],
       summary: 'User Registration',
@@ -247,6 +251,7 @@ export default async function authRoutes(fastify) {
         
         console.log(`[${correlationId}] Attempting to bootstrap user profile for authUserId: ${newUser.id}`);
         
+        // TODO: decide what we want to do if the profile creation fails in user-service. Now we just continue with the signup success.
         await axios.post(`${userServiceUrl}/users/bootstrap`, {
           authUserId: newUser.id,
           name: newUser.name,
