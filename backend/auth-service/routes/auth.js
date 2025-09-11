@@ -2,7 +2,7 @@
 export default async function authRoutes(fastify) {
   
   // POST /auth/login - Authenticate user and return JWT token
-  fastify.post("/login", {
+  fastify.post('/login', {
     // Everything in schema is public information only, for documentation purposes (Swagger). 
     // We have to add it for each endpoint we create.
     schema: {
@@ -70,26 +70,26 @@ export default async function authRoutes(fastify) {
     }
   }, async (request, reply) => {
     try {
-      console.log("Login attempt received:", request.body); // Debug log for login attempts
+      console.log('Login attempt received:', request.body); // Debug log for login attempts
 
       const { email, password } = request.body;
 
       // Input validation - ensure required fields are present
-      console.log("Validating credentials - email:", !!email, "password:", !!password);
+      console.log('Validating credentials - email:', !!email, 'password:', !!password);
 
       if (!email || !password) {
-        console.log("Validation failed - missing required fields");
-        return reply.status(400).send({ error: "Email and password are required" });
+        console.log('Validation failed - missing required fields');
+        return reply.status(400).send({ error: 'Email and password are required' });
       }
 
       // Email format validation (basic)
       if (!email.includes('@') || !email.includes('.')) {
-        return reply.status(400).send({ error: "Please enter a valid email address" });
+        return reply.status(400).send({ error: 'Please enter a valid email address' });
       }
 
       // Password length validation
       if (password.length < 1) {
-        return reply.status(400).send({ error: "Password cannot be empty" });
+        return reply.status(400).send({ error: 'Password cannot be empty' });
       }
 
       // Look up user in database by email
@@ -97,13 +97,13 @@ export default async function authRoutes(fastify) {
 
       if (!user) {
         // Don't reveal if email exists - use generic error for security
-        return reply.status(401).send({ error: "Invalid credentials" });
+        return reply.status(401).send({ error: 'Invalid credentials' });
       }
 
       // TODO: Replace plain text password comparison with bcrypt hash comparison
       // Password validation (currently plain text - should be hashed)
       if (password !== user.password) {
-        return reply.status(401).send({ error: "Invalid credentials" });
+        return reply.status(401).send({ error: 'Invalid credentials' });
       }
 
       // Generate JWT token with user ID payload
@@ -120,13 +120,13 @@ export default async function authRoutes(fastify) {
       fastify.log.error('Login error:', error);
 
       // Return generic error to client (don't expose internal details)
-      return reply.status(500).send({ error: "Internal server error" });
+      return reply.status(500).send({ error: 'Internal server error' });
     }
   });
   // NOTE: /me endpoint moved to user-service as it handles user profile data
 
   // POST /auth/signup - Register new user account
-  fastify.post("/signup", {
+  fastify.post('/signup', {
     // Everything in schema is public information only, for documentation purposes (Swagger). 
     // We have to add it for each endpoint we create.
     schema: {
@@ -196,39 +196,39 @@ export default async function authRoutes(fastify) {
     }
   }, async (request, reply) => {
     try {
-      console.log("User registration attempt:", request.body);
+      console.log('User registration attempt:', request.body);
 
       const { name, email, password, confirmPassword } = request.body;
 
       // Input validation - ensure all required fields are present
       if (!name || !email || !password || !confirmPassword) {
-        return reply.status(400).send({ error: "All fields are required" });
+        return reply.status(400).send({ error: 'All fields are required' });
       }
 
       // Email format validation (basic)
       if (!email.includes('@') || !email.includes('.')) {
-        return reply.status(400).send({ error: "Please enter a valid email address" });
+        return reply.status(400).send({ error: 'Please enter a valid email address' });
       }
 
       // Password validation
       if (password.length < 1) {
-        return reply.status(400).send({ error: "Password cannot be empty" });
+        return reply.status(400).send({ error: 'Password cannot be empty' });
       }
 
       // Password confirmation validation
       if (password !== confirmPassword) {
-        return reply.status(400).send({ error: "Passwords do not match" });
+        return reply.status(400).send({ error: 'Passwords do not match' });
       }
 
       // Check for existing users to prevent duplicates
       const existingUser = await fastify.prisma.user.findFirst({ where: { name } });
       if (existingUser) {
-        return reply.status(400).send({ error: "User with this name already exists" });
+        return reply.status(400).send({ error: 'User with this name already exists' });
       }
 
       const existingEmail = await fastify.prisma.user.findUnique({ where: { email } });
       if (existingEmail) {
-        return reply.status(400).send({ error: "User with this email already exists" });
+        return reply.status(400).send({ error: 'User with this email already exists' });
       }
 
       // TODO: Hash password with bcrypt before storing
@@ -251,7 +251,8 @@ export default async function authRoutes(fastify) {
         
         console.log(`[${correlationId}] Attempting to bootstrap user profile for authUserId: ${newUser.id}`);
         
-        // TODO: decide what we want to do if the profile creation fails in user-service. Now we just continue with the signup success.
+        // TODO: decide what we want to do if the profile creation fails in user-service.
+        // Now we just continue with the signup success.
         await axios.post(`${userServiceUrl}/users/bootstrap`, {
           authUserId: newUser.id,
           name: newUser.name,
@@ -284,7 +285,7 @@ export default async function authRoutes(fastify) {
       fastify.log.error('Signup error:', error);
 
       // Return generic error to client (don't expose internal details)
-      return reply.status(500).send({ error: "Internal server error" });
+      return reply.status(500).send({ error: 'Internal server error' });
     }
   });
 }
