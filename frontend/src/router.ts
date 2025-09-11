@@ -80,6 +80,7 @@ function attachLoginListeners() {
       } else {
         // Handle login
         user = await login(email, password);
+        // TODO: make sure not to expose token to the console.log. Now we are exposing it.
         console.log("Logged in:", user);
         localStorage.setItem("jwt", user.token);
         window.location.hash = "intro"; // navigate to gamePage
