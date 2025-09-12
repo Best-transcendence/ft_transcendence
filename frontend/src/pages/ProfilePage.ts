@@ -1,3 +1,4 @@
+import { formatDate } from "../utils"
 import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
@@ -54,7 +55,7 @@ export function ProfilePage(user: any)
 <!-- Join Date -->
 		<div class="flex justify-between items-center">
 			<span class="text-gray-500 font-medium">Member Since</span>
-			<span class="text-gray-900">${user.Date}</span>
+			<span class="text-gray-900">${formatDate(user.createdAt, "M")}</span>
 		</div>
 
 <!-- Join Date -->
