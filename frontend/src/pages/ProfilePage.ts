@@ -58,7 +58,10 @@ export function ProfilePage(user: any)
 			<span class="text-gray-900">${formatDate(user.createdAt, "M")}</span>
 		</div>
 
-<!-- Join Date -->
+	</div>
 
+	<div class="flex flex-col items-center mt-6 space-y-2">
+		<p class="font-semibold center">Change password</p>
+		<p class="font-semibold center">Delete account</p>
 	</div>`;
 }
