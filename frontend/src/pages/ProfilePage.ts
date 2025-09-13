@@ -32,9 +32,9 @@ export function ProfilePage()
 
 <!-- Profile header -->
 	<div class="flex flex-col items-center gap-3 mb-10">
-		<div class="w-[150] h-[150] rounded-full bg-theme-button flex items-center justify-center text-white text-3xl font-bold shadow">
-			${thisUser.name[0].toUpperCase()}
-		</div>
+			<img src="https://www.parc-auxois.fr/wp-content/uploads/2019/06/lama-parc-de-l-auxois-e1563441566257.jpg"
+				alt="Profile picture"
+				class="rounded-full w-20 h-20" />
 		<h1 class="text-2xl font-semibold">${thisUser.name}</h1>
 		<p class="text-gray-500 text-sm">It's all about you <3</p>
 	</div>

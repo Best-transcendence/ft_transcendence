@@ -1,4 +1,4 @@
-import { getCurrentUser } from "./api"
+import { thisUser } from "../router"
 
 export function updateProfilePicture(pictureUrl: string)
 {
@@ -11,7 +11,9 @@ export function removeProfilePicture()
 }
 
 export function updateName(newName: string)
-{}
+{
+
+}
 
 export function checkOldPass(oldPass: string)
 {

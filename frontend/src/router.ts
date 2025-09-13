@@ -30,10 +30,31 @@ async function fetchUser()
 
 /*  Centralizing the user data extraction for the
 	protected (AKA logged-in only) pages */
-function protectedPage(renderer: () => string)
+/* function protectedPage(renderer: () => string)
 {
 	const app = document.getElementById("app")!;
 
+	if (thisUser != undefined)
+	{
+		const html = renderer();
+		app.innerHTML = html;
+
+		sideBar(); //centralise sidebar attach here
+		logOutBtn(); //centralise logout button attach here
+	}
+	else
+	{
+		console.error("Failed to load user");
+		window.location.hash = "login";
+	}
+}; */
+
+//tmp async function to render visual edit without having to relog
+async function protectedPage(renderer: () => string)
+{
+	const app = document.getElementById("app")!;
+
+	await fetchUser();
 	if (thisUser != undefined)
 	{
 		const html = renderer();
