@@ -3,7 +3,7 @@ import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 
 // Adapted function now that data extraction has been centralized
-export async function GameIntroPage(user: any) {
+export function GameIntroPage() {
     return `
       <div class="min-h-screen
                   flex
@@ -18,7 +18,7 @@ export async function GameIntroPage(user: any) {
                     mb-10">
 
 <!-- Protected pages components -->
-			${ profileDivDisplay(user) }
+			${ profileDivDisplay() }
 			${ sidebarDisplay() }
 			${ LogOutBtnDisplay() }
 

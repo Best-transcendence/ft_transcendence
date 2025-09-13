@@ -11,27 +11,40 @@ import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn"
 
 
-/*  Centralizing the user data extraction for the
-	protected (AKA logged-in only) pages */
-async function protectedPage(renderer: (user:any) => string | Promise<string>)
-{
-	const app = document.getElementById("app")!;
+// Centralizes user extraction into a variable
+export let thisUser: any = undefined;
 
+async function fetchUser()
+{
 	try
 	{
 		const data = await getCurrentUser();
-		if (!data?.user)
-			throw new Error("User not logged in");
+		thisUser = data.user;
+	}
+	catch
+	{
+		thisUser = undefined;
+	}
 
-		const html = await renderer(data.user);
+}
+
+/*  Centralizing the user data extraction for the
+	protected (AKA logged-in only) pages */
+function protectedPage(renderer: () => string)
+{
+	const app = document.getElementById("app")!;
+
+	if (thisUser != undefined)
+	{
+		const html = renderer();
 		app.innerHTML = html;
 
 		sideBar(); //centralise sidebar attach here
 		logOutBtn(); //centralise logout button attach here
 	}
-	catch (err)
+	else
 	{
-		console.error("Failed to load user :", err);
+		console.error("Failed to load user");
 		window.location.hash = "login";
 	}
 };
@@ -57,11 +70,11 @@ export function router() {
       break;
 
     case "intro":
-      protectedPage((user) => GameIntroPage(user)); //go through user data extraction before rendering page
+      protectedPage(() => GameIntroPage()); //go through user data extraction before rendering page
       break;
 
 	case "profile":
-		protectedPage((user) => ProfilePage(user)); //go through user data extraction before rendering page
+		protectedPage(() => ProfilePage()); //go through user data extraction before rendering page
 		break;
 
     default:
@@ -111,6 +124,7 @@ function attachLoginListeners() {
         // TODO: make sure not to expose token to the console.log. Now we are exposing it.
         console.log("Logged in:", user);
         localStorage.setItem("jwt", user.token);
+		await fetchUser();
         window.location.hash = "intro"; // navigate to gamePage
       }
     } catch (err: unknown) {

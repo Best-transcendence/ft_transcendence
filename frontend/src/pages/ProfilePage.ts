@@ -2,8 +2,10 @@ import { formatDate } from "../utils"
 import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
+import { thisUser } from "../router"
 
-export function ProfilePage(user: any)
+// Manages Profile page display
+export function ProfilePage()
 {
 	return `
 <!-- Theme -->
@@ -19,7 +21,7 @@ export function ProfilePage(user: any)
 			mb-10">
 
 <!-- Protected pages components -->
-			${ profileDivDisplay(user) }
+			${ profileDivDisplay() }
 			${ sidebarDisplay() }
 			${ LogOutBtnDisplay() }
 
@@ -31,9 +33,9 @@ export function ProfilePage(user: any)
 <!-- Profile header -->
 	<div class="flex flex-col items-center gap-3 mb-10">
 		<div class="w-[150] h-[150] rounded-full bg-theme-button flex items-center justify-center text-white text-3xl font-bold shadow">
-			${user.name[0].toUpperCase()}
+			${thisUser.name[0].toUpperCase()}
 		</div>
-		<h1 class="text-2xl font-semibold">${user.name}</h1>
+		<h1 class="text-2xl font-semibold">${thisUser.name}</h1>
 		<p class="text-gray-500 text-sm">It's all about you <3</p>
 	</div>
 
@@ -43,19 +45,19 @@ export function ProfilePage(user: any)
 <!-- Username -->
 		<div class="flex justify-between items-center">
 			<span class="text-gray-500 font-medium">Username</span>
-			<span class="text-gray-900">${user.name}</span>
+			<span class="text-gray-900">${thisUser.name}</span>
 		</div>
 
 <!-- Email -->
 		<div class="flex justify-between items-center">
 			<span class="text-gray-500 font-medium">Email</span>
-			<span class="text-gray-900">${user.email}</span>
+			<span class="text-gray-900">${thisUser.email}</span>
 		</div>
 
 <!-- Join Date -->
 		<div class="flex justify-between items-center">
 			<span class="text-gray-500 font-medium">Member Since</span>
-			<span class="text-gray-900">${formatDate(user.createdAt, "M")}</span>
+			<span class="text-gray-900">${formatDate(thisUser.createdAt, "M")}</span>
 		</div>
 
 	</div>
