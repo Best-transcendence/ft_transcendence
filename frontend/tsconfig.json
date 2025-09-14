@@ -2,7 +2,7 @@
   "compilerOptions": {
     // Output modern JS (Parcel handles transpile/bundle)
     "target": "es6",
-    "module": "es6",
+    "module": "esnext",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -19,6 +19,6 @@
     // Keep simple, no React/Node stuff
     "skipLibCheck": true
   },
-  "include": ["src"],
+  "include": ["src", "src/types/assets.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
