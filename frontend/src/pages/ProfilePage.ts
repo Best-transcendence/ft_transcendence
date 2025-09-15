@@ -3,7 +3,6 @@ import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { thisUser } from "../router"
-import avatar from '../../public/assets/default-avatar.jpeg';
 
 // Manages Profile page display
 export function ProfilePage()
@@ -33,9 +32,10 @@ export function ProfilePage()
 
 <!-- Profile header -->
 	<div class="flex flex-col items-center gap-3 mb-10">
-			<img src="${avatar}"
+			<img src="${thisUser.profilePicture}"
 				alt="Profile picture"
-				class="rounded-full w-20 h-20" />
+				class="rounded-full"
+				style="width: 160px; height: 160px;"/>
 		<h1 class="text-2xl font-semibold">${thisUser.name}</h1>
 		<p class="text-gray-500 text-sm">It's all about you <3</p>
 	</div>

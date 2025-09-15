@@ -167,7 +167,7 @@ export default async function (fastify, _opts) {
             email,
             matchHistory: {}, // Initialize as empty object
             stats: {}, // Initialize as empty object
-			profilePicture: "/assets/default-avatar.jpeg"
+			profilePicture: "/assets/default-avatar.jpeg" // Sets default profile pic
           }
         });
 

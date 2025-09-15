@@ -5,9 +5,11 @@ export function profileDivDisplay()
 {
 	return `
 		<div class="flex items-center gap-3">
-			<div id="profile-logo"
-				class="w-10 h-10 rounded-full bg-theme-button flex items-center justify-center text-white font-bold cursor-pointer relative">
-				${thisUser.name[0].toUpperCase()}
+			<div id="profile-logo">
+				<img src="${thisUser.profilePicture}"
+				alt="Profile picture"
+				class="w-10 h-10 rounded-full
+				cursor-pointer relative"/>
 			</div>
 
 				<div>
