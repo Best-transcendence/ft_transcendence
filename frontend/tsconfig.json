@@ -19,6 +19,6 @@
     // Keep simple, no React/Node stuff
     "skipLibCheck": true
   },
-  "include": ["src"],
+  "include": ["src", "src/types/assets.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
