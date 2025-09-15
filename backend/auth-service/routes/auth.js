@@ -107,7 +107,7 @@ export default async function authRoutes(fastify) {
       }
 
       // Generate JWT token with user ID payload
-      const token = fastify.jwt.sign({ id: user.id });
+      const token = fastify.jwt.sign({ userId: user.id });
 
       // Return token and safe user data (no password)
       return {
@@ -199,6 +199,7 @@ export default async function authRoutes(fastify) {
       console.log('User registration attempt:', request.body);
 
       const { name, email, password, confirmPassword } = request.body;
+      console.log('Extracted fields:', { name, email, password: '***', confirmPassword: '***' });
 
       // Input validation - ensure all required fields are present
       if (!name || !email || !password || !confirmPassword) {
@@ -221,18 +222,25 @@ export default async function authRoutes(fastify) {
       }
 
       // Check for existing users to prevent duplicates
+      console.log('Checking for existing user with name:', name);
       const existingUser = await fastify.prisma.user.findFirst({ where: { name } });
       if (existingUser) {
+        console.log('User with this name already exists');
         return reply.status(400).send({ error: 'User with this name already exists' });
       }
+      console.log('No existing user with this name');
 
+      console.log('Checking for existing user with email:', email);
       const existingEmail = await fastify.prisma.user.findUnique({ where: { email } });
       if (existingEmail) {
+        console.log('User with this email already exists');
         return reply.status(400).send({ error: 'User with this email already exists' });
       }
+      console.log('No existing user with this email');
 
       // TODO: Hash password with bcrypt before storing
       // Create new user in database
+      console.log(`Creating user in auth database: ${name}, ${email}`);
       const newUser = await fastify.prisma.user.create({
         data: {
           name,
@@ -240,6 +248,7 @@ export default async function authRoutes(fastify) {
           password // TODO: Should be hashed password
         }
       });
+      console.log(`User created successfully with ID: ${newUser.id}`);
 
       // Generate correlation ID for tracking across services
       const correlationId = `auth-${newUser.id}-${Date.now()}`;
@@ -247,6 +256,7 @@ export default async function authRoutes(fastify) {
       // Attempt to create user profile in user-service
       try {
         const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+        console.log(`[${correlationId}] User service URL: ${userServiceUrl}`);
         const axios = (await import('axios')).default;
         
         console.log(`[${correlationId}] Attempting to bootstrap user profile for authUserId: ${newUser.id}`);
@@ -282,6 +292,11 @@ export default async function authRoutes(fastify) {
       return { id: newUser.id, email: newUser.email, name: newUser.name };
     } catch (error) {
       // Log the error for debugging
+      console.error('Signup error details:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
       fastify.log.error('Signup error:', error);
 
       // Return generic error to client (don't expose internal details)

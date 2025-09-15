@@ -9,7 +9,9 @@
     "start": "node main.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "test": "jest --testPathPattern=user-service",
+    "test:watch": "jest --testPathPattern=user-service --watch"
   },
   "keywords": [
     "user",

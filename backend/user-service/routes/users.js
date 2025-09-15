@@ -33,8 +33,6 @@ export default async function (fastify, _opts) {
         id: true,
         name: true,
         email: true,
-        profilePicture: true,
-        bio: true,
         createdAt: true
         // Don't expose authUserId, matchHistory, stats to public
       }
