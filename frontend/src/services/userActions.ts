@@ -1,12 +1,13 @@
 import { thisUser } from "../router"
 
-export function updateProfilePicture(pictureUrl: string)
+export function editProfilePicture()
 {
-
+	console.log("tamere");
 }
 
 export function removeProfilePicture()
 {
+	console.log("tamere");
 }
 
 export function updateName(newName: string)
