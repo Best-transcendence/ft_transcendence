@@ -22,7 +22,8 @@ await app.register(fastifySwagger, {
       description: 'User management microservice for ft_transcendence - handles user profiles, friends, and statistics',
       version: '1.0.0',
     },
-    host: process.env.USER_SERVICE_URL || 'localhost:3002',
+    // We clean the URL from the protocol to avoid issues with Swagger UI
+    host: (process.env.USER_SERVICE_URL || 'localhost:3002').replace(/^https?:\/\//, ''),
     schemes: ['http'],
     consumes: ['application/json'],
     produces: ['application/json'],

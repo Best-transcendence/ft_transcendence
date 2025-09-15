@@ -21,7 +21,8 @@ await app.register(fastifySwagger, {
       description: 'Authentication microservice for ft_transcendence - handles user login, registration, and JWT token management',
       version: '1.0.0',
     },
-    host: process.env.AUTH_SERVICE_URL || 'localhost:3001',
+    // We clean the URL from the protocol to avoid issues with Swagger UI
+    host: (process.env.AUTH_SERVICE_URL || 'http://localhost:3001').replace(/^https?:\/\//, ''),
     schemes: ['http'],
     consumes: ['application/json'],
     produces: ['application/json'],

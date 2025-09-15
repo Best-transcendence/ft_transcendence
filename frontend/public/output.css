@@ -843,13 +843,10 @@ video {
   width: 3.3%;
 }
 
-.w-\[700px\] {
-  width: 700px;
-}
-
 .w-\[90vw\] {
   width: 90vw;
 }
+
 .w-full {
   width: 100%;
 }
@@ -875,20 +872,6 @@ video {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
-.rotate-\[-3deg\] {
-  --tw-rotate: -3deg;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
-.rotate-\[1deg\] {
-  --tw-rotate: 1deg;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
-.rotate-\[2deg\] {
-  --tw-rotate: 2deg;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
 .cursor-pointer {
   cursor: pointer;
 }
@@ -1008,6 +991,10 @@ video {
   border-color: rgb(209 213 219 / var(--tw-border-opacity, 1));
 }
 
+.border-theme-accent1 {
+  border-color: var(--color-accent-1);
+}
+
 .bg-\[\#222222\]\/80 {
   background-color: rgb(34 34 34 / 0.8);
 }
@@ -1054,6 +1041,10 @@ video {
 .bg-red-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(254 226 226 / var(--tw-bg-opacity, 1));
+}
+
+.bg-theme-accent1 {
+  background-color: var(--color-accent-1);
 }
 
 .bg-theme-button {
@@ -1103,10 +1094,6 @@ video {
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
-.from-brand-light {
-  --tw-gradient-from: var(--color-brand-light) var(--tw-gradient-from-position);
-}
-
 .from-theme-bg1 {
   --tw-gradient-from: var(--color-bg-1) var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
@@ -1115,10 +1102,6 @@ video {
 
 .to-\[\#1a1a1a\]\/10 {
   --tw-gradient-to: rgb(26 26 26 / 0.1) var(--tw-gradient-to-position);
-}
-
-.to-brand {
-  --tw-gradient-to: var(--color-brand) var(--tw-gradient-to-position);
 }
 
 .to-theme-bg2 {
@@ -1190,11 +1173,6 @@ video {
   line-height: 2.5rem;
 }
 
-.text-5xl {
-  font-size: 3rem;
-  line-height: 1;
-}
-
 .text-\[1\.5vw\] {
   font-size: 1.5vw;
 }
@@ -1202,6 +1180,7 @@ video {
 .text-\[3vw\] {
   font-size: 3vw;
 }
+
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
