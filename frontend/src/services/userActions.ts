@@ -2,12 +2,11 @@ import { thisUser } from "../router"
 
 export function updateProfilePicture(pictureUrl: string)
 {
-	const user = getCurrentUser();
+
 }
 
 export function removeProfilePicture()
 {
-
 }
 
 export function updateName(newName: string)

@@ -80,6 +80,9 @@ export function router() {
   const app = document.getElementById("app")!;
   const page = window.location.hash.replace("#", "") || "login";
 
+  if (window.location.pathname.startsWith("/assets/")) //lets us open assets on web
+	return;
+
   switch (page) {
     case "login":
       app.innerHTML = LoginPage();

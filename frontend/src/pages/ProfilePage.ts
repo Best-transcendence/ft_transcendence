@@ -3,6 +3,7 @@ import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { thisUser } from "../router"
+import avatar from '../../public/assets/default-avatar.jpeg';
 
 // Manages Profile page display
 export function ProfilePage()
@@ -32,7 +33,7 @@ export function ProfilePage()
 
 <!-- Profile header -->
 	<div class="flex flex-col items-center gap-3 mb-10">
-			<img src="https://www.parc-auxois.fr/wp-content/uploads/2019/06/lama-parc-de-l-auxois-e1563441566257.jpg"
+			<img src="${avatar}"
 				alt="Profile picture"
 				class="rounded-full w-20 h-20" />
 		<h1 class="text-2xl font-semibold">${thisUser.name}</h1>
