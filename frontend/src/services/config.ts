@@ -1,2 +1,2 @@
 // Use Parcel environment variables (reads from .env automatically)
-export const API_URL = `http://localhost:${process.env.BACKEND_PORT || 3001}`;
+export const API_URL = process.env.VITE_BACKEND_URL || 'http://localhost:3003';
