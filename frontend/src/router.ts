@@ -99,7 +99,7 @@ export function router() {
       protectedPage(() => GameIntroPage()); //go through user data extraction before rendering page
       break;
 
-    case "GameIntroPage":
+    case "pong2d":
       app.innerHTML = GamePong2D();
       initGame();
       break;

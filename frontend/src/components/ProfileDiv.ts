@@ -8,7 +8,7 @@ export function profileDivDisplay()
 			<div id="profile-logo">
 				<img src="${thisUser.profilePicture}"
 				alt="Profile picture"
-				class="w-10 h-10 rounded-full
+				class="w-10 h-10 rounded-full shadow-[0_0_30px_10px_#7037d3]
 				cursor-pointer relative"/>
 			</div>
 

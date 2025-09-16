@@ -1,9 +1,7 @@
 export function GamePong2D(): string {
   return `
     <div class="relative min-h-screen flex flex-col items-center justify-center font-['Press_Start_2P'] text-white overflow-hidden">
-
       <!-- Background layer -->
-
       <div class="absolute inset-0 bg-[url('assets/machine_tina_fav.png')] bg-cover bg-center z-[-2]"></div>
 
       <!-- Overlay gradient -->

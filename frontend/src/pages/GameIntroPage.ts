@@ -1,16 +1,13 @@
 import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
+import { addTheme } from "../components/Theme"
 
 // Adapted function now that data extraction has been centralized
 export function GameIntroPage() {
     return `
-      <div class="min-h-screen
-                  flex
-                  flex-col
-                  items-center justify-start
-                  bg-gradient-to-b from-theme-bg1 to-theme-bg2
-                  text-theme-text p-8">
+	<!-- Theme -->
+		${ addTheme() }
 
 <!-- Header with user info -->
         <div class="w-full
@@ -32,15 +29,16 @@ export function GameIntroPage() {
 
         <!-- Feature cards -->
         <div class="flex gap-6 flex-wrap justify-center">
-          <div class="bg-white bg-opacity-90 rounded-xl shadow p-6 w-64 text-center">
-            <h2 class="font-bold text-theme-button mb-2">Classic Gameplay</h2>
-            <p class="text-gray-600 text-sm">Pure Pong mechanics</p>
-          </div>
-          <div class="bg-white bg-opacity-90 rounded-xl shadow p-6 w-64 text-center">
+          <div class="bg-white bg-opacity-90 rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center cursor-pointer hover:bg-gray-100"
+     			onclick="window.location.hash='pong2d'">
+ 			<h2 class="font-bold text-theme-button mb-2">Classic Gameplay</h2>
+  			<p class="text-gray-600 text-sm">Pure Pong mechanics</p>
+		</div>
+          <div class="bg-white bg-opacity-90 rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center">
             <h2 class="font-bold text-theme-button mb-2">Smooth Controls</h2>
             <p class="text-gray-600 text-sm">Responsive keyboard controls for both players</p>
           </div>
-          <div class="bg-white bg-opacity-90 rounded-xl shadow p-6 w-64 text-center">
+          <div class="bg-white bg-opacity-90 rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center">
             <h2 class="font-bold text-theme-button mb-2">Our amaizing modern Design</h2>
             <p class="text-gray-600 text-sm">more text.......</p>
           </div>
