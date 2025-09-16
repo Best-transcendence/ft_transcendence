@@ -16,7 +16,7 @@ export function LoginPage() {
       </div>
 
       <!-- Login Card -->
-	  <div class="relative z-10 bg-[#271d35] backdrop-blur-md p-8 rounded-2xl w-96 text-center shadow-[0_0_30px_10px_#7037d3]">
+	   <div class="relative z-10 bg-[#271d35] backdrop-blur-md p-8 rounded-2xl w-96 text-center shadow-[0_0_30px_10px_#7037d3]">
 		<!-- Title -->
         <h1 class="text-2xl font-heading font-bold mb-6" style="color: white;">
           Sign In

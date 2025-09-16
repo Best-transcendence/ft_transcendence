@@ -3,7 +3,7 @@ export function GamePong2D(): string {
     <div class="relative min-h-screen flex flex-col items-center justify-center font-['Press_Start_2P'] text-white overflow-hidden">
 
       <!-- Background layer -->
-      <div class="absolute inset-0 bg-[url('assets/machine1.svg')] bg-cover bg-center z-[-2]"></div>
+      <div class="absolute inset-0 bg-[url('assets/machine_tina_fav.png')] bg-cover bg-center z-[-2]"></div>
 
       <!-- Overlay gradient -->
       <div class="absolute inset-0 bg-gradient-to-b from-[#0f0f0f]/10 to-[#1a1a1a]/10 z-[-1]"></div>
@@ -24,10 +24,12 @@ export function GamePong2D(): string {
                   border-[#919bebc7]
                   rounded-2xl
                   backdrop-blur-sm
-                  [transform:perspective(1000px)_rotateX(34deg)_scaleX(0.5)_scaleY(0.6)]
                   z-10">
-
-        <!-- Net -->
+				  
+		 <!-- I think it's easier to play if it's straight - Tina and it makes the game work -->
+         <!-- [transform:perspective(1000px)_rotateX(34deg)_scaleX(0.5)_scaleY(0.6)] -->
+        
+		 <!-- Net -->
         <div class="absolute border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
                     h-[96%] top-[2%] left-[calc(50%-0.4vw)]"></div>
 
