@@ -94,8 +94,7 @@ function attachLoginListeners() {
         user = await login(email, password);
         // TODO: make sure not to expose token to the console.log. Now we are exposing it.
         console.log("Logged in:", user);
-        localStorage.setItem("jwt", user.token);
-        window.location.hash = "intro"; // navigate to gamePage
+        window.location.hash = "GameIntroPage"; // navigate to lobby
       }
     } catch (err: unknown) {
       // We are checking if DB is up
@@ -141,14 +140,14 @@ function attachLoginListeners() {
       confirmPasswordField?.classList.remove("hidden");
 
       // Change button text
-      submitButton.textContent = "Sign Up";
+      submitButton.textContent = "Register";
 
       // Change title
       if (title) title.textContent = "Sign Up";
 
       // Change toggle text
       signupToggle.innerHTML =
-        'Already have an account? <span class="font-bold text-blue-600">Sign In</span>';
+        'Already have an account? <span class="font-bold text-[#8a56ea]">Sign In</span>';
     } else {
       // Hide signup fields
       nameField?.classList.add("hidden");
@@ -162,7 +161,8 @@ function attachLoginListeners() {
 
       // Change toggle text
       signupToggle.innerHTML =
-        'Don\'t have an account? <span class="font-bold text-blue-600">Sign Up</span>';
+
+        'Don\'t have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>';
     }
   });
 }

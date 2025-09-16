@@ -58,6 +58,7 @@ await app.register(fastifySwagger, {
     },
     // We clean the URL from the protocol to avoid issues with Swagger UI
     host: (process.env.GATEWAY_URL || 'localhost:3003').replace(/^https?:\/\//, ''),
+
     schemes: ['http'],
     consumes: ['application/json'],
     produces: ['application/json'],

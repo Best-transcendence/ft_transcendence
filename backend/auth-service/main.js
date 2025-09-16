@@ -23,6 +23,7 @@ await app.register(fastifySwagger, {
     },
     // We clean the URL from the protocol to avoid issues with Swagger UI
     host: (process.env.AUTH_SERVICE_URL || 'http://localhost:3001').replace(/^https?:\/\//, ''),
+
     schemes: ['http'],
     consumes: ['application/json'],
     produces: ['application/json'],
