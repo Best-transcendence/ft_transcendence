@@ -15,8 +15,8 @@ will update automatically the other styles.
   --color-accent-1: #5b2ca8; /* indigo */
   --color-accent-2: #2fd2f7; /* cyan */
   --color-text: #f5fbb5;   /* moon glow */
-  --color-button: #12749e; /* teal */
-  --color-button-hover: #2d5773; /* pine */
+  --color-button: #7037d3; /* teal */
+  --color-button-hover: #8a56ea; /* pine */
 }
 
 /* 🔥 Warm Fire Theme */
@@ -26,8 +26,8 @@ will update automatically the other styles.
   --color-accent-1: #ffd53a; /* fire yellow */
   --color-accent-2: #e14d1a; /* fire red */
   --color-text: #1d0c0c;   /* dark for contrast */
-  --color-button: #ff8a1d; /* fire orange */
-  --color-button-hover: #e14d1a; /* fire red */
+  --color-button: #7037d3; /* fire orange */
+  --color-button-hover: #8a56ea; /* fire red */
 }
 
 

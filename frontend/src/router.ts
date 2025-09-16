@@ -130,14 +130,14 @@ function attachLoginListeners() {
       confirmPasswordField?.classList.remove("hidden");
 
       // Change button text
-      submitButton.textContent = "Sign Up";
+      submitButton.textContent = "Register";
 
       // Change title
       if (title) title.textContent = "Sign Up";
 
       // Change toggle text
       signupToggle.innerHTML =
-        'Already have an account? <span class="font-bold text-blue-600">Sign In</span>';
+        'Already have an account? <span class="font-bold text-[#8a56ea]">Sign In</span>';
     } else {
       // Hide signup fields
       nameField?.classList.add("hidden");
@@ -151,7 +151,7 @@ function attachLoginListeners() {
 
       // Change toggle text
       signupToggle.innerHTML =
-        'Don\'t have an account? <span class="font-bold text-blue-600">Sign Up</span>';
+        'Don\'t have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>';
     }
   });
 }

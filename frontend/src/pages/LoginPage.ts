@@ -16,42 +16,43 @@ export function LoginPage() {
       </div>
 
       <!-- Login Card -->
-      <div class="relative z-10 bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg w-96 text-center">
-        <!-- Title -->
-        <h1 class="text-2xl font-heading font-bold mb-6" style="color: var(--color-accent2);">
+	  <div class="relative z-10 bg-[#271d35] backdrop-blur-md p-8 rounded-2xl w-96 text-center shadow-[0_0_30px_10px_#7037d3]">
+		<!-- Title -->
+        <h1 class="text-2xl font-heading font-bold mb-6" style="color: white;">
           Sign In
         </h1>
 
         <!-- Login Form -->
         <form id="login-form" class="flex flex-col gap-4">
-          <!-- Name field (hidden by default) -->
-          <input
-            id="name-field"
-            class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2 hidden"
-            style="focus:ring: var(--color-accent1)"
-            type="text"
-            placeholder="Name (unique)"
-          />
-          <input
-            class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2"
-            style="focus:ring: var(--color-accent1)"
-            type="email"
-            placeholder="Email"
-          />
-          <input
-            class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2"
-            style="focus:ring: var(--color-accent1)"
-            type="password"
-            placeholder="Password"
-          />
-          <!-- Confirm Password field (hidden by default) -->
-          <input
-            id="confirm-password-field"
-            class="p-3 rounded-lg border border-gray-300 outline-none focus:ring-2 hidden"
-            style="focus:ring: var(--color-accent1)"
-            type="password"
-            placeholder="Confirm Password"
-          />
+		<!-- Name field (hidden by default) -->
+		<input
+			id="name-field"
+			class="p-3 rounded-lg border border-[#161220] outline-none focus:ring-2 focus:ring-[#161220] hidden text-white bg-[#161220] placeholder-gray-400"
+			type="text"
+			placeholder="Name (unique)"
+		/>
+
+		<!-- Email field -->
+		<input
+			class="p-3 rounded-lg border border-[#161220] outline-none focus:ring-2 focus:ring-[#161220] text-white bg-[#161220] placeholder-gray-400"
+			type="email"
+			placeholder="Email"
+		/>
+
+		<!-- Password field -->
+		<input
+			class="p-3 rounded-lg border border-[#161220] outline-none focus:ring-2 focus:ring-[#161220] text-white bg-[#161220] placeholder-gray-400"
+			type="password"
+			placeholder="Password"
+		/>
+
+		<!-- Confirm Password field (hidden by default) -->
+		<input
+			id="confirm-password-field"
+			class="p-3 rounded-lg border border-[#161220] outline-none focus:ring-2 focus:ring-[#161220] hidden text-white bg-[#161220]  placeholder-gray-400"
+			type="password"
+			placeholder="Confirm Password"
+		/>
           <button
             type="submit"
             class="text-white font-semibold py-2 rounded-lg"
@@ -64,7 +65,7 @@ export function LoginPage() {
         </form>
 
         <!-- Divider -->
-        <div class="my-4 text-gray-500">OR</div>
+        <div class="my-4 text-[#e8e8e8]">OR</div>
 
         <!-- Google Sign-in -->
         <button
@@ -84,16 +85,16 @@ export function LoginPage() {
         <button
           id="signup-toggle"
           class="mt-4 text-sm cursor-pointer bg-transparent border-none"
-          style="color: var(--color-accent2);"
+          style="color: #e8e8e8;"
         >
-          Don't have an account? <span class="font-bold text-blue-600">Sign Up</span>
+		Don't have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>
         </button>
 
         <!-- Guest Option -->
         <p
           id="guest-login"
           class="mt-4 text-sm cursor-pointer"
-          style="color: var(--color-accent2);"
+          style="color: #e8e8e8;"
         >
           Continue as Guest
         </p>
