@@ -37,7 +37,7 @@ export function router() {
       });
       break;
 
-    case "game":
+    case "GameIntroPage":
       app.innerHTML = GamePong2D();
       initGame();
       break;
