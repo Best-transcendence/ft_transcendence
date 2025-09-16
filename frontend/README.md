@@ -7,47 +7,6 @@ We are building a **vanilla TypeScript SPA** with **TailwindCSS** (Frontend modu
 
 ---
 
-## 🗂️ Project Structure
-
-```
-frontend/
-│── public/
-│    ├── index.html         # Root HTML entry
-│    ├── styles.css         # Tailwind entry
-│    └── assets/            # Images, logos, icons
-│
-│── src/
-│    ├── app.ts             # SPA bootstrap
-│    ├── router.ts          # Simple router
-│    │
-│    ├── pages/             # Screens of the app
-│    │    ├── LoginPage.ts
-│    │    ├── LobbyPage.ts
-│    │    ├── TournamentPage.ts
-│    │    └── GamePage.ts
-│    │
-│    ├── components/        # Reusable UI widgets
-│    │    ├── Button.ts
-│    │    ├── InputField.ts
-│    │    └── ScoreBoard.ts
-│    │
-│    ├── game/              # Game logic
-│    │    ├── Pong2D.ts
-│    │    └── Pong3D.ts
-│    │
-│    └── services/          # API + WebSockets
-│         ├── api.ts
-│         ├── ws.ts
-│         └── auth.ts
-│
-│── package.json
-│── tsconfig.json
-│── tailwind.config.js
-│── Dockerfile
-```
-
----
-
 ## ⚙️ Setup & Run (Local Dev)
 
 ### 1. Install dependencies

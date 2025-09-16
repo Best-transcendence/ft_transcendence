@@ -2,7 +2,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage } from "./pages/LobbyPage";
 import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
-
+import { GamePong2D } from "./games/Pong2d";
+import { initGame } from "./games/InitGame";
 //_______ Info
 /*
 The router will set up the routing sistem for the SAP
@@ -36,12 +37,15 @@ export function router() {
       });
       break;
 
+    case "game":
+      app.innerHTML = GamePong2D();
+      initGame();
+      break;
+
     default:
       app.innerHTML = `<h1 class="text-red-600 text-3xl text-center mt-10">404 Bro Page Not Found </h1>`;
-
   }
 }
-
 
 /* Example: add listeners after rendering LoginPage */
 function attachLoginListeners() {
@@ -51,10 +55,19 @@ function attachLoginListeners() {
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const email = (document.querySelector("input[type='email']") as HTMLInputElement).value.trim();
-    const password = (document.querySelector("input[type='password']") as HTMLInputElement).value;
-    const name = (document.getElementById("name-field") as HTMLInputElement)?.value?.trim();
-    const confirmPassword = (document.getElementById("confirm-password-field") as HTMLInputElement)?.value;
+    const email = (
+      document.querySelector("input[type='email']") as HTMLInputElement
+    ).value.trim();
+    const password = (
+      document.querySelector("input[type='password']") as HTMLInputElement
+    ).value;
+    const name = (
+      document.getElementById("name-field") as HTMLInputElement
+    )?.value?.trim();
+    const confirmPassword = (
+      document.getElementById("confirm-password-field") as HTMLInputElement
+    )?.value;
+
 
     try {
       let user;
@@ -80,15 +93,18 @@ function attachLoginListeners() {
       } else {
         // Handle login
         user = await login(email, password);
-        // TODO: make sure not to expose token to the console.log. Now we are exposing it.
         console.log("Logged in:", user);
-        localStorage.setItem("jwt", user.token);
-        window.location.hash = "intro"; // navigate to gamePage
+        window.location.hash = "GameIntroPage"; // navigate to lobby
       }
     } catch (err: unknown) {
       // We are checking if DB is up
-      if (typeof err === 'object' && err && 'message' in err && typeof err.message === 'string') {
-        if (err.message.includes('fetch')) {
+      if (
+        typeof err === "object" &&
+        err &&
+        "message" in err &&
+        typeof err.message === "string"
+      ) {
+        if (err.message.includes("fetch")) {
           alert("❌ Cannot connect to server. Is the backend running?");
         } else {
           // DB is up but wrong credentials or signup error
@@ -107,8 +123,12 @@ function attachLoginListeners() {
   // Signup toggle functionality
   const signupToggle = document.getElementById("signup-toggle");
   const nameField = document.getElementById("name-field");
-  const confirmPasswordField = document.getElementById("confirm-password-field");
-  const submitButton = document.querySelector("button[type='submit']") as HTMLButtonElement;
+  const confirmPasswordField = document.getElementById(
+    "confirm-password-field"
+  );
+  const submitButton = document.querySelector(
+    "button[type='submit']"
+  ) as HTMLButtonElement;
   const title = document.querySelector("h1");
 
   signupToggle?.addEventListener("click", () => {
@@ -120,13 +140,14 @@ function attachLoginListeners() {
       confirmPasswordField?.classList.remove("hidden");
 
       // Change button text
-      submitButton.textContent = "Sign Up";
+      submitButton.textContent = "Register";
 
       // Change title
       if (title) title.textContent = "Sign Up";
 
       // Change toggle text
-      signupToggle.innerHTML = 'Already have an account? <span class="font-bold text-blue-600">Sign In</span>';
+      signupToggle.innerHTML =
+        'Already have an account? <span class="font-bold text-[#8a56ea]">Sign In</span>';
     } else {
       // Hide signup fields
       nameField?.classList.add("hidden");
@@ -139,7 +160,8 @@ function attachLoginListeners() {
       if (title) title.textContent = "Sign In";
 
       // Change toggle text
-      signupToggle.innerHTML = 'Don\'t have an account? <span class="font-bold text-blue-600">Sign Up</span>';
+      signupToggle.innerHTML =
+        'Don\'t have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>';
     }
   });
 }
