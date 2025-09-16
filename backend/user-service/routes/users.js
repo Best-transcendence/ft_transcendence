@@ -253,4 +253,75 @@ export default async function (fastify, _opts) {
       return reply.status(401).send({ error: 'Unauthorized' });
     }
   });
+
+  fastify.post('/me', {
+    schema: {
+      tags: ['User Management'],
+      summary: 'Update Current User Profile',
+      description: 'Update the authenticated user\'s profile information',
+      security: [{ Bearer: [] }],
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          profilePicture: { type: 'string' },
+        }
+      },
+      response: {
+        200: {
+          description: 'Updated user profile',
+          type: 'object',
+          properties: {
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                authUserId: { type: 'integer' },
+                name: { type: 'string' },
+                email: { type: 'string' },
+                profilePicture: { type: 'string', nullable: true },
+                bio: { type: 'string', nullable: true },
+                matchHistory: { type: 'object' },
+                stats: { type: 'object' },
+                createdAt: { type: 'string', format: 'date-time' },
+                updatedAt: { type: 'string', format: 'date-time' }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request',
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        401: {
+          description: 'Unauthorized - invalid or missing token',
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    try {
+      await request.jwtVerify();
+      const userId = request.user.id;
+      const updateData = request.body;
+      const updatedUser = await fastify.prisma.userProfile.update({
+        where: { authUserId: userId },
+        data: updateData
+      });
+
+      return { user: updatedUser };
+    } catch (err) {
+      if (err.code === 'P2025') { // Prisma not found error
+        return reply.status(404).send({ error: 'User profile not found' });
+      }
+      return reply.status(401).send({ error: 'Unauthorized or update failed' });
+    }
+  });
 }
+

@@ -5,6 +5,7 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { profilePopUp } from "../components/popUps"
 import { thisUser } from "../router"
 import { addTheme } from "../components/Theme"
+import { triggerPopup } from "../components/popUps"
 
 // Manages Profile page display
 export function ProfilePage()
@@ -36,14 +37,17 @@ export function ProfilePage()
 				alt="Profile picture"
 				class="rounded-full"
 				style="width: 160px; height: 160px;"/>
-				<button style="position: absolute; bottom: 1px; right: 1px;">🖍</button>
+				<button id="edit-pic-button"
+				style="position: absolute; bottom: 1px; right: 1px;"
+				onclick="profile-popup">🖍</button>
 		  </div>
 		<h1 class="text-2xl font-semibold ">${thisUser.name}</h1>
 		<p class="text-gray-500 text-sm">It's all about you <3</p>
 	</div>
+	${ profilePopUp() }
 
 <!-- Profile info card -->
-	<div class="bg-white shadow rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-[0_0_30px_10px_#7037d3]">
+	<div class="bg-white rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-[0_0_30px_10px_#7037d3]">
 
 <!-- Username -->
 		<div class="flex justify-between items-center">
@@ -71,14 +75,3 @@ export function ProfilePage()
 		<p class="font-semibold center">Delete account</p>
 	</div>`;
 }
-
-/*
-	<div class="flex flex-col items-center gap-3 mb-10">
-			<img src="${thisUser.profilePicture}"
-				alt="Profile picture"
-				class="rounded-full"
-				style="width: 160px; height: 160px;"/>
-				<button onClick={editName} style="margin-left: 5px;">🖍</button>
-		<h1 class="text-2xl font-semibold">${thisUser.name}</h1>
-		<p class="text-gray-500 text-sm">It's all about you <3</p>
-	</div> */
