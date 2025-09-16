@@ -1,43 +1,68 @@
-export function GameIntroPage() {
-  return `
-    <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-brand-light to-brand">
-      <h1 class="text-5xl font-heading font-bold text-brand-dark mb-4">Retro Pong</h1>
-      <p class="text-lg text-gray-700 text-center max-w-xl mb-10">
-        Experience the classic game of Pong with a modern twist. Smooth animations, warm colors, and addictive gameplay.
-      </p>
+import { getCurrentUser } from "../services/api";
 
-      <div class="flex gap-6 mb-10">
-        <div class="bg-white p-4 rounded-xl shadow-md rotate-[-3deg]">
-          <h2 class="font-bold text-brand mb-2">Classic Gameplay</h2>
-          <p class="text-gray-600 text-sm">Pure Pong mechanics with modern polish</p>
+export async function GameIntroPage() {
+  try {
+    const data = await getCurrentUser();
+    const user = data.user;
+
+    return `
+      <div class="min-h-screen
+                  flex
+                  flex-col
+                  items-center justify-start
+                  bg-gradient-to-b from-theme-bg1 to-theme-bg2
+                  text-theme-text p-8">
+        <!-- Header with user info -->
+        <div class="w-full
+                    flex justify-between items-center
+                    mb-10">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10
+                        rounded-full bg-theme-button
+                        flex items-center justify-center
+                        text-white font-bold">
+              ${user.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p class="font-semibold">Welcome back, ${user.name}!</p>
+              <p class="text-sm text-gray-500">${user.email}</p>
+            </div>
+          </div>
+          <button id="logout-btn"
+            class="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100">
+            Logout
+          </button>
         </div>
-        <div class="bg-white p-4 rounded-xl shadow-md rotate-[2deg]">
-          <h2 class="font-bold text-brand mb-2">Smooth Controls</h2>
-          <p class="text-gray-600 text-sm">Responsive keyboard controls for both players</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl shadow-md rotate-[1deg]">
-          <h2 class="font-bold text-brand mb-2">Modern Design</h2>
-          <p class="text-gray-600 text-sm">Warm colors and 3D visual effects</p>
+
+        <!-- Title -->
+        <h1 class="text-4xl font-heading font-bold mb-4">Retro Pong</h1>
+        <p class="text-lg text-gray-600 max-w-xl text-center mb-10">
+          Experience the classic game of Pong with a modern twist.
+        </p>
+
+        <!-- Feature cards -->
+        <div class="flex gap-6 flex-wrap justify-center">
+          <div class="bg-white bg-opacity-90 rounded-xl shadow p-6 w-64 text-center">
+            <h2 class="font-bold text-theme-button mb-2">Classic Gameplay</h2>
+            <p class="text-gray-600 text-sm">Pure Pong mechanics</p>
+          </div>
+          <div class="bg-white bg-opacity-90 rounded-xl shadow p-6 w-64 text-center">
+            <h2 class="font-bold text-theme-button mb-2">Smooth Controls</h2>
+            <p class="text-gray-600 text-sm">Responsive keyboard controls for both players</p>
+          </div>
+          <div class="bg-white bg-opacity-90 rounded-xl shadow p-6 w-64 text-center">
+            <h2 class="font-bold text-theme-button mb-2">Our amaizing modern Design</h2>
+            <p class="text-gray-600 text-sm">more text.......</p>
+          </div>
         </div>
       </div>
-
-      <div class="bg-white p-6 rounded-xl shadow-md w-[700px]">
-        <div class="flex justify-between mb-4">
-          <div class="text-center">
-            <p class="font-semibold">Player 1</p>
-            <span class="bg-brand text-white px-3 py-1 rounded-lg">0</span>
-          </div>
-          <div class="text-center">
-            <p class="font-semibold">Player 2</p>
-            <span class="bg-brand text-white px-3 py-1 rounded-lg">0</span>
-          </div>
-        </div>
-
-        <div class="flex justify-center gap-4">
-          <button class="bg-brand hover:bg-brand-dark text-white px-6 py-2 rounded-lg">Start Game</button>
-          <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg">Reset</button>
-        </div>
+    `;
+  } catch (err) {
+    console.error("Failed to load user :", err);
+    return `
+      <div class="min-h-screen flex items-center justify-center bg-red-100 text-red-600">
+        <p> Failed to load user. Please log in again.</p>
       </div>
-    </div>
-  `;
+    `;
+  }
 }

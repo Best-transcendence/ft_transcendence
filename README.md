@@ -5,9 +5,14 @@ A modern, full-stack web application implementing the classic Pong game with tou
 ## 🚀 Quick Start
 
 ```bash
-# Clone and start the development environment
+# Clone and setup the development environment
 git clone <repository-url>
 cd ft_transcendence
+
+# Environment is already configured in .env
+# (Edit .env if you need custom ports)
+
+# Start with Docker
 docker-compose up --build
 ```
 

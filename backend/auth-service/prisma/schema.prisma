@@ -1,0 +1,25 @@
+// Auth Service Database Schema
+// This is the authentication microservice database
+// Contains only authentication-related data
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("AUTH_DATABASE_URL")
+}
+
+// User model for authentication service
+// Contains only fields needed for login/signup
+// TODO: make sure to implement validations for the fields
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String   @unique  // username for login/display
+  password  String   // TODO: not yet incripted
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

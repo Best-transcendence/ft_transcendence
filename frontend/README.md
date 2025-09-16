@@ -28,7 +28,7 @@ rm -rf dist .parcel-cache
 npm run dev
 ```
 
-SPA will be available at 👉 `http://localhost:1234`
+SPA will be available at 👉 `http://localhost:3000` (configurable via `FRONTEND_PORT` and `FRONTEND_URL` in root `.env`)
 
 
 ## 📦 Available Scripts

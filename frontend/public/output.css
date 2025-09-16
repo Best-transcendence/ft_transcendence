@@ -767,6 +767,10 @@ video {
   width: 1.25rem;
 }
 
+.w-64 {
+  width: 16rem;
+}
+
 .w-8 {
   width: 2rem;
 }
@@ -837,8 +841,16 @@ video {
   flex-direction: column;
 }
 
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
 .items-center {
   align-items: center;
+}
+
+.justify-start {
+  justify-content: flex-start;
 }
 
 .justify-center {
@@ -851,6 +863,10 @@ video {
 
 .gap-2 {
   gap: 0.5rem;
+}
+
+.gap-3 {
+  gap: 0.75rem;
 }
 
 .gap-4 {
@@ -883,6 +899,10 @@ video {
 
 .rounded-lg {
   border-radius: 0.5rem;
+}
+
+.rounded-md {
+  border-radius: 0.375rem;
 }
 
 .rounded-xl {
@@ -948,18 +968,9 @@ video {
   background-color: rgb(96 165 250 / 0.3);
 }
 
-.bg-brand {
-  background-color: var(--color-brand);
-}
-
 .bg-gray-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
-}
-
-.bg-gray-200 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(229 231 235 / var(--tw-bg-opacity, 1));
 }
 
 .bg-gray-900 {
@@ -979,6 +990,15 @@ video {
   background-color: rgb(192 132 252 / 0.3);
 }
 
+.bg-red-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 226 226 / var(--tw-bg-opacity, 1));
+}
+
+.bg-theme-button {
+  background-color: var(--color-button);
+}
+
 .bg-transparent {
   background-color: transparent;
 }
@@ -990,6 +1010,10 @@ video {
 
 .bg-\[radial-gradient\(circle\2c rgba\(0\2c 0\2c 0\2c 0\)_50\%\2c rgba\(0\2c 0\2c 0\2c 1\)_100\%\)\] {
   background-image: radial-gradient(circle,rgba(0,0,0,0) 50%,rgba(0,0,0,1) 100%);
+}
+
+.bg-opacity-90 {
+  --tw-bg-opacity: 0.9;
 }
 
 .bg-\[radial-gradient\(ellipse_at_bottom\2c _rgba\(255\2c 165\2c 0\2c 0\.35\)_0\%\2c _transparent_40\%\)\2c radial-gradient\(circle_at_80\%_20\%\2c _rgba\(122\2c 44\2c 208\2c 0\.3\)_0\%\2c _transparent_30\%\)\2c linear-gradient\(180deg\2c _\#140533_0\%\2c _\#3c1282_50\%\2c _\#0a0f3d_100\%\)\] {
@@ -1036,10 +1060,6 @@ video {
   padding: 0.75rem;
 }
 
-.p-4 {
-  padding: 1rem;
-}
-
 .p-6 {
   padding: 1.5rem;
 }
@@ -1048,24 +1068,9 @@ video {
   padding: 2rem;
 }
 
-.px-3 {
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
-}
-
 .px-4 {
   padding-left: 1rem;
   padding-right: 1rem;
-}
-
-.px-6 {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-}
-
-.py-1 {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
 }
 
 .py-2 {
@@ -1158,11 +1163,6 @@ video {
   color: rgb(75 85 99 / var(--tw-text-opacity, 1));
 }
 
-.text-gray-700 {
-  --tw-text-opacity: 1;
-  color: rgb(55 65 81 / var(--tw-text-opacity, 1));
-}
-
 .text-gray-800 {
   --tw-text-opacity: 1;
   color: rgb(31 41 55 / var(--tw-text-opacity, 1));
@@ -1171,6 +1171,18 @@ video {
 .text-red-600 {
   --tw-text-opacity: 1;
   color: rgb(220 38 38 / var(--tw-text-opacity, 1));
+}
+
+.text-theme-bg1 {
+  color: var(--color-bg-1);
+}
+
+.text-theme-button {
+  color: var(--color-button);
+}
+
+.text-theme-text {
+  color: var(--color-text);
 }
 
 .text-white {
@@ -1203,12 +1215,6 @@ video {
 .shadow-\[0_0_30px_10px_\#7037d3\] {
   --tw-shadow: 0 0 30px 10px #7037d3;
   --tw-shadow-colored: 0 0 30px 10px var(--tw-shadow-color);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-}
-
-.shadow-md {
-  --tw-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
@@ -1261,8 +1267,9 @@ will update automatically the other styles.
   /* pine */
 }
 
-/* 🔥 Warm Fire Theme */
+xxxz
 
+/* 🔥 Warm Fire Theme */
 .theme-fire {
   --color-bg-1: #8b3b1e;
   /* ember brown */

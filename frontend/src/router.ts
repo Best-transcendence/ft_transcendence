@@ -24,8 +24,17 @@ export function router() {
       app.innerHTML = LobbyPage();
       break;
 
-    case "GameIntroPage":
-      app.innerHTML = GameIntroPage();
+    case "intro":
+      GameIntroPage().then((html) => {
+        app.innerHTML = html;
+
+        // attach logout listener
+        const logoutBtn = document.getElementById("logout-btn");
+        logoutBtn?.addEventListener("click", () => {
+          localStorage.removeItem("jwt");
+          window.location.hash = "login";
+        });
+      });
       break;
 
     case "game":
@@ -58,6 +67,7 @@ function attachLoginListeners() {
     const confirmPassword = (
       document.getElementById("confirm-password-field") as HTMLInputElement
     )?.value;
+
 
     try {
       let user;
