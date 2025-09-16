@@ -92,10 +92,10 @@ app.get('/health', {
     }
   }
 }, async (_request, _reply) => {
-  return { 
-    status: 'ok', 
-    service: 'auth-service', 
-    timestamp: new Date().toISOString() 
+  return {
+    status: 'ok',
+    service: 'auth-service',
+    timestamp: new Date().toISOString()
   };
 });
 
@@ -103,16 +103,16 @@ app.get('/health', {
 const start = async () => {
   try {
     const port = process.env.AUTH_SERVICE_PORT || 3001;
-        
+
     // Listen on all interfaces (0.0.0.0) to allow external connections
     await app.listen({ port: port, host: '0.0.0.0' });
-        
+
     const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
     console.log(`🔐 Auth Service running at ${authServiceUrl}`);
     console.log(`📊 Health check: ${authServiceUrl}/health`);
     console.log(`📚 API Documentation: ${authServiceUrl}/docs`);
     console.log(`🔑 Auth endpoints: ${authServiceUrl}/auth/login`);
-        
+
   } catch (err) {
     console.error('Failed to start auth service:');
     console.error('Error details:', err);

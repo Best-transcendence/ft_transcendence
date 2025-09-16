@@ -15,10 +15,16 @@ will update automatically the other styles.
   --color-accent-1: #5b2ca8; /* indigo */
   --color-accent-2: #2fd2f7; /* cyan */
   --color-text: #f5fbb5;   /* moon glow */
+<<<<<<< HEAD
   --color-button: #7037d3; /* teal */
   --color-button-hover: #8a56ea; /* pine */
 }
 
+=======
+  --color-button: #12749e; /* teal */
+  --color-button-hover: #2d5773; /* pine */
+}
+>>>>>>> origin/19-basic-frontend-profile-page
 
 /* 🔥 Warm Fire Theme */
 .theme-fire {

@@ -1,9 +1,9 @@
 // User management routes for user service
 export default async function (fastify, _opts) {
-    
+
   // GET /users - Get all user profiles
   fastify.get('/', {
-    // Everything in schema is public information only, for documentation purposes (Swagger). 
+    // Everything in schema is public information only, for documentation purposes (Swagger).
     // We have to add it for each endpoint we create.
     schema: {
       tags: ['User Management'],
@@ -43,7 +43,7 @@ export default async function (fastify, _opts) {
 
   // POST /users/bootstrap - Create or update user profile (called by auth-service)
   fastify.post('/bootstrap', {
-    // Everything in schema is public information only, for documentation purposes (Swagger). 
+    // Everything in schema is public information only, for documentation purposes (Swagger).
     // We have to add it for each endpoint we create.
     schema: {
       tags: ['User Management'],
@@ -53,17 +53,17 @@ export default async function (fastify, _opts) {
         type: 'object',
         required: ['authUserId', 'name', 'email'],
         properties: {
-          authUserId: { 
-            type: 'integer', 
+          authUserId: {
+            type: 'integer',
             description: 'User ID from auth-service (must be unique)'
           },
-          name: { 
-            type: 'string', 
+          name: {
+            type: 'string',
             minLength: 1,
             description: 'Username (duplicated from auth-service)'
           },
-          email: { 
-            type: 'string', 
+          email: {
+            type: 'string',
             format: 'email',
             description: 'User email (duplicated from auth-service)'
           }
@@ -137,7 +137,7 @@ export default async function (fastify, _opts) {
       if (existingProfile) {
         // Update existing profile with latest data from auth-service
         console.log(`[${correlationId}] Updating existing profile for authUserId: ${authUserId}`);
-                
+
         const updatedProfile = await fastify.prisma.userProfile.update({
           where: { authUserId },
           data: {
@@ -159,14 +159,15 @@ export default async function (fastify, _opts) {
       } else {
         // Create new user profile
         console.log(`[${correlationId}] Creating new profile for authUserId: ${authUserId}`);
-                
+
         const newProfile = await fastify.prisma.userProfile.create({
           data: {
             authUserId,
             name,
             email,
             matchHistory: {}, // Initialize as empty object
-            stats: {} // Initialize as empty object
+            stats: {}, // Initialize as empty object
+			profilePicture: "/assets/default-avatar.jpeg" // Sets default profile pic
           }
         });
 
@@ -188,14 +189,14 @@ export default async function (fastify, _opts) {
         authUserId: request.body?.authUserId,
         stack: error.stack
       });
-            
+
       return reply.status(500).send({ error: 'Internal server error' });
     }
   });
 
   // GET /users/me - Get current user profile
   fastify.get('/me', {
-    // Everything in schema is public information only, for documentation purposes (Swagger). 
+    // Everything in schema is public information only, for documentation purposes (Swagger).
     // We have to add it for each endpoint we create.
     schema: {
       tags: ['User Management'],

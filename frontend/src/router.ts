@@ -1,9 +1,77 @@
+//Services:
+import { getCurrentUser } from "./services/api";
+//Pages:
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage } from "./pages/LobbyPage";
 import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
 import { initGame } from "./games/InitGame";
+
+import { ProfilePage } from "./pages/ProfilePage";
+//Components:
+import { sideBar } from "./components/SideBar";
+import { logOutBtn } from "./components/LogOutBtn"
+
+
+// Centralizes user extraction into a variable
+export let thisUser: any = undefined;
+
+async function fetchUser()
+{
+	try
+	{
+		const data = await getCurrentUser();
+		thisUser = data.user;
+	}
+	catch
+	{
+		thisUser = undefined;
+	}
+
+}
+
+/*  Centralizing the user data extraction for the
+	protected (AKA logged-in only) pages */
+/* function protectedPage(renderer: () => string)
+{
+	const app = document.getElementById("app")!;
+
+	if (thisUser != undefined)
+	{
+		const html = renderer();
+		app.innerHTML = html;
+
+		sideBar(); //centralise sidebar attach here
+		logOutBtn(); //centralise logout button attach here
+	}
+	else
+	{
+		console.error("Failed to load user");
+		window.location.hash = "login";
+	}
+}; */
+
+//tmp async function to render visual edit without having to relog
+async function protectedPage(renderer: () => string)
+{
+	const app = document.getElementById("app")!;
+
+	await fetchUser();
+	if (thisUser != undefined)
+	{
+		const html = renderer();
+		app.innerHTML = html;
+
+		sideBar(); //centralise sidebar attach here
+		logOutBtn(); //centralise logout button attach here
+	}
+	else
+	{
+		console.error("Failed to load user");
+		window.location.hash = "login";
+	}
+};
 //_______ Info
 /*
 The router will set up the routing sistem for the SAP
@@ -13,6 +81,9 @@ with the # for now just to see if everything works.
 export function router() {
   const app = document.getElementById("app")!;
   const page = window.location.hash.replace("#", "") || "login";
+
+  if (window.location.pathname.startsWith("/assets/")) //lets us open assets on web
+	return;
 
   switch (page) {
     case "login":
@@ -25,22 +96,17 @@ export function router() {
       break;
 
     case "intro":
-      GameIntroPage().then((html) => {
-        app.innerHTML = html;
-
-        // attach logout listener
-        const logoutBtn = document.getElementById("logout-btn");
-        logoutBtn?.addEventListener("click", () => {
-          localStorage.removeItem("jwt");
-          window.location.hash = "login";
-        });
-      });
+      protectedPage(() => GameIntroPage()); //go through user data extraction before rendering page
       break;
 
     case "GameIntroPage":
       app.innerHTML = GamePong2D();
       initGame();
       break;
+
+	case "profile":
+		protectedPage(() => ProfilePage()); //go through user data extraction before rendering page
+		break;
 
     default:
       app.innerHTML = `<h1 class="text-red-600 text-3xl text-center mt-10">404 Bro Page Not Found </h1>`;
@@ -94,7 +160,9 @@ function attachLoginListeners() {
         user = await login(email, password);
         // TODO: make sure not to expose token to the console.log. Now we are exposing it.
         console.log("Logged in:", user);
-        window.location.hash = "GameIntroPage"; // navigate to lobby
+        localStorage.setItem("jwt", user.token);
+		await fetchUser();
+        window.location.hash = "intro"; // navigate to gamePage
       }
     } catch (err: unknown) {
       // We are checking if DB is up

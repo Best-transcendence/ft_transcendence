@@ -1,10 +1,9 @@
-import { getCurrentUser } from "../services/api";
+import { sidebarDisplay } from "../components/SideBar"
+import { profileDivDisplay } from "../components/ProfileDiv"
+import { LogOutBtnDisplay } from "../components/LogOutBtn"
 
-export async function GameIntroPage() {
-  try {
-    const data = await getCurrentUser();
-    const user = data.user;
-
+// Adapted function now that data extraction has been centralized
+export function GameIntroPage() {
     return `
       <div class="min-h-screen
                   flex
@@ -12,27 +11,18 @@ export async function GameIntroPage() {
                   items-center justify-start
                   bg-gradient-to-b from-theme-bg1 to-theme-bg2
                   text-theme-text p-8">
-        <!-- Header with user info -->
+
+<!-- Header with user info -->
         <div class="w-full
                     flex justify-between items-center
                     mb-10">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10
-                        rounded-full bg-theme-button
-                        flex items-center justify-center
-                        text-white font-bold">
-              ${user.name.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <p class="font-semibold">Welcome back, ${user.name}!</p>
-              <p class="text-sm text-gray-500">${user.email}</p>
-            </div>
-          </div>
-          <button id="logout-btn"
-            class="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100">
-            Logout
-          </button>
-        </div>
+
+<!-- Protected pages components -->
+			${ profileDivDisplay() }
+			${ sidebarDisplay() }
+			${ LogOutBtnDisplay() }
+
+		</div>
 
         <!-- Title -->
         <h1 class="text-4xl font-heading font-bold mb-4">Retro Pong</h1>
@@ -57,12 +47,4 @@ export async function GameIntroPage() {
         </div>
       </div>
     `;
-  } catch (err) {
-    console.error("Failed to load user :", err);
-    return `
-      <div class="min-h-screen flex items-center justify-center bg-red-100 text-red-600">
-        <p> Failed to load user. Please log in again.</p>
-      </div>
-    `;
-  }
 }

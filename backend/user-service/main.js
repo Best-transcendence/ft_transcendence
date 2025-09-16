@@ -92,10 +92,10 @@ app.get('/health', {
     }
   }
 }, async (_request, _reply) => {
-  return { 
-    status: 'ok', 
-    service: 'user-service', 
-    timestamp: new Date().toISOString() 
+  return {
+    status: 'ok',
+    service: 'user-service',
+    timestamp: new Date().toISOString()
   };
 });
 
@@ -103,16 +103,16 @@ app.get('/health', {
 const start = async () => {
   try {
     const port = process.env.USER_SERVICE_PORT || 3002;
-        
+
     // Listen on all interfaces (0.0.0.0) to allow external connections
     await app.listen({ port: port, host: '0.0.0.0' });
-        
+
     const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
     console.log(`👤 User Service running at ${userServiceUrl}`);
     console.log(`📊 Health check: ${userServiceUrl}/health`);
     console.log(`📚 API Documentation: ${userServiceUrl}/docs`);
     console.log(`👥 User endpoints: ${userServiceUrl}/users`);
-        
+
   } catch (err) {
     console.error('Failed to start user service:');
     console.error('Error details:', err);

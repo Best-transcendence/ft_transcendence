@@ -93,3 +93,6 @@ frontend/dist/
 frontend/next-env.d.ts
 
 /generated/prisma
+
+# Notes
+/perso
