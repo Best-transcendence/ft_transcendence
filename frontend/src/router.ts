@@ -68,7 +68,6 @@ function attachLoginListeners() {
       document.getElementById("confirm-password-field") as HTMLInputElement
     )?.value;
 
-
     try {
       let user;
 
@@ -93,6 +92,7 @@ function attachLoginListeners() {
       } else {
         // Handle login
         user = await login(email, password);
+        // TODO: make sure not to expose token to the console.log. Now we are exposing it.
         console.log("Logged in:", user);
         window.location.hash = "GameIntroPage"; // navigate to lobby
       }
@@ -161,6 +161,7 @@ function attachLoginListeners() {
 
       // Change toggle text
       signupToggle.innerHTML =
+
         'Don\'t have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>';
     }
   });

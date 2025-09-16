@@ -3,6 +3,7 @@ export function GamePong2D(): string {
     <div class="relative min-h-screen flex flex-col items-center justify-center font-['Press_Start_2P'] text-white overflow-hidden">
 
       <!-- Background layer -->
+
       <div class="absolute inset-0 bg-[url('assets/machine_tina_fav.png')] bg-cover bg-center z-[-2]"></div>
 
       <!-- Overlay gradient -->
@@ -12,6 +13,7 @@ export function GamePong2D(): string {
       <div class="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0)_50%,rgba(0,0,0,1)_100%)] z-0"></div>
 
       <!-- Game area -->
+
 	<div class="absolute w-[80vw]
 				h-[100vw]
 				min-w-[320px]
@@ -32,6 +34,7 @@ export function GamePong2D(): string {
 
         <!-- Scores -->
         <span id="score1"
+
               class="absolute top-[5%] left-[25%] text-[1.5vw] leading-none select-none">0</span>
         <span id="score2"
               class="absolute top-[5%] right-[25%] text-[1.5vw] leading-none select-none">0</span>
@@ -51,6 +54,7 @@ export function GamePong2D(): string {
                     shadow-[0.8vw_1vw_0.4vw_rgba(0,0,0,0.9)]"></div>
 
         <!-- Start text -->
+
 		<p id="startPress"
 		class="absolute bottom-[5%] left-1/2 -translate-x-1/2 text-center
 				bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
