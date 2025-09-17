@@ -67,6 +67,7 @@ async function protectedPage(renderer: () => string)
 		sideBar(); //centralise sidebar attach here
 		logOutBtn(); //centralise logout button attach here
 		triggerPopup();
+		initGame();
 	}
 	else
 	{
@@ -102,6 +103,7 @@ export function router() {
       break;
 
     case "pong2d":
+	protectedPage(() => GamePong2D());
       app.innerHTML = GamePong2D();
       initGame();
       break;
