@@ -33,13 +33,13 @@ export function ProfilePage()
 	<div class="flex flex-col items-center gap-3 mb-10 ">
 		<div class="rounded-full shadow-[0_0_30px_10px_#7037d3]"
 			style="position: relative; display: inline-block; width: 160px; height: 160px;">
-		<img src="${thisUser.profilePicture}"
+		<img id="profile-picture" src="${thisUser.profilePicture}"
 				alt="Profile picture"
 				class="rounded-full"
 				style="width: 160px; height: 160px;"/>
 				<button id="edit-pic-button"
 				style="position: absolute; bottom: 1px; right: 1px;"
-				onclick="profile-popup">🖍</button>
+				onclick>🖍</button>
 		  </div>
 		<h1 class="text-2xl font-semibold ">${thisUser.name}</h1>
 		<p class="text-gray-500 text-sm">It's all about you <3</p>

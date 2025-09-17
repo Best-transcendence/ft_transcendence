@@ -1,7 +1,8 @@
 // File aimed at holding popups
 import { thisUser } from "../router"
-import { editProfilePicture, removeProfilePicture } from "../services/userActions"
+import { editProfilePicture, uploadProfilePicture } from "../services/userActions"
 
+// Manages profile picture change popup
 export function triggerPopup()
 {
 	const editBtn = document.getElementById("edit-pic-button");
@@ -25,11 +26,11 @@ export function triggerPopup()
 			switch (option)
 			{
 				case "edit":
-					editProfilePicture();
+					uploadProfilePicture();
 					break;
 
 				case "remove":
-					removeProfilePicture();
+					editProfilePicture("/assets/default-avatar.jpeg");
 					break;
 
 				case "cancel":
@@ -41,10 +42,8 @@ export function triggerPopup()
 	});
 
 }
-/* c style="display: none; b
-ackdrop-filter: blur(4px); background: rgba(0,0,0,0.2);
-z-index: 40;"></div> */
 
+// Display for hidden popup + hidden fileselector
 export function profilePopUp()
 {
 	return `
@@ -64,6 +63,9 @@ export function profilePopUp()
 			<li data-action="remove" class="cursor-pointer hover:text-blue-600">Remove picture</li>
 			<li data-action="cancel" class="cursor-pointer hover:text-blue-600">Cancel</li>
 		</ul>
+
+	<!-- Hidden filesystem picker -->
+		<input type="file" id="profile-pic-input" accept="image/*" style="display:none" />
 
 	</div>`;
 }
