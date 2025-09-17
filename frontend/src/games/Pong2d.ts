@@ -14,18 +14,17 @@ export function GamePong2D(): string {
 
       <!-- Game area -->
 
-	<div class="absolute w-[80vw]
-				h-[100vw]
-				min-w-[320px]
-				min-h-[100px]
-				max-w-[800px]
-				max-h-[450px]
+	<div class="absolute<div class="absolute w-[40vw]
+				h-[55vh]
 				bg-[rgba(7,26,29,0.6)]
+				top-[12.5%]
+				left-[29.8%]
 				top-[18%]
 				border-[1vw]
 				border-[#919bebc7]
 				rounded-2xl
 				backdrop-blur-sm
+				shadow-[0_0_40px_15px_#7037d3]
 				z-10">
 
         <!-- Net -->
