@@ -9,7 +9,7 @@ export function GamePong2D(): string {
 	<div class="relative min-h-screen
 		flex flex-col
 		items-center justify-start
-		bg-[url('assets/machine_tina_fav.png')] bg-cover bg-center z-[0]
+		bg-[url('assets/game_background.png')] bg-cover bg-center z-[0]
 		text-theme-text p-8">
 
 <!-- filters layer -->

@@ -4,7 +4,7 @@ export function drawCanvasBackground(): void {
   if (!canvas || !ctx) return;
 
   const bgImg = new Image();
-  bgImg.src = "/assets/machine_tina_fav.png"; // public path
+  bgImg.src = "/assets/game_background.png"; // public path
   bgImg.onload = () => {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
