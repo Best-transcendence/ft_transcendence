@@ -10,7 +10,7 @@ import fastifyCors from '@fastify/cors';
 dotenv.config();
 
 // Create Fastify server instance with logging
-const app = Fastify({ 
+const app = Fastify({
   logger: {
     level: 'info',
     transport: {
@@ -46,12 +46,12 @@ await app.register(fastifySwagger, {
       title: 'Gateway API',
       description: `
                 API Gateway for ft_transcendence microservices - routes requests to individual services.
-                
+
                 **Service Documentation:**
                 - [Auth Service](${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/docs) - Authentication and JWT handling
                 - [User Service](${process.env.USER_SERVICE_URL || 'http://localhost:3002'}/docs) - User profiles and management
-                
-                **Note:** This gateway proxies requests to the individual microservices. 
+
+                **Note:** This gateway proxies requests to the individual microservices.
                 For detailed API schemas and examples, refer to the individual service documentation above.
             `,
       version: '1.0.0',
@@ -63,13 +63,13 @@ await app.register(fastifySwagger, {
     consumes: ['application/json'],
     produces: ['application/json'],
     tags: [
-      { 
-        name: 'Authentication', 
-        description: `Auth service endpoints (login, signup) - [See detailed docs](${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/docs)` 
+      {
+        name: 'Authentication',
+        description: `Auth service endpoints (login, signup) - [See detailed docs](${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/docs)`
       },
-      { 
-        name: 'User Management', 
-        description: `User service endpoints (profiles, data) - [See detailed docs](${process.env.USER_SERVICE_URL || 'http://localhost:3002'}/docs)` 
+      {
+        name: 'User Management',
+        description: `User service endpoints (profiles, data) - [See detailed docs](${process.env.USER_SERVICE_URL || 'http://localhost:3002'}/docs)`
       },
       { name: 'Health', description: 'Service health checks' }
     ],
@@ -136,14 +136,14 @@ const validateJWT = async (request, reply) => {
 const logRequest = async (request, reply) => {
   const start = Date.now();
   const service = request.url.startsWith('/auth') ? 'auth-service' : 'user-service';
-    
+
   // Log the incoming request
   app.log.info({
     method: request.method,
     url: request.url,
     service: service
   }, `Incoming request: ${request.method} ${request.url} → ${service}`);
-    
+
   // Add response logging hook
   reply.raw.on('finish', () => {
     const duration = Date.now() - start;
@@ -183,8 +183,8 @@ app.get('/health', {
     }
   }
 }, async (_request, _reply) => {
-  return { 
-    status: 'ok', 
+  return {
+    status: 'ok',
     service: 'gateway',
     timestamp: new Date().toISOString(),
     services: {
@@ -197,7 +197,7 @@ app.get('/health', {
 // Auth service routes (no JWT validation needed)
 app.register(async function (fastify) {
   fastify.addHook('preHandler', logRequest);
-    
+
   fastify.register(fastifyHttpProxy, {
     upstream: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
     prefix: '/auth',
@@ -216,7 +216,7 @@ app.register(async function (fastify) {
 // User service routes (JWT validation required)
 app.register(async function (fastify) {
   fastify.addHook('preHandler', logRequest);
-    
+
   fastify.register(fastifyHttpProxy, {
     upstream: process.env.USER_SERVICE_URL || 'http://localhost:3002',
     prefix: '/users',
@@ -244,17 +244,17 @@ const start = async () => {
   try {
     const port = process.env.GATEWAY_PORT || 3003;
     const host = process.env.HOST || 'localhost';
-        
+
     // Listen on all interfaces (0.0.0.0) to allow external connections
     await app.listen({ port: port, host: '0.0.0.0' });
-        
+
     const gatewayUrl = process.env.GATEWAY_URL || `http://${host}:${port}`;
     console.log(`🚪 Gateway Service running at ${gatewayUrl}`);
     console.log(`📊 Health check: ${gatewayUrl}/health`);
     console.log(`📚 API Documentation: ${gatewayUrl}/docs`);
     console.log(`🔐 Auth endpoints: ${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/login`);
     console.log(`👥 User endpoints: ${process.env.USER_SERVICE_URL || 'http://localhost:3002'}`);
-        
+
   } catch (err) {
     console.error('Failed to start gateway service:');
     console.error('Error details:', err);

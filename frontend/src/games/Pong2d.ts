@@ -1,18 +1,38 @@
+import { addTheme } from "../components/Theme"
+import { sidebarDisplay } from "../components/SideBar"
+import { profileDivDisplay } from "../components/ProfileDiv"
+import { LogOutBtnDisplay } from "../components/LogOutBtn"
+
 export function GamePong2D(): string {
   return `
-    <div class="relative min-h-screen flex flex-col items-center justify-center font-['Press_Start_2P'] text-white overflow-hidden">
+<!-- Background layer -->
+	<div class="relative min-h-screen
+		flex flex-col
+		items-center justify-start
+		bg-[url('assets/machine_tina_fav.png')] bg-cover bg-center z-[0]
+		text-theme-text p-8">
 
-      <!-- Background layer -->
+<!-- filters layer -->
+		<div class="absolute inset-0 bg-gradient-to-b from-[#0f0f0f]/10 to-[#1a1a1a]/10 z-[1]"></div>
+		<div class="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0)_50%,rgba(0,0,0,1)_100%)] z-[2]"></div>
 
-      <div class="absolute inset-0 bg-[url('assets/machine_tina_fav.png')] bg-cover bg-center z-[-2]"></div>
+<!-- Header with user info -->
+			<div class="w-full
+				flex justify-between items-center
+				mb-10 relative z-3">
 
-      <!-- Overlay gradient -->
-      <div class="absolute inset-0 bg-gradient-to-b from-[#0f0f0f]/10 to-[#1a1a1a]/10 z-[-1]"></div>
+<!-- Protected pages components -->
+				${ profileDivDisplay() }
+				${ sidebarDisplay() }
+				${ LogOutBtnDisplay() }
+	</div>
 
-      <!-- Vignette -->
-      <div class="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0)_50%,rgba(0,0,0,1)_100%)] z-0"></div>
+<!-- Game div -->
+	<div class="absolute min-h-screen
+		flex flex-col items-center justify-center
+		font-['Press_Start_2P'] text-white overflow-hidden">
 
-      <!-- Game area -->
+<!-- Game area -->
 
 	  <div class="absolute w-[40vw]
 				h-[55vh]
@@ -26,8 +46,9 @@ export function GamePong2D(): string {
 				shadow-[0_0_40px_15px_#7037d3]
 				z-10">
 
-        <!-- Net -->
-        <div class="absolute border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
+<!-- Net -->
+<div class="absolute border-r-4 border-dotted border-white h-full top-0 left-1/2"></div>
+		<div class="absolute border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
                     h-[96%] top-[2%] left-[calc(50%-0.4vw)]"></div>
 
         <!-- Scores -->
