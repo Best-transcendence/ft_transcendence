@@ -21,8 +21,7 @@ model UserProfile {
   email       String   // Duplicated from auth-service for performance
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-<<<<<<< HEAD
-  
+
   // Profile information
   profilePicture String?  // URL to profile picture
   bio           String?   // User bio/description
@@ -35,18 +34,3 @@ model UserProfile {
   matchHistory  Json?     // Game match history (empty object initially)
   stats         Json?     // User statistics (empty object initially)
 }
-=======
-
-  // Profile information
-  profilePicture String?  // URL to profile picture
-  bio           String?   // User bio/description
-
-  // Friends relationships (many-to-many)
-  friends       UserProfile[] @relation("UserFriends")
-  friendOf      UserProfile[] @relation("UserFriends")
-
-  // Game data
-  matchHistory  Json?     // Game match history (empty object initially)
-  stats         Json?     // User statistics (empty object initially)
-}
->>>>>>> origin/19-basic-frontend-profile-page
