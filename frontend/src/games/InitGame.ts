@@ -7,7 +7,6 @@ export function initGame(): void {
   const score1 = $("score1");
   const score2 = $("score2");
   const startPress = $("startPress");
-
   const paddleSfx = $("paddleSound") as HTMLAudioElement;
   const wallSfx = $("wallSound") as HTMLAudioElement;
   const lossSfx = $("lossSound") as HTMLAudioElement;

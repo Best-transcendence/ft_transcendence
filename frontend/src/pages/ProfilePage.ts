@@ -33,7 +33,7 @@ export function ProfilePage()
 	<div class="flex flex-col items-center gap-3 mb-10 ">
 		<div class="rounded-full shadow-[0_0_30px_10px_#7037d3]"
 			style="position: relative; display: inline-block; width: 160px; height: 160px;">
-		<img id="profile-picture" src="${thisUser.profilePicture}"
+		<img id="profile-picture" src="${thisUser.profilePicture || "/assets/default-avatar.jpeg"}"
 				alt="Profile picture"
 				class="rounded-full"
 				style="width: 160px; height: 160px;"/>

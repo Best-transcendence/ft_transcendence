@@ -241,14 +241,32 @@ export default async function (fastify, _opts) {
 
       // Find user profile by authUserId from JWT token
       const user = await fastify.prisma.userProfile.findUnique({
-        where: { authUserId: request.user.id }
+        where: { authUserId: request.user.id },
+        select: {
+          id: true,
+          authUserId: true,
+          name: true,
+          email: true,
+          profilePicture: true,
+          bio: true,
+          matchHistory: true,
+          stats: true,
+          createdAt: true,
+          updatedAt: true
+        }
       });
 
       if (!user) {
         return reply.status(404).send({ error: 'User profile not found' });
       }
 
-      return { user };
+      // profilePicture default value if null or undefined
+      const userWithDefaultAvatar = {
+        ...user,
+        profilePicture: user.profilePicture || "/assets/default-avatar.jpeg"
+      };
+
+      return { user: userWithDefaultAvatar };
     } catch (_err) {
       return reply.status(401).send({ error: 'Unauthorized' });
     }
