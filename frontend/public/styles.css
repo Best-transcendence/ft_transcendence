@@ -19,6 +19,12 @@ will update automatically the other styles.
   --color-button-hover: #8a56ea; /* pine */
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
 
 /* 🔥 Warm Fire Theme */
 .theme-fire {
@@ -39,11 +45,13 @@ will update automatically the other styles.
 }
 
 .gameArea {
-  width: 40vw;
-  height: 55vh;
+  width: 70vw;
+  max-width: 900px;
+  aspect-ratio: 16 / 9;
   background: rgba(7,26,29,0.6);
   border: 1vw solid #919bebc7;
   border-radius: 1rem;
+  backdrop-filter: blur(4px);
   box-shadow: 0 0 40px 15px #7037d3;
   position: relative;
   display: flex;
