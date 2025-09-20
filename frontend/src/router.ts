@@ -2,7 +2,6 @@
 import { getCurrentUser } from "./services/api";
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
-import { LobbyPage } from "./pages/LobbyPage";
 import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
@@ -94,10 +93,6 @@ export function router() {
       attachLoginListeners();
       break;
 
-    case "lobby":
-      app.innerHTML = LobbyPage();
-      break;
-
     case "intro":
       protectedPage(() => GameIntroPage()); //go through user data extraction before rendering page
       break;
@@ -187,11 +182,6 @@ function attachLoginListeners() {
     }
   });
 
-  const guest = document.getElementById("guest-login");
-  guest?.addEventListener("click", () => {
-    window.location.hash = "lobby"; // guest also goes to lobby
-  });
-
   // Signup toggle functionality
   const signupToggle = document.getElementById("signup-toggle");
   const nameField = document.getElementById("name-field");
@@ -219,7 +209,7 @@ function attachLoginListeners() {
 
       // Change toggle text
       signupToggle.innerHTML =
-        'Already have an account? <span class="font-bold text-[#8a56ea]">Sign In</span>';
+        'Already have an account?   <span class="font-bold text-[#8a56ea] cursor-pointer transition duration-300 hover:text-[#a782dd] hover:shadow-[0_0_10px_#a67ee5]">Sign In</span>';
     } else {
       // Hide signup fields
       nameField?.classList.add("hidden");
@@ -234,7 +224,7 @@ function attachLoginListeners() {
       // Change toggle text
       signupToggle.innerHTML =
 
-        'Don\'t have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>';
+        'Don\'t have an account?  <span class="font-bold text-[#8a56ea] cursor-pointer transition duration-300 hover:text-[#a67ee5] hover:shadow-[0_0_10px_#a67ee5]">Sign Up</span>';
     }
   });
 }

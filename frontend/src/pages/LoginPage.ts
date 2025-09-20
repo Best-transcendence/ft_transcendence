@@ -16,7 +16,7 @@ export function LoginPage() {
       </div>
 
       <!-- Login Card -->
-	   <div class="relative z-10 bg-[#271d35] backdrop-blur-md p-8 rounded-2xl w-96 text-center shadow-[0_0_30px_10px_#7037d3]">
+	   <div class="relative z-10 bg-[#271d35] backdrop-blur-md p-8 rounded-2xl w-96 text-center shadow-[0_0_30px_10px_#7037d3] border border-gray-300">
 		<!-- Title -->
         <h1 class="text-2xl font-heading font-bold mb-6" style="color: white;">
 
@@ -88,17 +88,8 @@ export function LoginPage() {
           class="mt-4 text-sm cursor-pointer bg-transparent border-none"
           style="color: #e8e8e8;"
         >
-		Don't have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>
+		Don't have an account? <span class="font-bold text-[#8a56ea] hover:text-[#a782dd] transition-colors duration-200">Sign Up</span>
         </button>
-
-        <!-- Guest Option -->
-        <p
-          id="guest-login"
-          class="mt-4 text-sm cursor-pointer"
-          style="color: #e8e8e8;"
-        >
-          Continue as Guest
-        </p>
       </div>
     </div>
   `;
