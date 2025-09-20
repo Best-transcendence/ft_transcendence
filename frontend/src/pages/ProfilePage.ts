@@ -14,6 +14,8 @@ export function ProfilePage()
 <!-- Theme -->
 		${ addTheme() }
 
+
+
 <!-- Header with user info -->
 		<div class="w-full
 			flex justify-between items-center

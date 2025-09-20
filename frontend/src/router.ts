@@ -104,7 +104,6 @@ export function router() {
 
     case "pong2d":
 	protectedPage(() => GamePong2D());
-      app.innerHTML = GamePong2D();
       initGame();
       break;
 

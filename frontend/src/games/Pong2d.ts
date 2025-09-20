@@ -5,29 +5,48 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn"
 
 export function GamePong2D(): string {
   return `
-<!-- Background layer -->
-	<div class="relative min-h-screen
-		flex flex-col
-		items-center justify-start
-		bg-[url('assets/machine_tina_fav.png')] bg-cover bg-center z-[0]
-		text-theme-text p-8">
+	${ addTheme() }
+
+	<div class="fixed inset-0 min-h-screen w-full bg-cover bg-center z-0"
+		style="background-image: url('/assets/machine_tina_fav.png');">
+	</div>
+
 
 <!-- filters layer -->
 		<div class="absolute inset-0 bg-gradient-to-b from-[#0f0f0f]/10 to-[#1a1a1a]/10 z-[1]"></div>
 		<div class="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0)_50%,rgba(0,0,0,1)_100%)] z-[2]"></div>
 
 <!-- Header with user info -->
-			<div class="w-full
-				flex justify-between items-center
-				mb-10 relative z-3">
+		<div class="w-full
+			flex justify-between items-center
+			mb-10 relative z-3">
 
 <!-- Protected pages components -->
-				${ profileDivDisplay() }
-				${ sidebarDisplay() }
-				${ LogOutBtnDisplay() }
-	</div>
+			${ profileDivDisplay() }
+			${ sidebarDisplay() }
+			${ LogOutBtnDisplay() }
+		</div>
 
-<!-- Game div -->
+<!-- Game area -->
+<div class="relative h-screen w-full flex items-center justify-center bg-[url('/assets/machine_tina_fav.png')] bg-cover bg-center overflow-hidden">
+  <div class="gameArea">
+  </div>
+</div>
+
+  `;
+}
+
+
+
+/* <!-- Background layer -->
+	<div class="relative min-h-screen
+		flex flex-col
+		items-center justify-start
+		bg-[url('assets/machine_tina_fav.png')] bg-cover bg-center z-[0]
+		text-theme-text p-8">
+
+
+		<!-- Game div -->
 	<div class="absolute min-h-screen
 		flex flex-col items-center justify-center
 		font-['Press_Start_2P'] text-white overflow-hidden">
@@ -85,6 +104,25 @@ export function GamePong2D(): string {
         <audio id="lossSound" src="/assets/loss.wav"></audio>
         <audio id="wallSound" src="/assets/wall.wav"></audio>
       </div>
+    </div>*/
+
+
+
+/* 		<h1 class="title">Pong</h1>
+    <span class="score player1Score" id="player1Score">0</span>
+    <span class="score player2Score" id="player2Score">0</span>
+    <h3 class="startPress" id="startPress">Press Any Key To Start The Game</h3>
+    <div class="gameArea">
+      <div class="paddle paddle1" id="paddle1"></div>
+      <div class="paddle paddle2" id="paddle2"></div>
+      <div class="ball" id="ball"></div>
+      <div class="net"></div>
     </div>
-  `;
-}
+
+    <img class ="bg" src="../assets/machine_tina_fav.png" alt="Arcade Pong Machine"/>
+    <div class="vignett"></div>
+    <audio src="../assets/paddle.wav" id="paddleSound"></audio>
+    <audio src="/assets/loss.wav" id="lossSound"></audio>
+    <audio src="/assets/wall.wav" id="wallSound"></audio>
+  </div>
+  <script type="module" src="/src/main.ts"></script> */
