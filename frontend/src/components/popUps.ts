@@ -1,18 +1,17 @@
 // File aimed at holding popups
-import { thisUser } from "../router"
 import { editProfilePicture, uploadProfilePicture } from "../services/userActions"
 
 // Manages profile picture change popup
 export function triggerPopup()
 {
-	const editBtn = document.getElementById("edit-pic-button");
+	const editPic = document.getElementById("edit-pic-button");
 	const popUp = document.getElementById("profile-popup");
 	const overlay = document.getElementById("popup-overlay");
 
-	if (!editBtn || !overlay || !popUp)
+	if (!editPic || !overlay || !popUp)
 		return ;
 
-	editBtn.addEventListener("click", () =>
+	editPic.addEventListener("click", () =>
 	{
 		overlay.style.display = "block";
 		popUp.style.display = "block";
