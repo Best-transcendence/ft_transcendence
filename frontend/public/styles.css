@@ -19,6 +19,12 @@ will update automatically the other styles.
   --color-button-hover: #8a56ea; /* pine */
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
 
 /* 🔥 Warm Fire Theme */
 .theme-fire {
@@ -29,6 +35,104 @@ will update automatically the other styles.
   --color-text: #1d0c0c;   /* dark for contrast */
   --color-button: #7037d3; /* fire orange */
   --color-button-hover: #8a56ea; /* fire red */
+}
+
+/* Pong Game Styles */
+.parent-container {
+  position: relative;
+  min-height: 100vh;
+  width: 100vw;
+}
+
+.gameArea {
+  width: 70vw;
+  max-width: 900px;
+  aspect-ratio: 16 / 9;
+  background: rgba(7,26,29,0.6);
+  border: 1vw solid #919bebc7;
+  border-radius: 1rem;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 0 40px 15px #7037d3;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.paddle {
+  position: absolute;
+  height: 100px;
+  width: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  top: 150px;
+}
+
+.paddle2 {
+  right: 0px;
+}
+
+.ball {
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 30%;
+  left: 290px;
+  top: 190px;
+  box-shadow: 8px 10px 4px rgba(0, 0, 0, 0.9);
+}
+
+.net {
+  position: absolute;
+  border-right: 8px rgba(255, 255, 255, 0.3) dotted;
+  height: 96%;
+  top: 2%;
+  left: calc(50% - 4px);
+}
+
+.title {
+  position: absolute;
+  top: 15rem;
+  font-size: 26px;
+}
+
+.score {
+  position: absolute;
+  top: 240px;
+  display: flex;
+  width: 60px;
+  height: 60px;
+  justify-content: center;
+  align-items: center;
+}
+.player1Score {
+  left: calc(50% - 154px);
+}
+.player2Score {
+  right: calc(50% - 154px);
+}
+.startPress {
+  position: absolute;
+  margin: 0;
+  top: 85%;
+  z-index: 1;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: #222222;
+  opacity:80%;
+  border-radius: 4px;
+  padding: 10px;
+}
+.vignett {
+  height: 100dvh;
+  width: 100dvw;
+  background: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(0, 0, 0, 1) 100%
+  );
 }
 
 
