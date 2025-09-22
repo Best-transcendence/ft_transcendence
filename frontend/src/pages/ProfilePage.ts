@@ -32,11 +32,12 @@ export function ProfilePage()
 <!-- Profile header -->
 	<div class="flex flex-col items-center gap-3 mb-10 ">
 		<div class="rounded-full shadow-[0_0_30px_10px_#7037d3]"
-			style="position: relative; display: inline-block; width: 160px; height: 160px;">
+			style="position: relative;
+				display: inline-block; inline-block; width: 11vw; height: 11vw; min-width: 120px; min-height: 120px;">
 		<img id="profile-picture" src="${thisUser.profilePicture}"
 				alt="Profile picture"
 				class="rounded-full"
-				style="width: 160px; height: 160px;"/>
+				style="width: 100%; height: 100%;"/>
 				<button id="edit-pic-button"
 				style="position: absolute; bottom: 0px; right: 0px;"
 				onclick>🖍</button>
@@ -50,7 +51,8 @@ export function ProfilePage()
 	${ profilePopUp() }
 
 <!-- Profile info card -->
-	<div class="bg-[#271d35] backdrop-blur-md rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-[0_0_30px_10px_#7037d3]">
+	<div class="bg-[#271d35] backdrop-blur-md
+	rounded-2xl w-[100%] max-w-[500px] p-6 space-y-6 shadow-[0_0_30px_10px_#7037d3]">
 
 <!-- Username -->
 		<div class="flex justify-between items-center">
