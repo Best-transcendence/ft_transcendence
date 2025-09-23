@@ -46,27 +46,27 @@ export function ProfilePage()
 	</div>
 	${ profilePopUp() }
 
-<!-- Profile info card -->
-	<div class="bg-white rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-[0_0_30px_10px_#7037d3]">
+	<!-- Profile info card -->
+		<div class="bg-[#271d35] backdrop-blur-md rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-[0_0_30px_10px_#7037d3] border border-gray-300">
 
-<!-- Username -->
-		<div class="flex justify-between items-center">
-			<span class="text-gray-500 font-medium">Username</span>
-			<span class="text-gray-900">${thisUser.name}
-			<button onClick={editName} style="margin-left: 5px;">🖍</button></span>
-		</div>
+	<!-- Username -->
+			<div class="flex justify-between items-center">
+				<span class="text-gray-300 font-medium">Username</span>
+				<span class="text-white">${thisUser.name}
+				<button onClick={editName} style="margin-left: 5px;">🖍</button></span>
+			</div>
 
-<!-- Email -->
-		<div class="flex justify-between items-center">
-			<span class="text-gray-500 font-medium">Email</span>
-			<span class="text-gray-900">${thisUser.email}</span>
-		</div>
+	<!-- Email -->
+			<div class="flex justify-between items-center">
+				<span class="text-gray-300 font-medium">Email</span>
+				<span class="text-white">${thisUser.email}</span>
+			</div>
 
-<!-- Join Date -->
-		<div class="flex justify-between items-center">
-			<span class="text-gray-500 font-medium">Member Since</span>
-			<span class="text-gray-900">${formatDate(thisUser.createdAt, "M")}</span>
-		</div>
+	<!-- Join Date -->
+			<div class="flex justify-between items-center">
+				<span class="text-gray-300 font-medium">Member Since</span>
+				<span class="text-white">${formatDate(thisUser.createdAt, "M")}</span>
+			</div>
 
 	</div>
 

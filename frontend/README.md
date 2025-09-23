@@ -68,7 +68,6 @@ SPA will be available at 👉 `http://localhost:3000` (configurable via `FRONTEN
 * [ ] Lobby Page (choose PvP, AI, Tournament).
 * [ ] Tournament system UI.
 * [ ] Pong2D prototype.
-* [ ] Upgrade to Pong3D (Babylon.js).
 
 ---
 

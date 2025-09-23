@@ -1067,8 +1067,8 @@ video {
   background-image: radial-gradient(ellipse at bottom, rgba(255,165,0,0.35) 0%, transparent 40%),radial-gradient(circle at 80% 20%, rgba(122,44,208,0.3) 0%, transparent 30%),linear-gradient(180deg, #140533 0%, #3c1282 50%, #0a0f3d 100%);
 }
 
-.bg-\[url\(\'assets\/machine_tina_fav\.png\'\)\] {
-  background-image: url('assets/machine_tina_fav.png');
+.bg-\[url\(\'assets\/game_background\.png\'\)\] {
+  background-image: url('assets/game_background.png');
 }
 
 .bg-gradient-to-b {
@@ -1232,6 +1232,11 @@ video {
 .text-red-600 {
   --tw-text-opacity: 1;
   color: rgb(220 38 38 / var(--tw-text-opacity, 1));
+}
+
+.text-orange-custom {
+  --tw-text-opacity: 1;
+  color: rgb(255 153 20 / var(--tw-text-opacity));
 }
 
 .text-theme-button {

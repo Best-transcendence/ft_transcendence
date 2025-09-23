@@ -29,18 +29,18 @@ export function GameIntroPage() {
 
         <!-- Feature cards -->
         <div class="flex gap-6 flex-wrap justify-center">
-          <div class="bg-white bg-opacity-90 rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center cursor-pointer hover:bg-gray-100"
+          <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center cursor-pointer hover:bg-gray-100"
      			onclick="window.location.hash='pong2d'">
- 			<h2 class="font-bold text-theme-button mb-2">Classic Gameplay</h2>
-  			<p class="text-gray-600 text-sm">Pure Pong mechanics</p>
+ 			<h2 class="font-bold text-orange-custom mb-2">Classic Gameplay</h2>
+  			<p class="text-white text-sm">Pure Pong mechanics</p>
 		</div>
-          <div class="bg-white bg-opacity-90 rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center">
-            <h2 class="font-bold text-theme-button mb-2">Smooth Controls</h2>
-            <p class="text-gray-600 text-sm">Responsive keyboard controls for both players</p>
+          <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center">
+            <h2 class="font-bold text-orange-custom mb-2">Smooth Controls</h2>
+            <p class="text-white text-sm">Responsive keyboard controls for both players</p>
           </div>
-          <div class="bg-white bg-opacity-90 rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center">
-            <h2 class="font-bold text-theme-button mb-2">Our amaizing modern Design</h2>
-            <p class="text-gray-600 text-sm">more text.......</p>
+          <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center">
+            <h2 class="font-bold text-orange-custom mb-2">Our amazing modern Design</h2>
+            <p class="text-white text-sm">more text.......</p>
           </div>
         </div>
       </div>

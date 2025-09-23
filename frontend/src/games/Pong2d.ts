@@ -26,7 +26,7 @@ export function GamePong2D(): string {
 		style="position: absolute; top: vh; left: 50%; transform: translateX(-50%); width: 90vw; max-width: 1450px; aspect-ratio: 16/9;">
 
 <!-- Arcade image anchor -->
-			<img src="/assets/machine_tina_transparent.png"
+			<img src="/assets/game_background.png"
 			class="absolute inset-0 w-full h-full object-contain "
 			alt="Arcade machine" />
 
