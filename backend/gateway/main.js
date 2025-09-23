@@ -6,8 +6,19 @@ import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 import fastifyCors from '@fastify/cors';
 
+//_____________ Imports online user
+
+
+import { createServer } from 'http';
+import WebSocket, { WebSocketServer } from 'ws';
+import jwt from 'jsonwebtoken';
+
 // Load environment variables from centralized .env file
 dotenv.config();
+
+
+// Creates the server manualy.
+const httpServer = createServer();
 
 // Create Fastify server instance with logging
 const app = Fastify({
@@ -21,7 +32,9 @@ const app = Fastify({
         ignore: 'pid,hostname'
       }
     }
-  }
+  },
+  serverFactory: () => httpServer, // <-- Share the port.
+
 });
 
 // Register CORS plugin
@@ -238,6 +251,47 @@ app.register(async function (fastify) {
     }
   });
 });
+
+
+// --- WEBSOCKET SERVER ---
+const onlineUsers = new Map();
+
+const wss = new WebSocketServer({ server: httpServer });
+
+wss.on('connection', (ws, req) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const token = url.searchParams.get('token');
+
+  let userId = null;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super-secret-pass');
+    userId = decoded.id;
+    onlineUsers.set(userId, ws);
+    console.log(`🟢 Usuario conectado: ${userId}`);
+  } catch (err) {
+    ws.send(JSON.stringify({ type: 'error', message: 'Invalid token' }));
+    ws.close();
+    return;
+  }
+
+  broadcastOnlineUsers();
+
+  ws.on('close', () => {
+    onlineUsers.delete(userId);
+    broadcastOnlineUsers();
+    console.log(`⚪️ Usuario desconectado: ${userId}`);
+  });
+});
+
+function broadcastOnlineUsers() {
+  const userList = Array.from(onlineUsers.keys());
+  const payload = JSON.stringify({ type: 'user:list', users: userList });
+  onlineUsers.forEach((ws) => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(payload);
+    }
+  });
+}
 
 // Start the server
 const start = async () => {
