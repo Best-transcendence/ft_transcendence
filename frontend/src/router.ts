@@ -14,7 +14,7 @@ import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn";
 import { triggerPopup } from "./components/popUps";
 
-import { OnlineUsersPage } from "./pages/OnlineUsersPage";
+// import { connectSocket } from "./services/ws";
 // Centralizes user extraction into a variable
 export let thisUser: any = undefined;
 
@@ -97,17 +97,6 @@ export function router() {
     case "pong2d":
       protectedPage(() => GamePong2D());
       app.innerHTML = GamePong2D();
-      break;
-
-    case "online":
-      const token = localStorage.getItem("jwt");
-      console.log(token);
-      if (token) {
-        OnlineUsersPage(token);
-      } else {
-        app.innerHTML = `<h1 class="text-red-600 text-3xl text-center mt-10">404 Bro Page Not somenthig Found </h1>`;
-        // window.location.hash = "login";
-      }
       break;
 
     case "profile":
