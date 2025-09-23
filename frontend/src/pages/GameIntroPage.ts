@@ -22,7 +22,7 @@ export function GameIntroPage() {
 		</div>
 
         <!-- Title -->
-        <h1 class="text-4xl font-heading font-bold mb-4">Retro Pong</h1>
+        <h1 class="text-4xl font-heading font-bold mb-4">Arcade Clash</h1>
         <p class="text-lg text-gray-600 max-w-xl text-center mb-10">
           Experience the classic game of Pong with a modern twist.
         </p>

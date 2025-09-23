@@ -81,9 +81,26 @@ SPA will be available at 👉 `http://localhost:3000` (configurable via `FRONTEN
 ## ROOT
 
 - .env - backend API URL for frontend calls
-- vite.config.ts - setver settings
+- vite.config.ts - server settings
 
 npm run dev - Vite serves the root index.html -> processes files in src/main.ts (entry point file)
+
+***FAVICON 'trick'
+<!-- 1. Hard reload with cache disabled (during development)
+
+Most browsers let you force a reload that bypasses the cache:
+
+Chrome / Edge / Brave
+
+Open DevTools (F12 or Ctrl+Shift+I / Cmd+Opt+I on Mac).
+
+Go to the Network tab.
+
+Check "Disable cache" (checkbox at the top).
+
+Refresh with Ctrl+Shift+R or Cmd+Shift+R.
+
+⚡ This works while DevTools is open and guarantees that the browser requests /favicon.ico fresh each time. -->
 
 DOM tree:
 
@@ -107,6 +124,7 @@ const rootElement = document.getElementById("root");
 console.log(rootElement);
 // Logs: <div id="root"></div>
 ```
+
 
 tailwind.config.js - default
 tailwind.config.ts - we had to set up 
