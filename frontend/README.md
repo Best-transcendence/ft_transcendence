@@ -125,6 +125,6 @@ console.log(rootElement);
 // Logs: <div id="root"></div>
 ```
 
+tailwind.config.ts - import tailwind, satisfies config-> typescript will catch mistakes in tailwind configs (e.g.:     exnted: {}, // ❌ typo! should be 'extend'
+)
 
-tailwind.config.js - default
-tailwind.config.ts - we had to set up 
