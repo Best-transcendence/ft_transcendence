@@ -128,3 +128,17 @@ console.log(rootElement);
 tailwind.config.ts - import tailwind, satisfies config-> typescript will catch mistakes in tailwind configs (e.g.:     exnted: {}, // ❌ typo! should be 'extend'
 )
 
+main.ts - index.html entrypoint 
+
+- hashchange → Fires when the URL hash (#/home, #/about, etc.) changes.
+
+- DOMContentLoaded → Fires once the initial HTML is fully loaded.
+
+bootstrapping your routing system, meaning it's hooking up event listeners so your SPA (Single Page Application) knows when to update the view
+
+User loads http://example.com/#/home → DOMContentLoaded fires → router() runs → show home page.
+
+User clicks link to http://example.com/#/about → hashchange fires → router() runs again → show about page.
+The # lets you update the URL without triggering a full page reload.
+
+User clicks browser back button → hashchange fires again → router() runs → show previous page.

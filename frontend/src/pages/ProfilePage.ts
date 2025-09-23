@@ -2,10 +2,10 @@ import { formatDate } from "../utils"
 import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
-import { profilePopUp } from "../components/popUps"
+import { profilePopUp } from "../components/PopUps"
 import { thisUser } from "../router"
 import { addTheme } from "../components/Theme"
-import { triggerPopup } from "../components/popUps"
+import { triggerPopup } from "../components/PopUps"
 
 // Manages Profile page display
 export function ProfilePage()

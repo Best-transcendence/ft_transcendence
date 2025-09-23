@@ -1,18 +1,19 @@
 //Services:
 import { getCurrentUser } from "./services/api";
+
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage } from "./pages/LobbyPage";
-import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
 import { initGame } from "./games/InitGame";
 
 import { ProfilePage } from "./pages/ProfilePage";
+
 //Components:
 import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn"
-import { triggerPopup } from "./components/popUps"
+import { triggerPopup } from "./components/PopUps"
 
 
 // Centralizes user extraction into a variable
