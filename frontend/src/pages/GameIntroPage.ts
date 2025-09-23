@@ -24,14 +24,14 @@ export function GameIntroPage() {
         <!-- Title -->
         <h1 class="text-4xl font-heading font-bold mb-4">Arcade Clash</h1>
         <p class="text-lg text-gray-600 max-w-xl text-center mb-10">
-          Experience the classic game of Pong with a modern twist.
+			Challenge a friend and prove your skills.
         </p>
 
         <!-- Feature cards -->
         <div class="flex gap-6 flex-wrap justify-center">
           <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center cursor-pointer hover:bg-gray-100"
      			onclick="window.location.hash='pong2d'">
- 			<h2 class="font-bold text-orange-custom mb-2">Player vs Player</h2>
+ 			<h2 class="font-bold text-orange-custom mb-2">👾 Player vs Player</h2>
   			<p class="text-white text-sm">Classic 1v1 arcade action. Challenge a friend and see who's the best.</p>
 		</div>
           <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center">
