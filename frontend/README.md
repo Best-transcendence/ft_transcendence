@@ -128,7 +128,7 @@ console.log(rootElement);
 tailwind.config.ts - import tailwind, satisfies config-> typescript will catch mistakes in tailwind configs (e.g.:     exnted: {}, // ❌ typo! should be 'extend'
 )
 
-main.ts - index.html entrypoint 
+## main.ts - index.html entrypoint 
 
 - hashchange → Fires when the URL hash (#/home, #/about, etc.) changes.
 
@@ -142,3 +142,36 @@ User clicks link to http://example.com/#/about → hashchange fires → router()
 The # lets you update the URL without triggering a full page reload.
 
 User clicks browser back button → hashchange fires again → router() runs → show previous page.
+
+## router.ts
+
+
+- Handling navigation in your Single Page Application (SPA).
+- Mapping URLs (hashes) to the correct page or component.
+- Ensuring protected pages (like profile or game) check if the user is logged in before rendering.
+
+The router decides what to show on the screen, but it doesn't contain the actual pages or components itself.
+
+
+import { getCurrentUser } from "./services/api";
+
+- This is a service function that contacts your backend to fetch the currently logged-in user.
+- It’s used by fetchUser() inside router.ts to:
+- Check if the user is logged in.
+- Protect pages that require authentication.
+
+
+Without protectedPage:
+Anyone could access protected routes like #/pong2d without logging in.
+Your app would have no security layer between public and private pages.
+
+With protectedPage:
+All authentication logic is centralized in one place.
+Your router stays clean and simple:
+
+case "intro":
+  protectedPage(() => GameIntroPage());
+  break;
+
+
+It’s easy to maintain and expand later.

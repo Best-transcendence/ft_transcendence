@@ -1,5 +1,5 @@
 //Services:
-import { getCurrentUser } from "./services/api";
+import { getCurrentUser, login, signup } from "./services/api";
 
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
@@ -9,6 +9,7 @@ import { GamePong2D } from "./games/Pong2d";
 import { initGame } from "./games/InitGame";
 
 import { ProfilePage } from "./pages/ProfilePage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 
 //Components:
 import { sideBar } from "./components/SideBar";
@@ -68,7 +69,6 @@ async function protectedPage(renderer: () => string)
 		sideBar(); //centralise sidebar attach here
 		logOutBtn(); //centralise logout button attach here
 		triggerPopup();
-		initGame();
 	}
 	else
 	{
@@ -78,9 +78,8 @@ async function protectedPage(renderer: () => string)
 };
 //_______ Info
 /*
-The router will set up the routing sistem for the SAP
+The router will set up the routing system for the SAP
 with the # for now just to see if everything works.
-
 */
 export function router() {
   const app = document.getElementById("app")!;
@@ -104,8 +103,8 @@ export function router() {
       break;
 
     case "pong2d":
-	protectedPage(() => GamePong2D());
-      app.innerHTML = GamePong2D();
+	  protectedPage(() => GamePong2D());
+	  initGame();
       break;
 
 	case "profile":
@@ -113,7 +112,7 @@ export function router() {
 		break;
 
     default:
-      app.innerHTML = `<h1 class="text-red-600 text-3xl text-center mt-10">404 Bro Page Not Found </h1>`;
+  		app.innerHTML = NotFoundPage();
   }
 }
 
