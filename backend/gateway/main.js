@@ -9,16 +9,12 @@ import fastifyCors from '@fastify/cors';
 //_____________ Imports online user
 
 
-// import { createServer } from 'http';
-// import WebSocket, { WebSocketServer } from 'ws';
-// import jwt from 'jsonwebtoken';
+import { createServer } from 'http';
+import { WebSocketServer } from "ws";
+import jwt from 'jsonwebtoken';
 
 // Load environment variables from centralized .env file
 dotenv.config();
-
-
-// Creates the server manualy.
-// const httpServer = createServer();
 
 // Create Fastify server instance with logging
 const app = Fastify({
@@ -32,8 +28,19 @@ const app = Fastify({
         ignore: 'pid,hostname'
       }
     }
-  }
-  // serverFactory: () => httpServer, // <-- Share the port.
+  },
+  serverFactory: (handler) => {
+    // Create an HTTP server and let Fastify handle requests
+    const server = createServer((req, res) => {
+      handler(req, res);
+    });
+
+    // Attach WebSocket server to the same HTTP server
+    const wss = new WebSocketServer({ server });
+    setupWebSockets(wss);
+
+    return server;
+  },
 
 });
 
@@ -252,48 +259,47 @@ app.register(async function (fastify) {
   });
 });
 
+// --- WEBSOCKET SERVER LOGIC ---
+function setupWebSockets(wss) {
+  wss.on("connection", (ws, req) => {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const token = url.searchParams.get("token");
 
-// --- WEBSOCKET SERVER ---
-// const wss = new WebSocketServer({ server: httpServer });
+    try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET || 'super-secret-pass');
+      // const payload = app.jwt.verify(token); // <-- validate token
+      ws.user = payload;
+      console.log(`WS connected: ${payload.name}`);
 
-// wss.on('connection', (ws, req) => {
-//   const url = new URL(req.url, `http://${req.headers.host}`);
-//   const token = url.searchParams.get('token');
+      ws.send(JSON.stringify({ type: "welcome", user: payload }));
 
-//   try {
-//     const payload = app.jwt.verify(token);
-//     ws.user = payload; // attach user info
-//     console.log(` WS connected: ${payload.name}`);
+      broadcastUsers(wss);
 
-//     ws.send(JSON.stringify({ type: "welcome", user: payload }));
+      ws.on("close", () => {
+        console.log(`User disconnected: ${payload.name}`);
+        broadcastUsers(wss);
+      });
+    } catch (err) {
+      console.log("Invalid token, closing WS");
+      ws.close();
+    }
+  });
+}
 
-//     // Broadcast updated user list
-//     broadcastUsers();
+function broadcastUsers(wss) {
+  const users = [];
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1 && client.user) {
+      users.push({ id: client.user.id, name: client.user.name });
+    }
+  });
 
-//     ws.on('close', () => {
-//       console.log(` User disconnected: ${payload.name}`);
-//       broadcastUsers();
-//     });
-//   } catch (err) {
-//     console.log(" Invalid token, closing WS");
-//     ws.close();
-//   }
-// });
-
-// function broadcastUsers() {
-//   const users = [];
-//   wss.clients.forEach(client => {
-//     if (client.readyState === 1 && client.user) {
-//       users.push({ id: client.user.id, name: client.user.name });
-//     }
-//   });
-
-//   wss.clients.forEach(client => {
-//     if (client.readyState === 1) {
-//       client.send(JSON.stringify({ type: "user:list", users }));
-//     }
-//   });
-// }
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) {
+      client.send(JSON.stringify({ type: "user:list", users }));
+    }
+  });
+}
 
 
 // Start the server
