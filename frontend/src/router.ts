@@ -13,6 +13,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn"
 import { triggerPopup } from "./components/popUps"
+import { triggerInputPopup } from "./components/InputPopUps"
 
 
 // Centralizes user extraction into a variable
@@ -67,6 +68,7 @@ async function protectedPage(renderer: () => string)
 		sideBar(); //centralise sidebar attach here
 		logOutBtn(); //centralise logout button attach here
 		triggerPopup();
+		triggerInputPopup();
 		initGame();
 	}
 	else

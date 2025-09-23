@@ -5,7 +5,7 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { profilePopUp } from "../components/popUps"
 import { thisUser } from "../router"
 import { addTheme } from "../components/Theme"
-import { triggerPopup } from "../components/popUps"
+import { inputPopup } from "../components/InputPopUps"
 
 // Manages Profile page display
 export function ProfilePage()
@@ -45,7 +45,7 @@ export function ProfilePage()
 		<h1 class="text-2xl font-semibold text-gray-200">${thisUser.name}</h1>
 		<p class="text-white text-sm">
 			It's all about you <3
-			<button onClick={editBio} class="ml-1.5">🖍</button>
+			<button id="edit-bio-button" class="ml-1.5" onclick>🖍</button>
 		</p>
 	</div>
 	${ profilePopUp() }
@@ -58,7 +58,7 @@ export function ProfilePage()
 		<div class="flex justify-between items-center">
 			<span class="text-gray-300 font-medium">Username</span>
 			<span class="text-white">${thisUser.name}
-			<button onClick={editName} class="ml-1.5">🖍</button></span>
+			<button id="edit-name-button" class="ml-1.5" onclick>🖍</button></span>
 		</div>
 
 <!-- Email -->
@@ -74,6 +74,7 @@ export function ProfilePage()
 		</div>
 
 	</div>
+	${ inputPopup() }
 
 	<div class="flex flex-col items-center mt-6 space-y-2">
 		<p class="font-semibold center text-gray-200">Wins:   -  Losses: </p>
