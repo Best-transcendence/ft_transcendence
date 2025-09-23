@@ -1,11 +1,16 @@
----
-
 # 🎮 ft\_transcendence – Frontend
 
 This branch contains the **frontend part** of the ft\_transcendence project.
 We are building a **vanilla TypeScript SPA** with **TailwindCSS** (Frontend module) and using **Parcel** as bundler.
 
 ---
+
+- [1. Usage (setup & run)](#usage)
+- [2. Overview](#overview)
+
+---
+
+# Usage
 
 ## ⚙️ Setup & Run (Local Dev)
 
@@ -71,6 +76,37 @@ SPA will be available at 👉 `http://localhost:3000` (configurable via `FRONTEN
 
 ---
 
-💡 *This README is only for the **frontend branch**. The full project will also include backend, DB, blockchain, and devops services.*
+# Overview
 
----
+## ROOT
+
+- .env - backend API URL for frontend calls
+- vite.config.ts - setver settings
+
+npm run dev - Vite serves the root index.html -> processes files in src/main.ts (entry point file)
+
+DOM tree:
+
+Document
+└── html
+    ├── head
+    │   └── title → "My Page"
+    └── body
+        ├── div#root
+        └── p → "Hello World!"
+
+HTML tag beomes a DOM node, which JavaScript can access and manipulate dinamically
+
+<div id="root"></div> → This entire <div> is a DOM element.
+<p>Hello World!</p> → This <p> tag is another DOM element.
+
+In JavaScript, you can interact with these using the document object:
+
+```bash
+const rootElement = document.getElementById("root");
+console.log(rootElement);
+// Logs: <div id="root"></div>
+```
+
+tailwind.config.js - default
+tailwind.config.ts - we had to set up 
