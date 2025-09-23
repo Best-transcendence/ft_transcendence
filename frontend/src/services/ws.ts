@@ -1,42 +1,30 @@
-// src/services/ws.ts
 let socket: WebSocket | null = null;
 
-export function connectSocket(token: string) {
-  if (socket && socket.readyState === WebSocket.OPEN) return socket; // avoid duplicate
+export function connectSocket(token: string, onMessage?: (msg: any) => void) {
+  if (socket && socket.readyState === WebSocket.OPEN) return socket;
 
-  const WS_URL = "ws://localhost:3001"; // backend gateway URL
-  socket = new WebSocket(`${WS_URL}?token=${token}`);
+  socket = new WebSocket(`ws://localhost:3003?token=${token}`);
 
-  socket.onopen = () => {
-    console.log("✅ WebSocket connected");
+  socket.onopen = () => console.log("✅ Connected to WS server");
+
+  socket.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    console.log("📩 WS message:", msg);
+
+    if (onMessage) onMessage(msg);
+    window.dispatchEvent(new CustomEvent("ws-message", { detail: msg }));
   };
 
-  socket.onclose = () => {
-    console.log("⚪️ WebSocket closed");
-    socket = null;
-  };
-
-  socket.onerror = (err) => {
-    console.error("❌ WebSocket error:", err);
-  };
+  socket.onclose = () => console.log("⚪ Disconnected from WS");
+  socket.onerror = (err) => console.error("❌ WS error:", err);
 
   return socket;
 }
 
-export function sendMessage(msg: any) {
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify(msg));
+export function disconnectSocket() {
+  if (socket) {
+    console.log("👋 Closing WS connection");
+    socket.close();
+    socket = null;
   }
-}
-
-export function onMessage(callback: (msg: any) => void) {
-  if (!socket) return;
-  socket.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      callback(data);
-    } catch (err) {
-      console.error("❌ Error parsing WS message:", err);
-    }
-  };
 }

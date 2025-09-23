@@ -2,7 +2,7 @@
 import { getCurrentUser } from "./services/api";
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
-import { LobbyPage } from "./pages/LobbyPage";
+import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
@@ -14,7 +14,7 @@ import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn";
 import { triggerPopup } from "./components/popUps";
 
-// import { connectSocket } from "./services/ws";
+import { connectSocket } from "./services/ws";
 // Centralizes user extraction into a variable
 export let thisUser: any = undefined;
 
@@ -88,6 +88,7 @@ export function router() {
 
     case "lobby":
       app.innerHTML = LobbyPage();
+      initLobby();
       break;
 
     case "intro":
@@ -156,7 +157,10 @@ function attachLoginListeners() {
         // TODO: make sure not to expose token to the console.log. Now we are exposing it.
         console.log("Logged in:", user);
         localStorage.setItem("jwt", user.token);
-        console.log("Logged _______________n:", user.token);
+        console.log("✅ Logged in with token:", user.token);
+
+        // ________ connect global WebSocket
+        connectSocket(user.token);
 
         await fetchUser();
         window.location.hash = "intro"; // navigate to gamePage
