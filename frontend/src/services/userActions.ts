@@ -79,7 +79,7 @@ export async function editBio(input: string)
 		}
 	});
 
-	const bio = document.querySelector<HTMLElement>("profile-bio");
+	const bio = document.querySelector<HTMLElement>("#profile-bio");
 	if (bio)
 		bio.textContent = input;
 

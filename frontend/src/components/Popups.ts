@@ -28,6 +28,10 @@ export function TriggerPopup()
 			overlay.style.display = "block";
 			popup.style.display = "block";
 
+			const input = popup.querySelector("input") as HTMLInputElement;
+			if (input)
+				input.value = "";
+
 			popup.querySelectorAll(config.options).forEach(item =>
 			{
 				item.addEventListener("click", () =>
@@ -66,7 +70,7 @@ function initProfilePopup(action: any)
 function initInputPopup(action: string, popup: HTMLElement, config: any)
 {
 	popup.querySelector("h3")!.textContent = config.title;
-	popup.querySelector("input")!.textContent = config.placeholder;
+	popup.querySelector("input")!.placeholder = config.placeholder;
 
 	switch (action)
 	{

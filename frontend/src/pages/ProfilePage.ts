@@ -42,10 +42,12 @@ export function ProfilePage()
 				onclick>🖍</button>
 		  </div>
 		<h1 class="text-2xl font-semibold text-gray-200">${thisUser.name}</h1>
-		<p id="profile-bio" class="text-white text-sm">
-			${thisUser.bio}
+		<div class="flex items-center gap-1.5">
+			<p id="profile-bio" class="text-white text-sm">
+				${thisUser.bio}
+			</p>
 			<button id="edit-bio-button" class="ml-1.5" onclick>🖍</button>
-		</p>
+		</div>
 	</div>
 	${ profilePopup() }
 
