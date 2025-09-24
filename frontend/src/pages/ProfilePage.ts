@@ -42,8 +42,8 @@ export function ProfilePage()
 				onclick>🖍</button>
 		  </div>
 		<h1 class="text-2xl font-semibold text-gray-200">${thisUser.name}</h1>
-		<p class="text-white text-sm">
-			It's all about you <3
+		<p id="profile-bio" class="text-white text-sm">
+			${thisUser.bio}
 			<button id="edit-bio-button" class="ml-1.5" onclick>🖍</button>
 		</p>
 	</div>

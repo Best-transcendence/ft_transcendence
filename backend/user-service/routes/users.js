@@ -19,8 +19,8 @@ export default async function (fastify, _opts) {
               id: { type: 'integer' },
               name: { type: 'string' },
               email: { type: 'string' },
-              profilePicture: { type: 'string', nullable: true },
-              bio: { type: 'string', nullable: true },
+              profilePicture: { type: 'string' },
+              bio: { type: 'string' },
               createdAt: { type: 'string', format: 'date-time' }
             }
           }
@@ -215,8 +215,8 @@ export default async function (fastify, _opts) {
                 authUserId: { type: 'integer' },
                 name: { type: 'string' },
                 email: { type: 'string' },
-                profilePicture: { type: 'string', nullable: true },
-                bio: { type: 'string', nullable: true },
+                profilePicture: { type: 'string' },
+                bio: { type: 'string' },
                 matchHistory: { type: 'object' },
                 stats: { type: 'object' },
                 createdAt: { type: 'string', format: 'date-time' },
@@ -279,8 +279,8 @@ export default async function (fastify, _opts) {
                 authUserId: { type: 'integer' },
                 name: { type: 'string' },
                 email: { type: 'string' },
-                profilePicture: { type: 'string', nullable: true },
-                bio: { type: 'string', nullable: true },
+                profilePicture: { type: 'string' },
+                bio: { type: 'string' },
                 matchHistory: { type: 'object' },
                 stats: { type: 'object' },
                 createdAt: { type: 'string', format: 'date-time' },

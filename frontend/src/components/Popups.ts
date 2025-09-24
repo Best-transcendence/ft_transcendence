@@ -1,7 +1,8 @@
 // File aimed at holding popups
 
-import { editProfilePicture, uploadProfilePicture } from "../services/userActions"
+import { editProfilePicture, uploadProfilePicture, editName, editBio } from "../services/userActions"
 
+// Buttons configurations
 const buttonConfigs =
 [
 	{ buttonId: "edit-name-button", popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Name", placeholder: "Enter name" },
@@ -9,7 +10,7 @@ const buttonConfigs =
 	{ buttonId: "edit-pic-button",  popupId: "profile-popup", handler: initProfilePopup, options: "li" }
 ];
 
-
+// General popup trigger
 export function TriggerPopup()
 {
 	const overlay = document.getElementById("popup-overlay");
@@ -43,6 +44,7 @@ export function TriggerPopup()
 	});
 }
 
+// Specific profile picture popup actions
 function initProfilePopup(action: any)
 {
 	switch (action)
@@ -60,6 +62,7 @@ function initProfilePopup(action: any)
 	}
 }
 
+// Specific input popup actions
 function initInputPopup(action: string, popup: HTMLElement, config: any)
 {
 	popup.querySelector("h3")!.textContent = config.title;
@@ -67,14 +70,21 @@ function initInputPopup(action: string, popup: HTMLElement, config: any)
 
 	switch (action)
 	{
-		case "Name":
-			console.log("TODO")
+		case "save":
+			const input = popup.querySelector("input") as HTMLInputElement;
+
+			if (config.buttonId == "edit-name-button")
+				editName(input.value);
+			else if (config.buttonId == "edit-bio-button")
+				editBio(input.value);
 			break;
+
 		case "cancel":
 			break;
 	}
 }
 
+// Profile picture popup appearance
 export function profilePopup()
 {
 	return `
@@ -101,6 +111,7 @@ export function profilePopup()
 	</div>`;
 }
 
+// Input popup appearance
 export function inputPopup()
 {
 	return `
@@ -120,6 +131,7 @@ export function inputPopup()
 		text-gray-800 bg-gray-300
 		placeholder-gray-600"
 		type="text"
+		maxlength="70"
 		placeholder="Name" />
 
 		<div class="flex justify-end gap-3 mt-6">

@@ -60,9 +60,31 @@ export async function editProfilePicture(newPicUrl: string)
 	thisUser.profilePicture = data.user.profilePicture;
 }
 
-export function updateName(newName: string)
+export function editName(input: string)
 {
+}
 
+export async function editBio(input: string)
+{
+	const token = localStorage.getItem("jwt");
+
+	await fetch(`${API_URL}/users/me`,
+	{
+		method: 'POST',
+		body: JSON.stringify({ bio: input }),
+		headers:
+		{
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${token}`
+		}
+	});
+
+	const bio = document.querySelector<HTMLElement>("profile-bio");
+	if (bio)
+		bio.textContent = input;
+
+	const data = await getCurrentUser();
+	thisUser.bio = data.user.bio;
 }
 
 export function checkOldPass(oldPass: string)
