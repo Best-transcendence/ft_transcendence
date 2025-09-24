@@ -2,10 +2,9 @@ import { formatDate } from "../utils"
 import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
-import { profilePopUp } from "../components/popUps"
+import { profilePopup , inputPopup } from "../components/Popups"
 import { thisUser } from "../router"
 import { addTheme } from "../components/Theme"
-import { inputPopup } from "../components/InputPopUps"
 
 // Manages Profile page display
 export function ProfilePage()
@@ -48,7 +47,7 @@ export function ProfilePage()
 			<button id="edit-bio-button" class="ml-1.5" onclick>🖍</button>
 		</p>
 	</div>
-	${ profilePopUp() }
+	${ profilePopup() }
 
 <!-- Profile info card -->
 	<div class="bg-[#271d35] backdrop-blur-md

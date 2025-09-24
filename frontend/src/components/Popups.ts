@@ -1,0 +1,130 @@
+// File aimed at holding popups
+
+import { editProfilePicture, uploadProfilePicture } from "../services/userActions"
+
+const buttonConfigs =
+[
+	{ buttonId: "edit-name-button", popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Name", placeholder: "Enter name" },
+	{ buttonId: "edit-bio-button",  popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Bio", placeholder: "Enter bio" },
+	{ buttonId: "edit-pic-button",  popupId: "profile-popup", handler: initProfilePopup, options: "li" }
+];
+
+
+export function TriggerPopup()
+{
+	const overlay = document.getElementById("popup-overlay");
+
+	buttonConfigs.forEach(config =>
+	{
+		const button = document.getElementById(config.buttonId);
+		const popup = document.getElementById(config.popupId);
+
+		if (!button || !popup || !overlay)
+				return;
+
+		button.addEventListener("click", () =>
+		{
+			overlay.style.display = "block";
+			popup.style.display = "block";
+
+			popup.querySelectorAll(config.options).forEach(item =>
+			{
+				item.addEventListener("click", () =>
+				{
+					const action = item.getAttribute("data-action");
+					if (action)
+						config.handler(action, popup, config );
+
+					overlay.style.display = "none";
+					popup.style.display = "none";
+				});
+			});
+		});
+	});
+}
+
+function initProfilePopup(action: any)
+{
+	switch (action)
+	{
+		case "edit":
+			uploadProfilePicture();
+				break;
+
+		case "remove":
+			editProfilePicture("/assets/default-avatar.jpeg");
+				break;
+
+			case "cancel":
+				break;
+	}
+}
+
+function initInputPopup(action: string, popup: HTMLElement, config: any)
+{
+	popup.querySelector("h3")!.textContent = config.title;
+	popup.querySelector("input")!.textContent = config.placeholder;
+
+	switch (action)
+	{
+		case "Name":
+			console.log("TODO")
+			break;
+		case "cancel":
+			break;
+	}
+}
+
+export function profilePopup()
+{
+	return `
+	<div id="popup-overlay"
+		class="fixed inset-0"
+		style="display: none; backdrop-filter: blur(4px); background: rgba(0,0,0,0.2); z-index: 40;"></div>
+	<div id="profile-popup"
+		class="bg-gray-200 rounded-2xl w-[300px] p-3 space-y-6 z-40
+			shadow-[0_0_30px_10px_#7037d3]
+			text-center text-black
+			transition duration-300 scale-95"
+		style="display: none; position: fixed; top: 50%; left: 50%;
+			transform: translate(-50%, -50%); z-index: 50;">
+
+		<ul class="flex flex-col p-4 gap-4">
+			<li data-action="edit" class="cursor-pointer hover:text-purple-700">Edit picture</li>
+			<li data-action="remove" class="cursor-pointer hover:text-purple-700">Remove picture</li>
+			<li data-action="cancel" class="cursor-pointer hover:text-purple-700">Cancel</li>
+		</ul>
+
+	<!-- Hidden filesystem picker -->
+		<input type="file" id="profile-pic-input" accept="image/*" style="display:none" />
+
+	</div>`;
+}
+
+export function inputPopup()
+{
+	return `
+	<div id="input-popup"
+	class="bg-gray-200 rounded-2xl w-[400px] p-6 space-y-4 z-50
+	shadow-[0_0_30px_10px_#7037d3]
+	text-center
+	transition duration-300 scale-95"
+	style="display: none; position: fixed; top: 50%; left: 50%;
+	transform: translate(-50%, -50%); z-index: 50;">
+
+		<h3 class="text-lg font-semibold text-gray-800 mb-4">Edit Name</h3>
+
+		<input id="name"
+		class="w-full p-3 rounded-lg border border-gray-300
+		outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
+		text-gray-800 bg-gray-300
+		placeholder-gray-600"
+		type="text"
+		placeholder="Name" />
+
+		<div class="flex justify-end gap-3 mt-6">
+			<button data-action="cancel" class="px-4 py-2 text-black hover:text-purple-700 cursor-pointer">Cancel</button>
+			<button data-action="save" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">Save</button>
+		</div>
+	</div>`;
+}
