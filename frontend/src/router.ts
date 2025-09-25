@@ -2,7 +2,7 @@
 import { getCurrentUser } from "./services/api";
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
-import { LobbyPage } from "./pages/LobbyPage";
+import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
@@ -11,25 +11,20 @@ import { initGame } from "./games/InitGame";
 import { ProfilePage } from "./pages/ProfilePage";
 //Components:
 import { sideBar } from "./components/SideBar";
-import { logOutBtn } from "./components/LogOutBtn"
-import { triggerPopup } from "./components/popUps"
+import { logOutBtn } from "./components/LogOutBtn";
+import { triggerPopup } from "./components/popUps";
 
-
+import { connectSocket } from "./services/ws";
 // Centralizes user extraction into a variable
 export let thisUser: any = undefined;
 
-async function fetchUser()
-{
-	try
-	{
-		const data = await getCurrentUser();
-		thisUser = data.user;
-	}
-	catch
-	{
-		thisUser = undefined;
-	}
-
+async function fetchUser() {
+  try {
+    const data = await getCurrentUser();
+    thisUser = data.user;
+  } catch {
+    thisUser = undefined;
+  }
 }
 
 /*  Centralizing the user data extraction for the
@@ -54,27 +49,23 @@ async function fetchUser()
 }; */
 
 //tmp async function to render visual edit without having to relog
-async function protectedPage(renderer: () => string)
-{
-	const app = document.getElementById("app")!;
+async function protectedPage(renderer: () => string) {
+  const app = document.getElementById("app")!;
 
-	await fetchUser();
-	if (thisUser != undefined)
-	{
-		const html = renderer();
-		app.innerHTML = html;
+  await fetchUser();
+  if (thisUser != undefined) {
+    const html = renderer();
+    app.innerHTML = html;
 
-		sideBar(); //centralise sidebar attach here
-		logOutBtn(); //centralise logout button attach here
-		triggerPopup();
-		initGame();
-	}
-	else
-	{
-		console.error("Failed to load user");
-		window.location.hash = "login";
-	}
-};
+    sideBar(); //centralise sidebar attach here
+    logOutBtn(); //centralise logout button attach here
+    triggerPopup();
+    initGame();
+  } else {
+    console.error("Failed to load user");
+    window.location.hash = "login";
+  }
+}
 //_______ Info
 /*
 The router will set up the routing sistem for the SAP
@@ -85,8 +76,9 @@ export function router() {
   const app = document.getElementById("app")!;
   const page = window.location.hash.replace("#", "") || "login";
 
-  if (window.location.pathname.startsWith("/assets/")) //lets us open assets on web
-	return;
+  if (window.location.pathname.startsWith("/assets/"))
+    //lets us open assets on web
+    return;
 
   switch (page) {
     case "login":
@@ -96,6 +88,7 @@ export function router() {
 
     case "lobby":
       app.innerHTML = LobbyPage();
+      initLobby();
       break;
 
     case "intro":
@@ -103,13 +96,13 @@ export function router() {
       break;
 
     case "pong2d":
-	protectedPage(() => GamePong2D());
+      protectedPage(() => GamePong2D());
       app.innerHTML = GamePong2D();
       break;
 
-	case "profile":
-		protectedPage(() => ProfilePage()); //go through user data extraction before rendering page
-		break;
+    case "profile":
+      protectedPage(() => ProfilePage()); //go through user data extraction before rendering page
+      break;
 
     default:
       app.innerHTML = `<h1 class="text-red-600 text-3xl text-center mt-10">404 Bro Page Not Found </h1>`;
@@ -164,7 +157,12 @@ function attachLoginListeners() {
         // TODO: make sure not to expose token to the console.log. Now we are exposing it.
         console.log("Logged in:", user);
         localStorage.setItem("jwt", user.token);
-		await fetchUser();
+        console.log("✅ Logged in with token:", user.token);
+
+        // ________ connect global WebSocket
+        connectSocket(user.token);
+
+        await fetchUser();
         window.location.hash = "intro"; // navigate to gamePage
       }
     } catch (err: unknown) {
@@ -232,7 +230,6 @@ function attachLoginListeners() {
 
       // Change toggle text
       signupToggle.innerHTML =
-
         'Don\'t have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>';
     }
   });
