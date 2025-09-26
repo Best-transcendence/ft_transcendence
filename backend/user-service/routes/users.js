@@ -338,6 +338,9 @@ export default async function (fastify, _opts) {
       if (err.code === 'P2025') { // Prisma not found error
         return reply.status(404).send({ error: 'User profile not found' });
       }
+	  if (err.code === 'P2002'){
+		return reply.status(400).send({ error: 'Username already taken'});
+	  }
       return reply.status(401).send({ error: 'Unauthorized or update failed' });
     }
   });

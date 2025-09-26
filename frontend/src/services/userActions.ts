@@ -60,13 +60,17 @@ export async function editProfilePicture(newPicUrl: string)
 	thisUser.profilePicture = data.user.profilePicture;
 }
 
+// Updates name + throws error if duplicate
 export async function editName(newName: string)
 {
+	if (thisUser.name == newName)
+		return ;
+
 	const token = localStorage.getItem("jwt");
 
 	try
 	{
-		const authResponse = await fetch(`${API_URL}/auth/update-username`,
+		const response = await fetch(`${API_URL}/users/me`,
 		{
 			method: 'POST',
 			body: JSON.stringify({ name: newName }),
@@ -77,35 +81,36 @@ export async function editName(newName: string)
 			}
 		});
 
-		if (!authResponse.ok)
+		if (!response.ok)
 		{
-			const error = await authResponse.json();
-			throw (new Error(error.message || "Username already taken"));
+			const errorData = await response.json();
+			if (response.status == 400)
+			{
+				alert(`❌ ${errorData.error}`);
+				return;
+			}
+			throw new Error(`HTTP ${response.status}: ${errorData.error}`);
 		}
+
+		const name = document.querySelector<HTMLElement>("#profile-name");
+		if (name)
+			name.textContent = newName;
+
+		const nameCard = document.querySelector<HTMLElement>("#profile-name-card");
+		if (nameCard)
+			nameCard.textContent = newName;
+
+		const nameLogo = document.querySelector<HTMLElement>("#profile-logo-name"); //changes logoo
+		if (nameLogo)
+			nameLogo.textContent = newName;
+
+		const data = await getCurrentUser();
+		thisUser.name = data.user.name;
 	}
-	catch (error)
+	catch (exception)
 	{
-		console.error("Failed to update username:", error);
-		return;
+		console.log("error caught");
 	}
-
-	await fetch(`${API_URL}/users/me`,
-	{
-		method: 'POST',
-		body: JSON.stringify({ bio: newName }),
-		headers:
-		{
-			'Content-Type': 'application/json',
-			'Authorization': `Bearer ${token}`
-		}
-	});
-
-	const name = document.querySelector<HTMLElement>("#profile-name");
-	if (name)
-		name.textContent = newName;
-
-	const data = await getCurrentUser();
-	thisUser.name = data.user.name;
 }
 
 export async function editBio(newBio: string)
