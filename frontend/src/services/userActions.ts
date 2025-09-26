@@ -60,18 +60,62 @@ export async function editProfilePicture(newPicUrl: string)
 	thisUser.profilePicture = data.user.profilePicture;
 }
 
-export function editName(input: string)
+export async function editName(newName: string)
 {
+	const token = localStorage.getItem("jwt");
+
+	try
+	{
+		const authResponse = await fetch(`${API_URL}/auth/update-username`,
+		{
+			method: 'POST',
+			body: JSON.stringify({ name: newName }),
+			headers:
+			{
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${token}`
+			}
+		});
+
+		if (!authResponse.ok)
+		{
+			const error = await authResponse.json();
+			throw (new Error(error.message || "Username already taken"));
+		}
+	}
+	catch (error)
+	{
+		console.error("Failed to update username:", error);
+		return;
+	}
+
+	await fetch(`${API_URL}/users/me`,
+	{
+		method: 'POST',
+		body: JSON.stringify({ bio: newName }),
+		headers:
+		{
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${token}`
+		}
+	});
+
+	const name = document.querySelector<HTMLElement>("#profile-name");
+	if (name)
+		name.textContent = newName;
+
+	const data = await getCurrentUser();
+	thisUser.name = data.user.name;
 }
 
-export async function editBio(input: string)
+export async function editBio(newBio: string)
 {
 	const token = localStorage.getItem("jwt");
 
 	await fetch(`${API_URL}/users/me`,
 	{
 		method: 'POST',
-		body: JSON.stringify({ bio: input }),
+		body: JSON.stringify({ bio: newBio }),
 		headers:
 		{
 			'Content-Type': 'application/json',
@@ -81,7 +125,7 @@ export async function editBio(input: string)
 
 	const bio = document.querySelector<HTMLElement>("#profile-bio");
 	if (bio)
-		bio.textContent = input;
+		bio.textContent = newBio;
 
 	const data = await getCurrentUser();
 	thisUser.bio = data.user.bio;

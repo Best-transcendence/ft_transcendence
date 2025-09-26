@@ -127,6 +127,23 @@ export default async function (fastify, _opts) {
         return reply.status(400).send({ error: 'Invalid email format' });
       }
 
+	  // Name uniqueness check
+	const existingNameUser = await fastify.prisma.userProfile.findFirst(
+	{
+		where:
+		{
+			name: name,
+			NOT: { authUserId: authUserId } // Exclude current -> for name update
+		}
+	});
+
+	// Check for existing users to prevent duplicates
+	if (existingNameUser)
+	{
+		console.error(`[${correlationId}] Username '${name}' already taken`);
+		return reply.status(400).send({ error: 'Username already taken' });
+	}
+
       console.log(`[${correlationId}] Bootstrap request for authUserId: ${authUserId}, name: ${name}, email: ${email}`);
 
       // Check if user profile already exists
@@ -167,8 +184,9 @@ export default async function (fastify, _opts) {
             email,
             matchHistory: {}, // Initialize as empty object
             stats: {}, // Initialize as empty object
-			profilePicture: "/assets/default-avatar.jpeg" // Sets default profile pic
-          }
+			profilePicture: "/assets/default-avatar.jpeg", // Sets default profile pic
+			bio: "Hi, I'm playing Arcade Clash"
+		}
         });
 
         console.log(`[${correlationId}] Successfully created profile for authUserId: ${authUserId}`);
