@@ -102,14 +102,14 @@ export async function editName(newName: string)
 
 		const nameLogo = document.querySelector<HTMLElement>("#profile-logo-name"); //changes logoo
 		if (nameLogo)
-			nameLogo.textContent = newName;
+			nameLogo.textContent = `Welcome back, ${newName}`;
 
 		const data = await getCurrentUser();
 		thisUser.name = data.user.name;
 	}
-	catch (exception)
+	catch (error)
 	{
-		console.log("error caught");
+		console.log(error);
 	}
 }
 
@@ -134,19 +134,4 @@ export async function editBio(newBio: string)
 
 	const data = await getCurrentUser();
 	thisUser.bio = data.user.bio;
-}
-
-export function checkOldPass(oldPass: string)
-{
-
-}
-
-export function updatePass(newPass: string)
-{
-
-}
-
-export function deleteAccount()
-{
-
 }

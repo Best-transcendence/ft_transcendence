@@ -41,7 +41,13 @@ export function ProfilePage()
 				style="position: absolute; bottom: 0px; right: 0px;"
 				onclick>🖍</button>
 		  </div>
-		<h1 id="profile-name" class="text-2xl font-semibold text-gray-200">${thisUser.name}</h1>
+		<div class="flex items-center gap-1.5">
+			<h1 id="profile-name" class="text-2xl font-semibold text-gray-200">
+			${thisUser.name}
+			</h1>
+			<button id="edit-name-button" class="ml-1.5" onclick>🖍</button>
+			</p>
+		</div>
 		<div class="flex items-center gap-1.5">
 			<p id="profile-bio" class="text-white text-sm">
 				${thisUser.bio}
@@ -58,8 +64,8 @@ export function ProfilePage()
 <!-- Username -->
 		<div class="flex justify-between items-center">
 			<span class="text-gray-300 font-medium">Username</span>
-			<span id="profile-name-card" class="text-white">${thisUser.name}
-			<button id="edit-name-button" class="ml-1.5" onclick>🖍</button></span>
+			<span id="profile-name-card" class="text-white">${thisUser.name}</span>
+
 		</div>
 
 <!-- Email -->

@@ -12,10 +12,15 @@ export function initGame(): void {
   const wallSfx = $("wallSound") as HTMLAudioElement;
   const lossSfx = $("lossSound") as HTMLAudioElement;
 
+  // === NEW: sizes that match your GamePong2D CSS ===
+  const FIELD = 100;
+  const BALL_W = 3.3, BALL_H = 5;      // #ball: w-[3.3%], h-[5%]
+  const PADDLE_W = 3.3, PADDLE_H = 25; // #paddle: w-[3.3%], h-[25%]
+
   let s1 = 0, s2 = 0;
   let running = false;
 
-  let p1Y = 40, p2Y = 40;
+  let p1Y = 37.5, p2Y = 37.5; // matches initial CSS top-[37.5%]
   let ballX = 50, ballY = 50;
   let ballVelX = 0, ballVelY = 0;
 
@@ -57,8 +62,10 @@ export function initGame(): void {
     p1Vel = applyInput(p1Up, p1Down, p1Vel);
     p2Vel = applyInput(p2Up, p2Down, p2Vel);
 
-    p1Y = clamp(p1Y + p1Vel, 0, 80);
-    p2Y = clamp(p2Y + p2Vel, 0, 80);
+    // === FIX: clamp to 100 - PADDLE_H (25%) ===
+    const maxY = FIELD - PADDLE_H;
+    p1Y = clamp(p1Y + p1Vel, 0, maxY);
+    p2Y = clamp(p2Y + p2Vel, 0, maxY);
 
     paddle1.style.top = p1Y + "%";
     paddle2.style.top = p2Y + "%";
@@ -75,29 +82,48 @@ export function initGame(): void {
     ballX += ballVelX;
     ballY += ballVelY;
 
-    if (ballY <= 0 || ballY >= 95) {
+    // === FIX: walls consider BALL_H ===
+    if (ballY <= 0) {
+      ballY = 0;
+      ballVelY *= -1;
+      playSound(wallSfx);
+    } else if (ballY >= FIELD - BALL_H) {
+      ballY = FIELD - BALL_H;
       ballVelY *= -1;
       playSound(wallSfx);
     }
 
-    if (ballX <= 4 && ballY >= p1Y && ballY <= p1Y + 20) {
+    // === Paddle hitboxes with sizes ===
+    // Left paddle: its right edge is at PADDLE_W, ball's left is ballX, right is ballX + BALL_W
+    if (
+      ballX <= PADDLE_W && // left side contact
+      ballX + BALL_W >= 0 && // still within field
+      ballY + BALL_H >= p1Y && ballY <= p1Y + PADDLE_H // vertical overlap
+    ) {
+      ballX = PADDLE_W; // resolve penetration
       ballVelX *= -1;
       playSound(paddleSfx);
     }
 
-    if (ballX >= 94 && ballY >= p2Y && ballY <= p2Y + 20) {
+    // Right paddle: its left edge is at FIELD - PADDLE_W
+    if (
+      ballX + BALL_W >= FIELD - PADDLE_W && // right side contact
+      ballX <= FIELD && // still within field
+      ballY + BALL_H >= p2Y && ballY <= p2Y + PADDLE_H // vertical overlap
+    ) {
+      ballX = FIELD - PADDLE_W - BALL_W; // resolve penetration
       ballVelX *= -1;
       playSound(paddleSfx);
     }
 
-    if (ballX < 0) {
+    // === FIX: symmetric scoring using the ball center ===
+    const ballCenterX = ballX + BALL_W / 2;
+    if (ballCenterX < 0) {
       s2++;
       score2.textContent = s2.toString();
       playSound(lossSfx);
       resetBall();
-    }
-
-    if (ballX > 100) {
+    } else if (ballCenterX > FIELD) {
       s1++;
       score1.textContent = s1.toString();
       playSound(lossSfx);
@@ -109,10 +135,13 @@ export function initGame(): void {
   }
 
   function resetBall() {
-    ballX = 50;
-    ballY = 50;
-    ballVelX = Math.random() > 0.5 ? 0.6 : -0.6;
-    ballVelY = Math.random() > 0.5 ? 0.4 : -0.4;
+    ballX = 50 - BALL_W / 2;
+    ballY = 50 - BALL_H / 2;
+    // keep your faster settings or tweak here
+    const baseSpeedX = 1.2;
+    const baseSpeedY = 0.8;
+    ballVelX = Math.random() > 0.5 ? baseSpeedX : -baseSpeedX;
+    ballVelY = Math.random() > 0.5 ? baseSpeedY : -baseSpeedY;
   }
 
   function playSound(audio: HTMLAudioElement) {

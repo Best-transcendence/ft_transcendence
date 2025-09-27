@@ -34,7 +34,9 @@ export function TriggerPopup()
 
 			popup.querySelectorAll(config.options).forEach(item =>
 			{
-				item.addEventListener("click", () =>
+				const newItem = item.cloneNode(true);
+				item.parentNode?.replaceChild(newItem, item);
+				newItem.addEventListener("click", () =>
 				{
 					const action = item.getAttribute("data-action");
 					if (action)
