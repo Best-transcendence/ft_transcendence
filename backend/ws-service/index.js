@@ -16,24 +16,24 @@ const onlineUsers = new Map();
 wss.on("connection", (ws, req) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const token = url.searchParams.get("token");
-
+  console.log("Incoming WS token:", token);    // ← Add this
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     ws.user = payload;
     onlineUsers.set(ws.user.id, ws);
 
-    console.log(`✅ WS connected: ${ws.user.name}`);
+    console.log(`WS connected: ${ws.user.id}`);
     ws.send(JSON.stringify({ type: "welcome", user: payload }));
 
     broadcastUsers();
 
     ws.on("close", () => {
       onlineUsers.delete(ws.user.id);
-      console.log(`⚪️ User disconnected: ${ws.user.name}`);
+      console.log(` User disconnected: ${ws.user.name}`);
       broadcastUsers();
     });
-  } catch {
-    console.log("❌ Invalid token, closing WS");
+  } catch(err) {
+    console.log(" Invalid token, closing WS", err.message);
     ws.close();
   }
 });
