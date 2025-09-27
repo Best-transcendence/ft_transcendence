@@ -33,8 +33,8 @@ export function GamePong2D(): string {
 <!-- Game window -->
 			<div class="absolute z-10 backdrop-blur-sm"
 			style="top: 6.1%; left: 24.1%; width: 51%; height: 59.2%;
-			background: rgba(7,26,29,0.6);
-			border: 8px solid #919bebc7;
+			background: rgba(7,26,29);
+			border: 9px solid #919bebc7;
 			border-radius: 1rem;">
 
 <!-- Net -->
@@ -60,8 +60,7 @@ export function GamePong2D(): string {
 <!-- Ball -->
 				<div id="ball"
 				class="absolute h-[5%] w-[3.3%] bg-[rgba(255,255,255,0.9)]
-				rounded-[30%] left-[48.3%] top-[47.5%]
-				shadow-[0.8vw_1vw_0.4vw_rgba(0,0,0,0.9)]"></div>
+				rounded-[30%] left-[48.3%] top-[47.5%]"></div>
 
 <!-- Start text -->
 				<p id="startPress"

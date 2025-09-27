@@ -1,5 +1,6 @@
 //Services:
-import { getCurrentUser } from "./services/api";
+import { getCurrentUser, login, signup } from "./services/api";
+
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
@@ -7,24 +8,30 @@ import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
 import { initGame } from "./games/InitGame";
-
 import { ProfilePage } from "./pages/ProfilePage";
+import { NotFoundPage } from "./pages/NotFoundPage";
+
 //Components:
 import { sideBar } from "./components/SideBar";
-import { logOutBtn } from "./components/LogOutBtn";
-import { triggerPopup } from "./components/popUps";
-
+import { logOutBtn } from "./components/LogOutBtn"
+import { triggerPopup } from "./components/PopUps"
 import { connectSocket } from "./services/ws";
+
 // Centralizes user extraction into a variable
 export let thisUser: any = undefined;
 
-async function fetchUser() {
-  try {
-    const data = await getCurrentUser();
-    thisUser = data.user;
-  } catch {
-    thisUser = undefined;
-  }
+async function fetchUser()
+{
+	try
+	{
+		const data = await getCurrentUser();
+		thisUser = data.user;
+	}
+	catch
+	{
+		thisUser = undefined;
+	}
+
 }
 
 /*  Centralizing the user data extraction for the
@@ -66,11 +73,11 @@ async function protectedPage(renderer: () => string) {
     window.location.hash = "login";
   }
 }
+
 //_______ Info
 /*
-The router will set up the routing sistem for the SAP
+The router will set up the routing system for the SAP
 with the # for now just to see if everything works.
-
 */
 export function router() {
   const app = document.getElementById("app")!;
@@ -105,7 +112,7 @@ export function router() {
       break;
 
     default:
-      app.innerHTML = `<h1 class="text-red-600 text-3xl text-center mt-10">404 Bro Page Not Found </h1>`;
+  		app.innerHTML = NotFoundPage();
   }
 }
 
@@ -117,12 +124,8 @@ function attachLoginListeners() {
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const email = (
-      document.querySelector("input[type='email']") as HTMLInputElement
-    ).value.trim();
-    const password = (
-      document.querySelector("input[type='password']") as HTMLInputElement
-    ).value;
+    const email = (document.getElementById("email-field") as HTMLInputElement)?.value.trim();
+    const password = (document.getElementById("password-field") as HTMLInputElement)?.value;
     const name = (
       document.getElementById("name-field") as HTMLInputElement
     )?.value?.trim();
@@ -195,42 +198,41 @@ function attachLoginListeners() {
   const confirmPasswordField = document.getElementById(
     "confirm-password-field"
   );
-  const submitButton = document.querySelector(
-    "button[type='submit']"
-  ) as HTMLButtonElement;
-  const title = document.querySelector("h1");
+  
+  const submitButton = document.getElementById("submit-button") as HTMLButtonElement | null;
+  const title = document.getElementById("form-title");
 
-  signupToggle?.addEventListener("click", () => {
-    isSignupMode = !isSignupMode;
-
+  function render() {
+    if (!signupToggle) return;
     if (isSignupMode) {
       // Show signup fields
       nameField?.classList.remove("hidden");
       confirmPasswordField?.classList.remove("hidden");
-
-      // Change button text
-      submitButton.textContent = "Register";
-
-      // Change title
+      // Texts
+      if (submitButton) submitButton.textContent = "Register";
       if (title) title.textContent = "Sign Up";
-
-      // Change toggle text
       signupToggle.innerHTML =
-        'Already have an account? <span class="font-bold text-[#8a56ea]">Sign In</span>';
+    `Already have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign In</span>`;
     } else {
       // Hide signup fields
       nameField?.classList.add("hidden");
       confirmPasswordField?.classList.add("hidden");
-
-      // Change button text
-      submitButton.textContent = "Login";
-
-      // Change title
+      // Texts
+      if (submitButton) submitButton.textContent = "Login";
       if (title) title.textContent = "Sign In";
-
-      // Change toggle text
       signupToggle.innerHTML =
         'Don\'t have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>';
+
     }
-  });
+  }
+
+  signupToggle?.addEventListener("click", () => {
+    isSignupMode = !isSignupMode;
+ 
+	    render();
+	});
+	
+	  // Initial render so text/visibility is consistent even if HTML shipped empty
+	  render();
+
 }
