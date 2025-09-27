@@ -221,7 +221,7 @@ function attachLoginListeners() {
       if (submitButton) submitButton.textContent = "Login";
       if (title) title.textContent = "Sign In";
       signupToggle.innerHTML =
-        'Don\'t have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>';
+        'Don\'t have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign Up</span>';
 
     }
   }
