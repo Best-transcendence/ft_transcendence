@@ -32,5 +32,6 @@ export function disconnectSocket() {
 
 export function autoConnect() {
   const token = localStorage.getItem("jwt");
+  console.log(" Connecting WS with token:", token);
   if (token) connectSocket(token);
 }
