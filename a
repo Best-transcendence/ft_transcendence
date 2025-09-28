@@ -10,3 +10,7 @@ pong2d.ts - TimerDisplay function
 
 initgame - starttimer
 
+modified index.html  <!-- <link href="/styles.css" rel="stylesheet"> -->
+  <link href="/output.css" rel="stylesheet">
+
+README 

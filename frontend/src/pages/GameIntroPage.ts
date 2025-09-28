@@ -34,11 +34,13 @@ export function GameIntroPage() {
  			<h2 class="font-bold mb-2">👾 Player vs Player</h2>
   			<p class="text-white text-sm">Classic 1v1 arcade action. Challenge a friend and see who's the best.</p>
 		</div>
-          <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center">
+          <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center cursor-pointer hover:bg-gray-100"
+		       	onclick="window.location.hash='tournament'">
             <h2 class="font-bold mb-2">🏆 Tournament Mode</h2>
             <p class="text-white text-sm">A series of matches leading to a champion. Add your friends or guests to compete in an arcade battle.</p>
           </div>
-          <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center">
+          <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center cursor-pointer hover:bg-gray-100"
+		  		 onclick="window.location.hash='AIopponent'">
             <h2 class="font-bold mb-2">🤖 AI Opponent Mode</h2>
             <p class="text-white text-sm">This mode is for practicing or battling solo against the computer.</p>
           </div>
