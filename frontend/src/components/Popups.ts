@@ -78,7 +78,9 @@ function initInputPopup(action: string, popup: HTMLElement, config: any)
 	{
 		case "save":
 			const input = popup.querySelector("input") as HTMLInputElement;
-
+			// TODO error message instea of just return
+			if (input.value.trim() == "")
+				return;
 			if (config.buttonId == "edit-name-button")
 				editName(input.value);
 			else if (config.buttonId == "edit-bio-button")

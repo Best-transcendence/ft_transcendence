@@ -86,11 +86,11 @@ export function initGame(): void {
     if (ballY <= 0) {
       ballY = 0;
       ballVelY *= -1;
-      playSound(wallSfx);
+      //playSound(wallSfx);
     } else if (ballY >= FIELD - BALL_H) {
       ballY = FIELD - BALL_H;
       ballVelY *= -1;
-      playSound(wallSfx);
+      //playSound(wallSfx);
     }
 
     // === Paddle hitboxes with sizes ===
@@ -102,7 +102,7 @@ export function initGame(): void {
     ) {
       ballX = PADDLE_W; // resolve penetration
       ballVelX *= -1;
-      playSound(paddleSfx);
+      //playSound(paddleSfx);
     }
 
     // Right paddle: its left edge is at FIELD - PADDLE_W
@@ -113,7 +113,7 @@ export function initGame(): void {
     ) {
       ballX = FIELD - PADDLE_W - BALL_W; // resolve penetration
       ballVelX *= -1;
-      playSound(paddleSfx);
+      //playSound(paddleSfx);
     }
 
     // === FIX: symmetric scoring using the ball center ===
@@ -121,12 +121,12 @@ export function initGame(): void {
     if (ballCenterX < 0) {
       s2++;
       score2.textContent = s2.toString();
-      playSound(lossSfx);
+      //playSound(lossSfx);
       resetBall();
     } else if (ballCenterX > FIELD) {
       s1++;
       score1.textContent = s1.toString();
-      playSound(lossSfx);
+      //playSound(lossSfx);
       resetBall();
     }
 
@@ -144,10 +144,11 @@ export function initGame(): void {
     ballVelY = Math.random() > 0.5 ? baseSpeedY : -baseSpeedY;
   }
 
-  function playSound(audio: HTMLAudioElement) {
-    audio.currentTime = 0;
-    audio.play();
-  }
+// TODO fix playsound function or delete from everywhere
+//   function playSound(audio: HTMLAudioElement) {
+//     audio.currentTime = 0;
+//     audio.play();
+//   }
 
   function clamp(val: number, min: number, max: number): number {
     return Math.max(min, Math.min(max, val));

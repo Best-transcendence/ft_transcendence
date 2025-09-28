@@ -55,28 +55,23 @@ async function fetchUser()
 }; */
 
 //tmp async function to render visual edit without having to relog
-async function protectedPage(renderer: () => string)
-{
-	const app = document.getElementById("app")!;
+async function protectedPage(renderer: () => string) {
+  const app = document.getElementById("app")!;
 
-	await fetchUser();
-	if (thisUser != undefined)
-	{
-		const html = renderer();
-		app.innerHTML = html;
+  await fetchUser();
+  if (thisUser != undefined) {
+    const html = renderer();
+    app.innerHTML = html;
 
-		sideBar();
-		logOutBtn();
-		TriggerPopup();
-		initLobby();
-		initGame();
-	}
-	else
-	{
-		console.error("Failed to load user");
-		window.location.hash = "login";
-	}
-};
+    sideBar(); //centralise sidebar attach here
+    logOutBtn(); //centralise logout button attach here
+    TriggerPopup();
+    initGame();
+  } else {
+    console.error("Failed to load user");
+    window.location.hash = "login";
+  }
+}
 
 //_______ Info
 /*
@@ -87,8 +82,9 @@ export function router() {
   const app = document.getElementById("app")!;
   const page = window.location.hash.replace("#", "") || "login";
 
-  if (window.location.pathname.startsWith("/assets/")) //lets us open assets on web
-	return;
+  if (window.location.pathname.startsWith("/assets/"))
+    //lets us open assets on web
+    return;
 
   switch (page) {
     case "login":
@@ -109,9 +105,9 @@ export function router() {
 		app.innerHTML = GamePong2D();
 		break;
 
-	case "profile":
-		protectedPage(() => ProfilePage()); //go through user data extraction before rendering page
-		break;
+    case "profile":
+      protectedPage(() => ProfilePage()); //go through user data extraction before rendering page
+      break;
 
     default:
   		app.innerHTML = NotFoundPage();
@@ -203,7 +199,6 @@ function attachLoginListeners() {
   const confirmPasswordField = document.getElementById(
     "confirm-password-field"
   );
-
   const submitButton = document.getElementById("submit-button") as HTMLButtonElement | null;
   const title = document.getElementById("form-title");
 
@@ -226,7 +221,7 @@ function attachLoginListeners() {
       if (submitButton) submitButton.textContent = "Login";
       if (title) title.textContent = "Sign In";
       signupToggle.innerHTML =
-        'Don\'t have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>';
+        'Don\'t have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign Up</span>';
 
     }
   }
