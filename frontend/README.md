@@ -3,7 +3,7 @@
 This branch contains the **frontend part** of the ft\_transcendence project.
 We are building a **vanilla TypeScript SPA** with **TailwindCSS** (Frontend module) and using **Parcel** as bundler.
 
-# FOR TINA (not compatible with my PC setup)
+# ONLY FOR TINA (not compatible with my PC setup 😔)
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 source ~/.nvm/nvm.sh
 nvm install 22.12.0
