@@ -17,19 +17,19 @@ datasource db {
 model UserProfile {
   id          Int      @id @default(autoincrement())
   authUserId  Int      @unique  // References auth-service user ID
-  name        String   // Duplicated from auth-service for performance
+  name        String   @unique
   email       String   // Duplicated from auth-service for performance
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Profile information
-  profilePicture String?  // URL to profile picture
-  bio           String?   // User bio/description
-  
+  profilePicture String @default("/assets/default-avatar.jpeg")
+  bio           String @default("Hi, I'm playing Arcade Clash")
+
   // Friends relationships (many-to-many)
   friends       UserProfile[] @relation("UserFriends")
   friendOf      UserProfile[] @relation("UserFriends")
-  
+
   // Game data
   matchHistory  Json?     // Game match history (empty object initially)
   stats         Json?     // User statistics (empty object initially)

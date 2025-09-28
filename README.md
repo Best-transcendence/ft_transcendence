@@ -40,7 +40,7 @@ git push
 
 1. **Check TASKS.md** for your current assignments and dependencies
 2. **Create feature branch**: `git checkout -b feature/task-name`
-3. **Update task status** to 🟡 In Progress 
+3. **Update task status** to 🟡 In Progress
 4. **Develop, test, and document** your changes
 5. **Create Pull Request** with task reference
 6. **Update task status** to 🟢 Completed after merge
@@ -48,8 +48,8 @@ git push
 ## 🛠️ Technology Stack
 
 - **Frontend**: Next.js 13+ with TypeScript, Server-Side Rendering
-- **Backend**: NestJS with JWT authentication and 2FA
-- **Database**: PostgreSQL with Prisma ORM  
+- **Backend**: NodeJS with JWT authentication and 2FA
+- **Database**: SQLite with Prisma ORM
 - **Game Engine**: HTML5 Canvas with WebSocket synchronization
 - **DevOps**: Docker, Nginx, HTTPS/WSS
 - **Real-time**: WebSocket for chat and live game updates
@@ -57,7 +57,7 @@ git push
 ## 🏆 Core Features
 
 - **Single Page Application** with TypeScript and responsive design
-- **Local & Tournament Pong** with matchmaking and brackets  
+- **Local & Tournament Pong** with matchmaking and brackets
 - **Real-time Chat** during matches via WebSocket
 - **JWT Authentication** with Two-Factor Authentication (2FA)
 - **User Statistics** and match history dashboard

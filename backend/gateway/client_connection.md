@@ -1,3 +1,5 @@
+// TODO: Create WebSocket Integration as its own microservice
+
 # Gateway + WebSocket Integration
 
 ## Modification Description

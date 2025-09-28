@@ -8,10 +8,11 @@ import fastifyCors from '@fastify/cors';
 
 //_____________ Imports online user
 
-
+// TODO: Create WebSocket Integration as its own microservice
 import { createServer } from 'http';
 import { WebSocketServer } from "ws";
 import jwt from 'jsonwebtoken';
+// end:TODO
 
 // Load environment variables from centralized .env file
 dotenv.config();
@@ -28,7 +29,10 @@ const app = Fastify({
         ignore: 'pid,hostname'
       }
     }
-  },
+  }
+
+ // TODO: Create WebSocket Integration as its own microservice
+ ,
   serverFactory: (handler) => {
     // Create an HTTP server and let Fastify handle requests
     const server = createServer((req, res) => {
@@ -41,6 +45,7 @@ const app = Fastify({
 
     return server;
   },
+  // end:TODO
 
 });
 
@@ -259,6 +264,8 @@ app.register(async function (fastify) {
   });
 });
 
+
+// TODO: Create WebSocket Integration as its own microservice
 // --- WEBSOCKET SERVER LOGIC ---
 function setupWebSockets(wss) {
   wss.on("connection", (ws, req) => {
@@ -300,7 +307,7 @@ function broadcastUsers(wss) {
     }
   });
 }
-
+// end:TODO
 
 // Start the server
 const start = async () => {

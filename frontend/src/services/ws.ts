@@ -1,3 +1,4 @@
+//TODO: Adapt according to Websocket integration microservice
 let socket: WebSocket | null = null;
 
 export function connectSocket(token: string, onMessage?: (msg: any) => void) {
@@ -28,3 +29,4 @@ export function disconnectSocket() {
     socket = null;
   }
 }
+//end:TODO

@@ -133,7 +133,7 @@ function moveBall() {
 
   if (ballY >= gameHeight - ball.clientHeight || ballY <= 0) {
     ballSpeedY = -ballSpeedY;
-    playSound(wallSound);
+    //playSound(wallSound);
   }
 
   //______________ Paddle 1 collition
@@ -142,7 +142,7 @@ function moveBall() {
     ballY <= paddle1Y + paddle1.clientHeight
   ) {
     ballSpeedX = -ballSpeedX;
-    playSound(paddleSound);
+    //playSound(paddleSound);
   }
 
   //______________ Paddle 1 collition
@@ -152,21 +152,21 @@ function moveBall() {
     ballY <= paddle2Y + paddle2.clientHeight
   ) {
     ballSpeedX = -ballSpeedX;
-    playSound(paddleSound);
+    //playSound(paddleSound);
   }
 
   //___________ Out of Game Area.
 
   if (ballX <= 0) {
     player2Score += 1;
-    playSound(lossSound);
+    //playSound(lossSound);
     updateScoreboard();
     resetBall();
     pauseGame();
   }
   else if (ballX >= gameWidth - ball.clientWidth) {
     player1Score += 1;
-    playSound(lossSound);
+    //playSound(lossSound);
     updateScoreboard();
     resetBall();
     pauseGame();
@@ -193,7 +193,8 @@ function pauseGame() {
   document.addEventListener('keydown', startGame);
 };
 
-function playSound(sound) {
-  sound.currentTime = 0;
-  sound.play();
-}
+// TODO fix the function or delete playsound function from everywhere
+// function playSound(sound) {
+//   sound.currentTime = 0;
+//   sound.play();
+// }

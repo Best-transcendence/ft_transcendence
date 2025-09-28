@@ -1,9 +1,9 @@
 // Authentication routes for user login and registration
 export default async function authRoutes(fastify) {
-  
+
   // POST /auth/login - Authenticate user and return JWT token
   fastify.post('/login', {
-    // Everything in schema is public information only, for documentation purposes (Swagger). 
+    // Everything in schema is public information only, for documentation purposes (Swagger).
     // We have to add it for each endpoint we create.
     schema: {
       tags: ['Authentication'],
@@ -13,13 +13,13 @@ export default async function authRoutes(fastify) {
         type: 'object',
         required: ['email', 'password'],
         properties: {
-          email: { 
-            type: 'string', 
+          email: {
+            type: 'string',
             format: 'email',
             description: 'User email address'
           },
-          password: { 
-            type: 'string', 
+          password: {
+            type: 'string',
             minLength: 1,
             description: 'User password'
           }
@@ -30,7 +30,7 @@ export default async function authRoutes(fastify) {
           description: 'Successful login',
           type: 'object',
           properties: {
-            token: { 
+            token: {
               type: 'string',
               description: 'JWT authentication token',
               example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
@@ -112,7 +112,7 @@ export default async function authRoutes(fastify) {
       // Return token and safe user data (no password)
       return {
         token, // JWT token for frontend authentication
-        user: { id: user.id, name: user.name, email: user.email }
+        user: { id: user.id, email: user.email }
       };
 
     } catch (error) {
@@ -127,7 +127,7 @@ export default async function authRoutes(fastify) {
 
   // POST /auth/signup - Register new user account
   fastify.post('/signup', {
-    // Everything in schema is public information only, for documentation purposes (Swagger). 
+    // Everything in schema is public information only, for documentation purposes (Swagger).
     // We have to add it for each endpoint we create.
     schema: {
       tags: ['Authentication'],
@@ -137,23 +137,23 @@ export default async function authRoutes(fastify) {
         type: 'object',
         required: ['name', 'email', 'password', 'confirmPassword'],
         properties: {
-          name: { 
-            type: 'string', 
-            minLength: 1,
+          name: {
+            type: 'string',
+            minLength: 3,
             description: 'Unique username for the account'
           },
-          email: { 
-            type: 'string', 
+          email: {
+            type: 'string',
             format: 'email',
             description: 'User email address (must be unique)'
           },
-          password: { 
-            type: 'string', 
+          password: {
+            type: 'string',
             minLength: 1,
             description: 'User password'
           },
-          confirmPassword: { 
-            type: 'string', 
+          confirmPassword: {
+            type: 'string',
             minLength: 1,
             description: 'Password confirmation (must match password)'
           }
@@ -173,8 +173,8 @@ export default async function authRoutes(fastify) {
           description: 'Bad request - validation error',
           type: 'object',
           properties: {
-            error: { 
-              type: 'string', 
+            error: {
+              type: 'string',
               examples: [
                 'All fields are required',
                 'Please enter a valid email address',
@@ -221,11 +221,6 @@ export default async function authRoutes(fastify) {
       }
 
       // Check for existing users to prevent duplicates
-      const existingUser = await fastify.prisma.user.findFirst({ where: { name } });
-      if (existingUser) {
-        return reply.status(400).send({ error: 'User with this name already exists' });
-      }
-
       const existingEmail = await fastify.prisma.user.findUnique({ where: { email } });
       if (existingEmail) {
         return reply.status(400).send({ error: 'User with this email already exists' });
@@ -235,7 +230,6 @@ export default async function authRoutes(fastify) {
       // Create new user in database
       const newUser = await fastify.prisma.user.create({
         data: {
-          name,
           email,
           password // TODO: Should be hashed password
         }
@@ -243,19 +237,19 @@ export default async function authRoutes(fastify) {
 
       // Generate correlation ID for tracking across services
       const correlationId = `auth-${newUser.id}-${Date.now()}`;
-      
+
       // Attempt to create user profile in user-service
       try {
         const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
         const axios = (await import('axios')).default;
-        
+
         console.log(`[${correlationId}] Attempting to bootstrap user profile for authUserId: ${newUser.id}`);
-        
+
         // TODO: decide what we want to do if the profile creation fails in user-service.
         // Now we just continue with the signup success.
         await axios.post(`${userServiceUrl}/users/bootstrap`, {
           authUserId: newUser.id,
-          name: newUser.name,
+          name: name, // gets passed to users microservice
           email: newUser.email
         }, {
           timeout: 5000, // 5 second timeout
@@ -266,20 +260,29 @@ export default async function authRoutes(fastify) {
         });
 
         console.log(`[${correlationId}] Successfully created user profile for authUserId: ${newUser.id}`);
-      } catch (profileError) {
+      }
+	catch (profileError)
+	{
+		if (profileError.response?.status === 400) // fails signup if name taken
+		{
+	 		return reply.status(400).send(
+			{
+				error: profileError.response.data.error || 'Username already taken'
+			});
+		}
         // Log the error but don't fail the signup - user account is created
         console.error(`[${correlationId}] Failed to bootstrap user profile for authUserId: ${newUser.id}:`, {
           error: profileError.message,
           status: profileError.response?.status,
           data: profileError.response?.data
         });
-        
+
         // Continue with successful response - user account is created in auth-service
         console.log(`[${correlationId}] Continuing with signup success despite profile creation failure`);
-      }
+	}
 
       // Return user data without password for security
-      return { id: newUser.id, email: newUser.email, name: newUser.name };
+      return { id: newUser.id, email: newUser.email };
     } catch (error) {
       // Log the error for debugging
       fastify.log.error('Signup error:', error);
@@ -289,3 +292,4 @@ export default async function authRoutes(fastify) {
     }
   });
 }
+

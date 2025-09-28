@@ -4,7 +4,6 @@ import { getCurrentUser, login, signup } from "./services/api";
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
-import { login, signup } from "./services/api";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
 import { initGame } from "./games/InitGame";
@@ -14,7 +13,7 @@ import { NotFoundPage } from "./pages/NotFoundPage";
 //Components:
 import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn"
-import { triggerPopup } from "./components/PopUps"
+import { TriggerPopup } from "./components/Popups"
 import { connectSocket } from "./services/ws";
 
 // Centralizes user extraction into a variable
@@ -66,7 +65,7 @@ async function protectedPage(renderer: () => string) {
 
     sideBar(); //centralise sidebar attach here
     logOutBtn(); //centralise logout button attach here
-    triggerPopup();
+    TriggerPopup();
     initGame();
   } else {
     console.error("Failed to load user");
@@ -94,8 +93,7 @@ export function router() {
       break;
 
     case "lobby":
-      app.innerHTML = LobbyPage();
-      initLobby();
+      protectedPage(() =>  LobbyPage());
       break;
 
     case "intro":
@@ -103,9 +101,9 @@ export function router() {
       break;
 
     case "pong2d":
-      protectedPage(() => GamePong2D());
-      app.innerHTML = GamePong2D();
-      break;
+		protectedPage(() => GamePong2D());
+		app.innerHTML = GamePong2D();
+		break;
 
     case "profile":
       protectedPage(() => ProfilePage()); //go through user data extraction before rendering page
@@ -160,10 +158,13 @@ function attachLoginListeners() {
         // TODO: make sure not to expose token to the console.log. Now we are exposing it.
         console.log("Logged in:", user);
         localStorage.setItem("jwt", user.token);
+
+		//TODO: adapt this to the WebSocket microservice
         console.log("✅ Logged in with token:", user.token);
 
         // ________ connect global WebSocket
         connectSocket(user.token);
+		//end:TODO
 
         await fetchUser();
         window.location.hash = "intro"; // navigate to gamePage
@@ -198,7 +199,6 @@ function attachLoginListeners() {
   const confirmPasswordField = document.getElementById(
     "confirm-password-field"
   );
-  
   const submitButton = document.getElementById("submit-button") as HTMLButtonElement | null;
   const title = document.getElementById("form-title");
 
@@ -228,10 +228,10 @@ function attachLoginListeners() {
 
   signupToggle?.addEventListener("click", () => {
     isSignupMode = !isSignupMode;
- 
+
 	    render();
 	});
-	
+
 	  // Initial render so text/visibility is consistent even if HTML shipped empty
 	  render();
 

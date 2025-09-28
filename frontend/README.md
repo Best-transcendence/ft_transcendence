@@ -128,7 +128,7 @@ console.log(rootElement);
 tailwind.config.ts - import tailwind, satisfies config-> typescript will catch mistakes in tailwind configs (e.g.:     exnted: {}, // ❌ typo! should be 'extend'
 )
 
-## main.ts - index.html entrypoint 
+## main.ts - index.html entrypoint
 
 - hashchange → Fires when the URL hash (#/home, #/about, etc.) changes.
 
