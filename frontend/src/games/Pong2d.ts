@@ -2,6 +2,7 @@ import { addTheme } from "../components/Theme"
 import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
+import { TimerDisplay, startTimer } from "../components/Timer";
 
 export function GamePong2D(): string {
   return `
@@ -19,6 +20,9 @@ export function GamePong2D(): string {
 		${ sidebarDisplay() }
 		${ LogOutBtnDisplay() }
 	</div>
+
+${ TimerDisplay() }
+
 
 <!-- Game section -->
 	<div class="flex justify-center w-screen overflow-hidden">
