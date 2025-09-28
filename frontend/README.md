@@ -27,6 +27,7 @@ nvm alias default 22.12.0
 cd frontend
 npm install
 npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss -i ./public/styles.css -o ./public/output.css
 ```
 
 ### 2. Run the server
