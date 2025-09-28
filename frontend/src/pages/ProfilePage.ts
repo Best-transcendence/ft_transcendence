@@ -85,6 +85,5 @@ export function ProfilePage()
 
 	<div class="flex flex-col items-center mt-6 space-y-2">
 		<p class="font-semibold center text-gray-200">Wins:   -  Losses: </p>
-		<p class="font-semibold center text-gray-200">Average game duration: </p>
 	</div>`;
 }
