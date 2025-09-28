@@ -33,7 +33,8 @@ export function initGame(): void {
 
   document.addEventListener("keydown", (e) => {
 	if (e.code === "Space" && !running) {
-		startTimer(5); // start the timer at the same time 1:50
+		// TODO setup to 90 
+		startTimer(5);
 		startGame();
 	} 
     if (e.key === "w") p1Up = true;

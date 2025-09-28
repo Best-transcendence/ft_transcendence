@@ -4,3 +4,8 @@ contine as guest format on the longin page
 
 index.js moved to docs/mics from games folder
 
+component - Timer.ts
+
+pong2d.ts - TimerDisplay function
+
+initgame - starttimer
