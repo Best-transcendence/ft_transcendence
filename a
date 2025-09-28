@@ -13,4 +13,10 @@ initgame - starttimer
 modified index.html  <!-- <link href="/styles.css" rel="stylesheet"> -->
   <link href="/output.css" rel="stylesheet">
 
-README 
+README notes
+
+intropage redirection to
+		AIOpponent.ts
+		Tournament.ts
+
+intropage design correction with hover (light purple instead of grea hover on the tabs)
