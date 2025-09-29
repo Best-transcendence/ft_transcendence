@@ -16,7 +16,7 @@ const onlineUsers = new Map();
 wss.on("connection", (ws, req) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const token = url.searchParams.get("token");
-  console.log("Incoming WS token:", token); 
+  console.log("Incoming WS token:", token);
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     ws.user = payload;
@@ -54,7 +54,7 @@ function broadcastUsers() {
 const start = async () => {
   const port = process.env.WS_PORT || 4000;
   httpServer.listen(port, () => {
-    console.log(`🎮 WS Service running on ws://localhost:${port}`);
+    console.log(` WS Service running on ws://localhost:${port}`);
   });
 };
 
