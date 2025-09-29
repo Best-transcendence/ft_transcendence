@@ -3,6 +3,13 @@
 This branch contains the **frontend part** of the ft\_transcendence project.
 We are building a **vanilla TypeScript SPA** with **TailwindCSS** (Frontend module) and using **Parcel** as bundler.
 
+# ONLY FOR TINA (not compatible with my PC setup 😔)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.nvm/nvm.sh
+nvm install 22.12.0
+nvm use 22.12.0
+nvm alias default 22.12.0
+
 ---
 
 - [1. Usage (setup & run)](#usage)
@@ -20,6 +27,7 @@ We are building a **vanilla TypeScript SPA** with **TailwindCSS** (Frontend modu
 cd frontend
 npm install
 npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss -i ./public/styles.css -o ./public/output.css
 ```
 
 ### 2. Run the server

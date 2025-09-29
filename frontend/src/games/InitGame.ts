@@ -1,3 +1,5 @@
+import { startTimer } from "../components/Timer";
+
 export function initGame(): void {
   const $ = (id: string) => document.getElementById(id)!;
 
@@ -30,7 +32,11 @@ export function initGame(): void {
   let p1Up = false, p1Down = false, p2Up = false, p2Down = false;
 
   document.addEventListener("keydown", (e) => {
-    if (e.code === "Space" && !running) startGame();
+	if (e.code === "Space" && !running) {
+		// TODO setup to 90 
+		startTimer(5);
+		startGame();
+	} 
     if (e.key === "w") p1Up = true;
     if (e.key === "s") p1Down = true;
     if (e.key === "ArrowUp") p2Up = true;

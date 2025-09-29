@@ -6,6 +6,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
+import { GamePongTournament } from "./games/Tournament";
+import { GamePongAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
 import { ProfilePage } from "./pages/ProfilePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -103,6 +105,17 @@ export function router() {
     case "pong2d":
 		protectedPage(() => GamePong2D());
 		app.innerHTML = GamePong2D();
+		break;
+	
+	
+	case "tournament":
+		protectedPage(() => GamePongTournament());
+		app.innerHTML = GamePongTournament();
+		break;
+	
+	case "AIopponent":
+		protectedPage(() => GamePongAIOpponent());
+		app.innerHTML = GamePongAIOpponent();
 		break;
 
     case "profile":

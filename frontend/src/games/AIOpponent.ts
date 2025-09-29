@@ -4,7 +4,7 @@ import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { TimerDisplay, startTimer } from "../components/Timer";
 
-export function GamePong2D(): string {
+export function GamePongAIOpponent(): string {
   return `
 	${ addTheme() }
 
