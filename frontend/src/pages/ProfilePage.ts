@@ -26,7 +26,12 @@ export function ProfilePage()
 		</div>
 
 <!-- Title -->
-	<h1 class="text-3xl text-gray-200 font-bold mb-4">Profile<br><br></h1>
+	<div flex items-center>
+		<h1 class="text-4xl text-gray-200 text-center font-heading font-bold mb-1">Profile</h1>
+		<p class="text-lg text-gray-400 max-w-xl text-center mb-16">
+			Get to know yourself, Clasher!
+		</p>
+	</div>
 
 <!-- Profile header -->
 	<div class="flex flex-col items-center gap-3 mb-10 ">
@@ -49,7 +54,7 @@ export function ProfilePage()
 			</p>
 		</div>
 		<div class="flex items-center gap-1.5">
-			<p id="profile-bio" class="text-white text-sm">
+			<p id="profile-bio" class="text-gray-300">
 				${thisUser.bio}
 			</p>
 			<button id="edit-bio-button" class="ml-1.5" onclick>🖍</button>

@@ -11,7 +11,7 @@ const buttonConfigs =
 ];
 
 // General popup trigger
-export function TriggerPopup()
+export function triggerPopup()
 {
 	const overlay = document.getElementById("popup-overlay");
 
