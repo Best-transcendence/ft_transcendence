@@ -54,7 +54,7 @@ export function sidebarDisplay()
 		z-40 text-black rounded-tr-2xl rounded-br-2xl">
 
 		<ul class="flex flex-col p-4 gap-4">
-			<li data-action="playpong" class="cursor-pointer hover:text-purple-700">Play Pong</li>
+			<li data-action="playpong" class="cursor-pointer hover:text-purple-700">Arcade Clash</li>
 			<li data-action="profile" class="cursor-pointer hover:text-purple-700">Profile</li>
 			<li data-action="friends" class="cursor-pointer hover:text-purple-700">Friends</li>
 			<li data-action="stats" class="cursor-pointer hover:text-purple-700">Statistics</li>

@@ -5,8 +5,8 @@ import { editProfilePicture, uploadProfilePicture, editName, editBio } from "../
 // Buttons configurations
 const buttonConfigs =
 [
-	{ buttonId: "edit-name-button", popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Name", placeholder: "Enter name" },
-	{ buttonId: "edit-bio-button",  popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Bio", placeholder: "Enter bio" },
+	{ buttonId: "edit-name-button", popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Name", placeholder: "Enter name", len: "13"},
+	{ buttonId: "edit-bio-button",  popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Bio", placeholder: "Enter bio", len: "60" },
 	{ buttonId: "edit-pic-button",  popupId: "profile-popup", handler: initProfilePopup, options: "li" }
 ];
 
@@ -28,9 +28,7 @@ export function triggerPopup()
 			overlay.style.display = "block";
 			popup.style.display = "block";
 
-			const input = popup.querySelector("input") as HTMLInputElement;
-			if (input)
-				input.value = "";
+			setupInputPopup(popup, config);
 
 			popup.querySelectorAll(config.options).forEach(item =>
 			{
@@ -48,6 +46,42 @@ export function triggerPopup()
 			});
 		});
 	});
+}
+
+// Sets up input popup info
+function setupInputPopup(popup: HTMLElement, config: any)
+{
+	if (config.popupId != "input-popup")
+		return;
+
+	const input = popup.querySelector("input") as HTMLInputElement;
+	if (input)
+		input.value = "";
+
+	popup.querySelector("h3")!.textContent = config.title;
+	popup.querySelector("input")!.placeholder = config.placeholder;
+	popup.querySelector("input")!.setAttribute("maxlength", config.len);
+}
+
+// Specific input popup actions
+function initInputPopup(action: string, popup: HTMLElement, config: any)
+{
+	switch (action)
+	{
+		case "save":
+			const input = popup.querySelector("input") as HTMLInputElement;
+			if (input.value.trim() == "")
+				return;
+
+			if (config.buttonId == "edit-name-button")
+				editName(input.value);
+			else if (config.buttonId == "edit-bio-button")
+				editBio(input.value);
+			break;
+
+		case "cancel":
+			break;
+	}
 }
 
 // Specific profile picture popup actions
@@ -68,28 +102,34 @@ function initProfilePopup(action: any)
 	}
 }
 
-// Specific input popup actions
-function initInputPopup(action: string, popup: HTMLElement, config: any)
+// Input popup appearance
+export function inputPopup()
 {
-	popup.querySelector("h3")!.textContent = config.title;
-	popup.querySelector("input")!.placeholder = config.placeholder;
+	return `
+	<div id="input-popup"
+	class="bg-gray-200 rounded-2xl w-[400px] p-6 space-y-4 z-50
+	shadow-[0_0_30px_10px_#7037d3]
+	text-center
+	transition duration-300 scale-95"
+	style="display: none; position: fixed; top: 50%; left: 50%;
+	transform: translate(-50%, -50%); z-index: 50;">
 
-	switch (action)
-	{
-		case "save":
-			const input = popup.querySelector("input") as HTMLInputElement;
-			// TODO error message instea of just return
-			if (input.value.trim() == "")
-				return;
-			if (config.buttonId == "edit-name-button")
-				editName(input.value);
-			else if (config.buttonId == "edit-bio-button")
-				editBio(input.value);
-			break;
+		<h3 class="text-lg font-semibold text-gray-800 mb-4"></h3>
 
-		case "cancel":
-			break;
-	}
+		<input id="name"
+		class="w-full p-3 rounded-lg border border-gray-300
+		outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
+		text-gray-800 bg-gray-300
+		placeholder-gray-600"
+		type="text"
+		maxlength="13"
+		placeholder="Name" />
+
+		<div class="flex justify-end gap-3 mt-6">
+			<button data-action="cancel" class="px-4 py-2 text-black hover:text-purple-700 cursor-pointer">Cancel</button>
+			<button data-action="save" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">Save</button>
+		</div>
+	</div>`;
 }
 
 // Profile picture popup appearance
@@ -119,32 +159,3 @@ export function profilePopup()
 	</div>`;
 }
 
-// Input popup appearance
-export function inputPopup()
-{
-	return `
-	<div id="input-popup"
-	class="bg-gray-200 rounded-2xl w-[400px] p-6 space-y-4 z-50
-	shadow-[0_0_30px_10px_#7037d3]
-	text-center
-	transition duration-300 scale-95"
-	style="display: none; position: fixed; top: 50%; left: 50%;
-	transform: translate(-50%, -50%); z-index: 50;">
-
-		<h3 class="text-lg font-semibold text-gray-800 mb-4">Edit Name</h3>
-
-		<input id="name"
-		class="w-full p-3 rounded-lg border border-gray-300
-		outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
-		text-gray-800 bg-gray-300
-		placeholder-gray-600"
-		type="text"
-		maxlength="70"
-		placeholder="Name" />
-
-		<div class="flex justify-end gap-3 mt-6">
-			<button data-action="cancel" class="px-4 py-2 text-black hover:text-purple-700 cursor-pointer">Cancel</button>
-			<button data-action="save" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">Save</button>
-		</div>
-	</div>`;
-}

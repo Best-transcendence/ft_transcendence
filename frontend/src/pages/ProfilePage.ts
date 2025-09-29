@@ -55,7 +55,7 @@ export function ProfilePage()
 		</div>
 		<div class="flex items-center gap-1.5">
 			<p id="profile-bio" class="text-gray-300">
-				${thisUser.bio}
+				<i>${thisUser.bio}</i>
 			</p>
 			<button id="edit-bio-button" class="ml-1.5" onclick>🖍</button>
 		</div>
