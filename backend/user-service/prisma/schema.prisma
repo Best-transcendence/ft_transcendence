@@ -27,8 +27,8 @@ model UserProfile {
   bio           String @default("Hi, I'm playing Arcade Clash")
 
   // Friends relationships (many-to-many)
-  friends       UserProfile[] @relation("UserFriends")
-  friendOf      UserProfile[] @relation("UserFriends")
+  friends       UserProfile[] @relation("UserFriends") // Who's in my friends list
+  friendOf      UserProfile[] @relation("UserFriends") // Whose friendlist I'm in
 
   // Game data
   matchHistory  Json?     // Game match history (empty object initially)

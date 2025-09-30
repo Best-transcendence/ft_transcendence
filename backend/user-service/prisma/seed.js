@@ -11,8 +11,9 @@ const userProfiles = [
     email: 'yioffe@example.com',
     profilePicture: '/assets/default-avatar.jpeg',
     bio: 'Pong enthusiast and coding wizard!',
+	//friends: { connect: [ { authUserId: 4}] },
     matchHistory: {},
-    stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
+    stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 },
   },
   {
     authUserId: 2,
@@ -20,6 +21,7 @@ const userProfiles = [
     email: 'thuy-ngu@example.com',
     profilePicture: '/assets/default-avatar.jpeg',
     bio: 'Love competitive gaming and teamwork!',
+	//friends: { connect: [ { authUserId: 4}] },
     matchHistory: {},
     stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
   },
@@ -29,6 +31,7 @@ const userProfiles = [
     email: 'juan-pma@example.com',
     profilePicture: '/assets/default-avatar.jpeg',
     bio: 'Strategic player always looking for a challenge!',
+	//friends: { connect: [ { authUserId: 4}] },
     matchHistory: {},
     stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
   },
@@ -38,6 +41,7 @@ const userProfiles = [
     email: 'cbouvet@example.com',
     profilePicture: '/assets/default-avatar.jpeg',
     bio: 'Fast reflexes and quick thinking!',
+	//friends: {connect: [ { authUserId: 1}, { authUserId: 2}, { authUserId: 3} ]},
     matchHistory: {},
     stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
   },
@@ -56,12 +60,41 @@ async function main() {
         email: profile.email,
         profilePicture: profile.profilePicture,
         bio: profile.bio,
+		friends: profile.friends || {},
         matchHistory: profile.matchHistory,
         stats: profile.stats
       },
     });
     console.log(`👤 Created/found profile: ${result.name} (${result.email})`);
   }
+
+	// Yulia's friends
+	await prisma.userProfile.update(
+	{
+		where: { authUserId: 1 },
+		data: { friends: { connect: { authUserId: 4 } } }
+	});
+
+	// Tina's friends
+	await prisma.userProfile.update(
+	{
+		where: { authUserId: 2 },
+		data: { friends: { connect: { authUserId: 4 } } }
+	});
+
+	// Juan's friends
+	await prisma.userProfile.update(
+	{
+		where: { authUserId: 2 },
+		data: { friends: { connect: { authUserId: 4 } } }
+	});
+
+	//Camille's friends
+	await prisma.userProfile.update(
+	{
+		where: { authUserId: 4 },
+		data: { friends: { connect: [{ authUserId: 1 }, { authUserId: 2 }, { authUserId: 3 } ] } }
+	});
 
   console.log('✅ User service seed complete');
 }
