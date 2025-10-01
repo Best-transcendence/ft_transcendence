@@ -1,5 +1,5 @@
 # Environment variables
-.env
+# TODO: add .env to the gitignore once closer to production
 .env.local
 .env.development.local
 .env.test.local
@@ -44,9 +44,6 @@ Thumbs.db
 # Logs
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 lerna-debug.log*
 
 # Runtime data
@@ -74,7 +71,6 @@ temp/
 *.tsbuildinfo
 
 # Next.js
-.next/
 .vercel/
 
 # Prisma
@@ -82,3 +78,21 @@ prisma/migrations/dev.db*
 
 # Game assets cache
 game/assets/cache/
+
+# Backend (Fastify + Prisma)
+backend/node_modules/
+backend/prisma/dev.db
+backend/prisma/*.db-journal
+backend/dist/
+backend/*.tsbuildinfo
+backend/npm-debug.log*
+
+# Frontend (если будет)
+frontend/node_modules/
+frontend/dist/
+frontend/next-env.d.ts
+
+/generated/prisma
+
+# Notes
+/perso

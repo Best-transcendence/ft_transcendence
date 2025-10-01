@@ -1,0 +1,10 @@
+#!/bin/sh
+if git diff --cached --name-only | grep -q "^backend/"; then
+  echo "🔍 Backend files changed, running linter..."
+  cd backend && npm run lint:fix
+  if [ $? -ne 0 ]; then
+    echo "❌ Linting failed. Please fix the issues before committing."
+    exit 1
+  fi
+  echo "✅ Backend linting passed!"
+fi
