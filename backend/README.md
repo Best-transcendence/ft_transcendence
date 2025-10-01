@@ -72,16 +72,25 @@ rm -f backend/gateway/*.db
 
 This project uses **pre-commit hooks** to ensure code quality. The hooks automatically run ESLint on backend files before each commit.
 
+**Prerequisites:**
+- A `backend/package.json` file with linting scripts must exist
+- ESLint dependencies must be installed in the backend directory
+
 **Setup commands:**
 
 ```bash
 # 1. Install Husky (Git hooks manager) in project root
 npm install --save-dev husky
 
-# 2. Initialize Husky
+# 2. Install ESLint dependencies in backend directory
+cd backend
+npm install
+cd ..
+
+# 3. Initialize Husky
 npx husky init
 
-# 3. Create the pre-commit hook
+# 4. Create the pre-commit hook
 echo '#!/bin/sh
 if git diff --cached --name-only | grep -q "^backend/"; then
   echo "🔍 Backend files changed, running linter..."
@@ -93,10 +102,10 @@ if git diff --cached --name-only | grep -q "^backend/"; then
   echo "✅ Backend linting passed!"
 fi' > .husky/pre-commit
 
-# 4. Make the hook executable
+# 5. Make the hook executable
 chmod +x .husky/pre-commit
 
-# 5. Add prepare script to root package.json
+# 6. Add prepare script to root package.json
 npm pkg set scripts.prepare="husky"
 ```
 
@@ -105,6 +114,11 @@ npm pkg set scripts.prepare="husky"
 - ✅ Automatically runs `npm run lint:fix` to fix auto-fixable issues
 - ✅ Prevents commit if linting fails
 - ✅ Can be bypassed with `git commit --no-verify` if needed
+
+**Backend package.json structure:**
+The `backend/package.json` contains linting scripts that run ESLint across all microservices:
+- `npm run lint` - Check for linting errors
+- `npm run lint:fix` - Fix auto-fixable linting errors
 
 ### Code Style Guidelines
 
