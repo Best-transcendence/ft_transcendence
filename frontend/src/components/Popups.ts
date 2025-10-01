@@ -1,6 +1,7 @@
 // File aimed at holding popups
 
 import { editProfilePicture, uploadProfilePicture, editName, editBio } from "../services/userActions"
+import { removeFriend } from "../services/friendsActions"
 
 // Buttons configurations
 const buttonConfigs =
@@ -107,13 +108,21 @@ function initProfilePopup(action: any)
 }
 
 // Confirm/cancel popup
-function initConfirmPopup(action: any)
+function initConfirmPopup(action: any, popup: HTMLElement)
 {
-	console.log("get here");
+	const clickedButton = document.querySelector('[id^="unfriend-button--"]:focus')
+						|| document.querySelector('[id^="unfriend-button--"]'); // Retrieves the friend id
+	if (!clickedButton)
+		return ;
+
+	const friendId = clickedButton.id.split('--')[1];
+	if (!friendId)
+		return ;
+
 	switch (action)
 	{
 		case "confirm":
-			console.log("to implement");
+			removeFriend(friendId);
 
 		case "cancel":
 			break;

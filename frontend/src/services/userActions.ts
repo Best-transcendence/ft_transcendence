@@ -1,5 +1,4 @@
 import { getCurrentUser } from "../services/api";
-import { Friend } from "../pages/Friends"
 import { thisUser } from "../router"
 import { API_URL } from "./config";
 
@@ -136,10 +135,4 @@ export async function editBio(newBio: string)
 
 	const data = await getCurrentUser();
 	thisUser.bio = data.user.bio;
-}
-
-// Remove friend
-export async function removeFriend(friend: Friend)
-{
-
 }

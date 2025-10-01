@@ -370,14 +370,21 @@ export default async function (fastify, _opts) {
 			return { message: `${ friendId } added to ${ userId }friendlist` };
 		}
 
-		if (action === 'remove_friend')
+		if (action === 'remove_friend') //Remove from both lists to break link completely
 		{
 			await fastify.prisma.userProfile.update(
 			{
 				where: { authUserId: userId },
 				data: { friends: { disconnect: { id: friendId } } }
 			});
-			return { message: `${ friendId } removed from ${ userId }friendlist` };
+
+			await fastify.prisma.userProfile.update(
+			{
+				where: { id: friendId },
+				data: { friends: { disconnect: { authUserId: userId } } }
+			});
+
+			return { message: `${ friendId } and ${ userId } are broken off` };
 		}
 
 		const updatedUser = await fastify.prisma.userProfile.update(

@@ -58,7 +58,7 @@ async function fetchUser()
 }; */
 
 //tmp async function to render visual edit without having to relog
-async function protectedPage(renderer: () => string, postRender?: () => void)
+export async function protectedPage(renderer: () => string, postRender?: () => void)
 {
 	const app = document.getElementById("app")!;
 
