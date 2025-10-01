@@ -6,5 +6,13 @@ if git diff --cached --name-only | grep -q "^backend/"; then
     echo "❌ Linting failed. Please fix the issues before committing."
     exit 1
   fi
+  
+  # Check for any remaining warnings or errors
+  echo "🔍 Checking for remaining linting issues..."
+  npm run lint
+  if [ $? -ne 0 ]; then
+    echo "❌ Linting warnings/errors found. Please fix all issues before committing."
+    exit 1
+  fi
   echo "✅ Backend linting passed!"
 fi
