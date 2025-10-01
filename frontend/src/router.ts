@@ -123,7 +123,7 @@ export function router() {
 		break;
 
 	case "friends":
-		protectedPage(() => FriendsPage());
+		protectedPage(() => FriendsPage(), triggerPopup);
 		break;
 
     default:

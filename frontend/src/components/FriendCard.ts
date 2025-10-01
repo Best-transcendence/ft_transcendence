@@ -1,3 +1,4 @@
+import { confirmPopup } from "./Popups"
 
 export function friendCard(friend: any)
 {
@@ -14,7 +15,7 @@ export function friendCard(friend: any)
 				</div>
 			</div>
 			<div class="absolute bottom-5 right-6">
-				<button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">
+				<button id="unfriend-button--${friend.id}" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">
 				Unfriend</button>
 			</div>
 		</div>`;

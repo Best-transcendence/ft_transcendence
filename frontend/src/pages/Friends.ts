@@ -3,10 +3,11 @@ import { profileDivDisplay } from "../components/ProfileDiv"
 import { sidebarDisplay } from "../components/SideBar"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { friendCard } from "../components/FriendCard"
+import { confirmPopup } from "../components/Popups"
 import { thisUser } from "../router"
 
 
-interface Friend
+export interface Friend
 {
 	id: string,
 	name: string,
@@ -64,5 +65,6 @@ export function FriendsPage()
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-14 gap-y-14 w-full max-w-7xl mx-auto">
 	${ loadFriend(false) }
 	${ friendCard( thisUser )}
-		</div>`
+	${ confirmPopup() }
+	</div>`
 };
