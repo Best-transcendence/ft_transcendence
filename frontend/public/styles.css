@@ -14,9 +14,12 @@ will update automatically the other styles.
   --color-bg-2: #1d1f70;
   --color-accent-1: #5b2ca8;
   --color-accent-2: #2fd2f7;
+  --color-accent-3: #ffcc00;
   --color-text: #ffffff;
   --color-button: #7037d3;
   --color-button-hover: #8a56ea;
+  --color-frame: #919bebc7;
+  --game-area-background: #071a1d;
 }
 
 .text-accent { color: var(--color-button-hover); }
