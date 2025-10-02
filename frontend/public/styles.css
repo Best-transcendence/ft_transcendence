@@ -3,20 +3,20 @@
 @tailwind utilities;
 
 /*
-This is the orange palete, if we want to change the
+f we want to change the
 colors, just change the colors in the variables and this
 will update automatically the other styles.
 */
 
 :root {
-  /* Default theme = Cool Night 🌌 */
-  --color-bg-1: #0d0c3d;   /* midnight */
-  --color-bg-2: #1d1f70;   /* royal */
-  --color-accent-1: #5b2ca8; /* indigo */
-  --color-accent-2: #2fd2f7; /* cyan */
-  --color-text: #ffffff;   /* moon glow */
-  --color-button: #7037d3; /* teal */
-  --color-button-hover: #8a56ea; /* pine */
+  /* Default theme */
+  --color-bg-1: #0d0c3d;
+  --color-bg-2: #1d1f70;
+  --color-accent-1: #5b2ca8;
+  --color-accent-2: #2fd2f7;
+  --color-text: #ffffff;
+  --color-button: #7037d3;
+  --color-button-hover: #8a56ea;
 }
 
 .text-accent { color: var(--color-button-hover); }
@@ -30,17 +30,6 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-}
-
-/* 🔥 Warm Fire Theme */
-.theme-fire {
-  --color-bg-1: #8b3b1e;   /* ember brown */
-  --color-bg-2: #ff8a1d;   /* fire orange */
-  --color-accent-1: #ffd53a; /* fire yellow */
-  --color-accent-2: #e14d1a; /* fire red */
-  --color-text: #1d0c0c;   /* dark for contrast */
-  --color-button: #7037d3; /* fire orange */
-  --color-button-hover: #8a56ea; /* fire red */
 }
 
 /* Pong Game Styles */
@@ -141,9 +130,6 @@ html, body {
   );
 }
 
-
 body {
   font-family: var(--font-body);
 }
-
-

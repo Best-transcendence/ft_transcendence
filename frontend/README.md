@@ -177,5 +177,3 @@ case "intro":
 ```
 
 It’s easy to maintain and expand later.
-
-
