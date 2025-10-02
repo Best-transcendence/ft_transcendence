@@ -18,6 +18,7 @@ import { NotFoundPage } from "./pages/NotFoundPage";
 import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn"
 import { triggerPopup } from "./components/Popups"
+import { friendRequest } from "./components/FriendRequestDiv"
 
 // Centralizes user extraction into a variable
 export let thisUser: any = undefined;
@@ -58,7 +59,7 @@ async function fetchUser()
 }; */
 
 //tmp async function to render visual edit without having to relog
-export async function protectedPage(renderer: () => string, postRender?: () => void)
+export async function protectedPage(renderer: () => string, ...postRender: (() => void)[])
 {
 	const app = document.getElementById("app")!;
 
@@ -70,7 +71,7 @@ export async function protectedPage(renderer: () => string, postRender?: () => v
 		sideBar();
 		logOutBtn();
 
-		postRender?.(); // specific page functions for a given page
+		postRender?.forEach(fn => fn()); // specific page functions for a given page
 	}
 	else
 	{
@@ -123,7 +124,7 @@ export function router() {
 		break;
 
 	case "friends":
-		protectedPage(() => FriendsPage(), triggerPopup);
+		protectedPage(() => FriendsPage(), triggerPopup, friendRequest);
 		break;
 
     default:

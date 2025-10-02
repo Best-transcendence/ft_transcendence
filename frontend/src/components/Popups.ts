@@ -9,7 +9,8 @@ const buttonConfigs =
 	{ buttonId: "edit-name-button", popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Name", placeholder: "Enter name", len: "13"},
 	{ buttonId: "edit-bio-button",  popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Bio", placeholder: "Enter bio", len: "60" },
 	{ buttonId: "edit-pic-button",  popupId: "profile-popup", handler: initProfilePopup, options: "li" },
-	{ buttonId: "unfriend-button", popupId: "confirm-popup", handler: initConfirmPopup, options: "button"}
+	{ buttonId: "friend-button", popupId: "confirm-popup", handler: initConfirmPopup, options: "button"},
+	{ buttonId: "", popupId: "confirm-popup", handler: initConfirmPopup, options: "button"}
 ];
 
 // General popup trigger
@@ -110,8 +111,8 @@ function initProfilePopup(action: any)
 // Confirm/cancel popup
 function initConfirmPopup(action: any, popup: HTMLElement)
 {
-	const clickedButton = document.querySelector('[id^="unfriend-button--"]:focus')
-						|| document.querySelector('[id^="unfriend-button--"]'); // Retrieves the friend id
+	const clickedButton = document.querySelector('[id^="friend-button--"]:focus')
+						|| document.querySelector('[id^="friend-button--"]'); // Retrieves the friend id
 	if (!clickedButton)
 		return ;
 
