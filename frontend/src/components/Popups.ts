@@ -10,7 +10,6 @@ const buttonConfigs =
 	{ buttonId: "edit-bio-button",  popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Bio", placeholder: "Enter bio", len: "60" },
 	{ buttonId: "edit-pic-button",  popupId: "profile-popup", handler: initProfilePopup, options: "li" },
 	{ buttonId: "friend-button", popupId: "confirm-popup", handler: initConfirmPopup, options: "button"},
-	{ buttonId: "", popupId: "confirm-popup", handler: initConfirmPopup, options: "button"}
 ];
 
 // General popup trigger

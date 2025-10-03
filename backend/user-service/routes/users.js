@@ -248,7 +248,6 @@ export default async function (fastify, _opts) {
 						name: true,
 						profilePicture: true,
 						bio: true,
-						//onlineStatus: true
 					},
 					orderBy: { name: 'asc' }
 				},
@@ -360,7 +359,7 @@ export default async function (fastify, _opts) {
       const userId = request.user.id;
       const { action, friendId, ...updateData } = request.body;
 
-		if (action === 'add_friend')
+		if (action === 'add_friend') //Add a friend
 		{
 			await fastify.prisma.userProfile.update(
 			{

@@ -23,7 +23,7 @@ export function GameIntroPage() {
 
         <!-- Title -->
         <h1 class="text-4xl font-heading font-bold mb-4">Arcade Clash</h1>
-        <p class="text-lg text-gray-400 max-w-xl text-center mb-10">
+        <p class="text-lg text-gray-600 max-w-xl text-center mb-10">
 			Challenge a friend and prove your skills.
         </p>
 

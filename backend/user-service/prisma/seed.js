@@ -12,7 +12,7 @@ const userProfiles = [
     profilePicture: '/assets/default-avatar.jpeg',
     bio: 'Pong enthusiast and coding wizard!',
     matchHistory: {},
-    stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 },
+    stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
   },
   {
     authUserId: 2,
@@ -56,7 +56,7 @@ async function main() {
         email: profile.email,
         profilePicture: profile.profilePicture,
         bio: profile.bio,
-		friends: profile.friends || {},
+		friends: profile.friends || {}, //import profile.friends or empty object
         matchHistory: profile.matchHistory,
         stats: profile.stats
       },
