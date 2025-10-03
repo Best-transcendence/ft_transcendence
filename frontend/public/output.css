@@ -107,7 +107,7 @@
 }
 
 /*
-! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com
+! tailwindcss v3.4.18 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -666,6 +666,10 @@ video {
   z-index: 10;
 }
 
+.z-20 {
+  z-index: 20;
+}
+
 .z-40 {
   z-index: 40;
 }
@@ -701,6 +705,10 @@ video {
 
 .mt-10 {
   margin-top: 2.5rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
 }
 
 .mt-4 {
@@ -854,6 +862,32 @@ video {
 
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+@keyframes pulse {
+  50% {
+    opacity: .5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes zoomIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-zoomIn {
+  animation: zoomIn 0.3s ease-out forwards;
 }
 
 .cursor-pointer {
@@ -1020,6 +1054,10 @@ video {
   background-color: rgba(255,255,255,0.9);
 }
 
+.bg-\[var\(--color-button\)\] {
+  background-color: var(--color-button);
+}
+
 .bg-blue-400\/30 {
   background-color: rgb(96 165 250 / 0.3);
 }
@@ -1147,6 +1185,15 @@ video {
   padding-bottom: 0.5rem;
 }
 
+.py-3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.pt-6 {
+  padding-top: 1.5rem;
+}
+
 .text-center {
   text-align: center;
 }
@@ -1211,6 +1258,10 @@ video {
 .text-\[\#e8e8e8\] {
   --tw-text-opacity: 1;
   color: rgb(232 232 232 / var(--tw-text-opacity, 1));
+}
+
+.text-\[var\(--color-accent-2\)\] {
+  color: var(--color-accent-2);
 }
 
 .text-black {
@@ -1365,27 +1416,23 @@ video {
 }
 
 /*
-This is the orange palete, if we want to change the
+f we want to change the
 colors, just change the colors in the variables and this
 will update automatically the other styles.
 */
 
 :root {
-  /* Default theme = Cool Night 🌌 */
+  /* Default theme */
   --color-bg-1: #0d0c3d;
-  /* midnight */
   --color-bg-2: #1d1f70;
-  /* royal */
   --color-accent-1: #5b2ca8;
-  /* indigo */
   --color-accent-2: #2fd2f7;
-  /* cyan */
+  --color-accent-3: #ffcc00;
   --color-text: #ffffff;
-  /* moon glow */
   --color-button: #7037d3;
-  /* teal */
   --color-button-hover: #8a56ea;
-  /* pine */
+  --color-frame: #919bebc7;
+  --game-area-background: #071a1d;
 }
 
 .text-accent {
@@ -1401,25 +1448,6 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-}
-
-/* 🔥 Warm Fire Theme */
-
-.theme-fire {
-  --color-bg-1: #8b3b1e;
-  /* ember brown */
-  --color-bg-2: #ff8a1d;
-  /* fire orange */
-  --color-accent-1: #ffd53a;
-  /* fire yellow */
-  --color-accent-2: #e14d1a;
-  /* fire red */
-  --color-text: #1d0c0c;
-  /* dark for contrast */
-  --color-button: #7037d3;
-  /* fire orange */
-  --color-button-hover: #8a56ea;
-  /* fire red */
 }
 
 /* Pong Game Styles */
@@ -1529,6 +1557,10 @@ body {
   font-family: var(--font-body);
 }
 
+.hover\:bg-\[var\(--color-button-hover\)\]:hover {
+  background-color: var(--color-button-hover);
+}
+
 .hover\:bg-gray-100:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
@@ -1553,6 +1585,12 @@ body {
   color: rgb(126 34 206 / var(--tw-text-opacity, 1));
 }
 
+.hover\:shadow:hover {
+  --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
 .focus\:border-transparent:focus {
   border-color: transparent;
 }
@@ -1572,5 +1610,3 @@ body {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(168 85 247 / var(--tw-ring-opacity, 1));
 }
-
-

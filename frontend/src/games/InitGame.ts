@@ -14,13 +14,15 @@ export function initGame(): void {
   const wallSfx = $("wallSound") as HTMLAudioElement;
   const lossSfx = $("lossSound") as HTMLAudioElement;
 
-  // === NEW: sizes that match your GamePong2D CSS ===
+  // NEW: size matches GamePong2D CSS
   const FIELD = 100;
   const BALL_W = 3.3, BALL_H = 5;      // #ball: w-[3.3%], h-[5%]
   const PADDLE_W = 3.3, PADDLE_H = 25; // #paddle: w-[3.3%], h-[25%]
 
-  let s1 = 0, s2 = 0;
   let running = false;
+  let animationFrameId = 0;
+
+  let s1 = 0, s2 = 0;
 
   let p1Y = 37.5, p2Y = 37.5; // matches initial CSS top-[37.5%]
   let ballX = 50, ballY = 50;
@@ -31,12 +33,25 @@ export function initGame(): void {
 
   let p1Up = false, p1Down = false, p2Up = false, p2Down = false;
 
+  window.addEventListener("game:timeup", () => {
+    stopGame();
+	  const overlay = document.getElementById("timeUpOverlay");
+  	if (overlay) {
+    	overlay.classList.remove("hidden");
+  	}
+  });
+
+	const overlayExit = document.getElementById("overlayExit");
+	overlayExit?.addEventListener("click", () => {
+		window.location.hash = "intro";
+	});
+
   document.addEventListener("keydown", (e) => {
 	if (e.code === "Space" && !running) {
 		// TODO setup to 90 
 		startTimer(5);
 		startGame();
-	} 
+	}
     if (e.key === "w") p1Up = true;
     if (e.key === "s") p1Down = true;
     if (e.key === "ArrowUp") p2Up = true;
@@ -57,18 +72,22 @@ export function initGame(): void {
     loop();
   }
 
+    function stopGame() {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  }
+
   function loop() {
     if (!running) return;
     updatePaddles();
     updateBall();
-    requestAnimationFrame(loop);
+    animationFrameId = requestAnimationFrame(loop); //storeid
   }
 
   function updatePaddles() {
     p1Vel = applyInput(p1Up, p1Down, p1Vel);
     p2Vel = applyInput(p2Up, p2Down, p2Vel);
 
-    // === FIX: clamp to 100 - PADDLE_H (25%) ===
+    // FIX: clamp to 100 - PADDLE_H (25%)
     const maxY = FIELD - PADDLE_H;
     p1Y = clamp(p1Y + p1Vel, 0, maxY);
     p2Y = clamp(p2Y + p2Vel, 0, maxY);
@@ -88,7 +107,7 @@ export function initGame(): void {
     ballX += ballVelX;
     ballY += ballVelY;
 
-    // === FIX: walls consider BALL_H ===
+    // FIX: walls consider BALL_H
     if (ballY <= 0) {
       ballY = 0;
       ballVelY *= -1;
@@ -99,7 +118,7 @@ export function initGame(): void {
       //playSound(wallSfx);
     }
 
-    // === Paddle hitboxes with sizes ===
+    // Paddle hitboxes with sizes
     // Left paddle: its right edge is at PADDLE_W, ball's left is ballX, right is ballX + BALL_W
     if (
       ballX <= PADDLE_W && // left side contact
@@ -122,7 +141,7 @@ export function initGame(): void {
       //playSound(paddleSfx);
     }
 
-    // === FIX: symmetric scoring using the ball center ===
+    // FIX: symmetric scoring using the ball center
     const ballCenterX = ballX + BALL_W / 2;
     if (ballCenterX < 0) {
       s2++;

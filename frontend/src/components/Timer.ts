@@ -15,17 +15,29 @@ export function startTimer(duration: number = 5): void {
   const timerElement = document.getElementById("timer");
   if (!timerElement) return;
 
-  const interval = window.setInterval(() => {
+  // render immediately so UI matches the chosen duration
+  const render = () => {
     const minutes = Math.floor(remaining / 60);
     const seconds = remaining % 60;
     timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+  render();
 
+
+  const interval = window.setInterval(() => {
+    // tick first
+    remaining--;
     if (remaining <= 0) {
       clearInterval(interval);
       timerElement.textContent = "0:00";
-      (timerElement as HTMLElement).classList.add("text-red-600");
+	//   timerElement.classList.remove("animate-pulse"); // if it's better without pulsing after
+	  (timerElement as HTMLElement).classList.add("text-red-600");
+	  window.dispatchEvent(new CustomEvent("game:timeup"));
+      return;
     }
-
-    remaining--;
+	if (remaining <= 3) {
+      timerElement.classList.add("text-red-600", "animate-pulse");
+    }
+	render();
   }, 1000);
 }
