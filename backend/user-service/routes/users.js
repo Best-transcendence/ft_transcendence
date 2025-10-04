@@ -128,21 +128,21 @@ export default async function (fastify, _opts) {
       }
 
 	  // Name uniqueness check
-	const existingNameUser = await fastify.prisma.userProfile.findFirst(
-	{
-		where:
+      const existingNameUser = await fastify.prisma.userProfile.findFirst(
+        {
+          where:
 		{
-			name: name,
-			NOT: { authUserId: authUserId } // Exclude current -> for name update
+		  name: name,
+		  NOT: { authUserId: authUserId } // Exclude current -> for name update
 		}
-	});
+        });
 
-	// Check for existing users to prevent duplicates
-	if (existingNameUser)
-	{
-		console.error(`[${correlationId}] Username '${name}' already taken`);
-		return reply.status(400).send({ error: 'Username already taken' });
-	}
+      // Check for existing users to prevent duplicates
+      if (existingNameUser)
+      {
+        console.error(`[${correlationId}] Username '${name}' already taken`);
+        return reply.status(400).send({ error: 'Username already taken' });
+      }
 
       console.log(`[${correlationId}] Bootstrap request for authUserId: ${authUserId}, name: ${name}, email: ${email}`);
 
@@ -184,9 +184,9 @@ export default async function (fastify, _opts) {
             email,
             matchHistory: {}, // Initialize as empty object
             stats: {}, // Initialize as empty object
-			profilePicture: "/assets/default-avatar.jpeg", // Sets default profile pic
-			bio: "Hi, I'm playing Arcade Clash"
-		}
+            profilePicture: '/assets/default-avatar.jpeg', // Sets default profile pic
+            bio: 'Hi, I\'m playing Arcade Clash'
+          }
         });
 
         console.log(`[${correlationId}] Successfully created profile for authUserId: ${authUserId}`);
@@ -339,7 +339,7 @@ export default async function (fastify, _opts) {
         return reply.status(404).send({ error: 'User profile not found' });
       }
 	  if (err.code === 'P2002'){
-		return reply.status(400).send({ error: 'Username already taken'});
+        return reply.status(400).send({ error: 'Username already taken'});
 	  }
       return reply.status(401).send({ error: 'Unauthorized or update failed' });
     }
