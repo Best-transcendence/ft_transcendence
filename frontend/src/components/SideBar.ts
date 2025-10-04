@@ -35,8 +35,10 @@ export function sideBar()
 					window.location.hash = "friends";
 					break;
 				case "stats":
+					/* TODO - Tina intended to do the stats module  */
 					break;
 				case "history":
+					window.location.hash = "history";
 					break;
 			}
 		});

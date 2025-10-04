@@ -12,6 +12,7 @@ import { GamePongAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
+import { HistoryPage } from "./pages/HistoryPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 //Components:
@@ -125,6 +126,10 @@ export function router() {
 
 	case "friends":
 		protectedPage(() => FriendsPage(), triggerPopup, friendRequest);
+		break;
+
+	case "history":
+		protectedPage(() => HistoryPage());
 		break;
 
     default:

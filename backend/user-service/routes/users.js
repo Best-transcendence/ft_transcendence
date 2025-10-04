@@ -235,20 +235,10 @@ export default async function (fastify, _opts) {
                 email: { type: 'string' },
                 profilePicture: { type: 'string' },
                 bio: { type: 'string' },
-				friends:
-				{
-					select: { id: true },
-					orderBy: { name: 'asc' }
-				},
+				friends: { select: { id: true }, },
 				friendOf:
 				{
-					select:
-					{
-						id: true,
-						name: true,
-						profilePicture: true,
-						bio: true,
-					},
+					select: { id: true, name: true, profilePicture: true, bio: true,},
 					orderBy: { name: 'asc' }
 				},
                 matchHistory: { type: 'object' },
