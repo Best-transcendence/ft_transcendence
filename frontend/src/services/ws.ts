@@ -1,37 +1,74 @@
+// services/ws.ts
 let socket: WebSocket | null = null;
+let reconnectTimer: number | null = null;
+let manualClose = false;
+
+export function getSocket() {
+  return socket;
+}
 
 export function connectSocket(token: string, onMessage?: (msg: any) => void) {
-  if (socket && socket.readyState === WebSocket.OPEN) return socket;
+  if (socket) {
+    if (socket.readyState === WebSocket.OPEN) return socket;
+    if (socket.readyState === WebSocket.CONNECTING) return socket;
+    // closed or closing -> create a new one
+  }
 
+  manualClose = false;
   const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:4000";
   socket = new WebSocket(`${WS_URL}?token=${token}`);
 
-  socket.onopen = () => console.log(" Connected to WS server");
-
-  socket.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-    console.log(" WS message:", msg);
-
-    if (onMessage) onMessage(msg);
-    window.dispatchEvent(new CustomEvent("ws-message", { detail: msg }));
+  socket.onopen = () => {
+    console.log("WS open");
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
   };
 
-  socket.onclose = () => console.log(" Disconnected from WS");
-  socket.onerror = (err) => console.error(" WS error:", err);
+  socket.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      console.log("WS message:", msg);
+      if (onMessage) onMessage(msg);
+      window.dispatchEvent(new CustomEvent("ws-message", { detail: msg }));
+    } catch (err) {
+      console.error("WS: failed to parse message", err);
+    }
+  };
+
+  socket.onclose = (ev) => {
+    console.log("WS closed", ev.code, ev.reason);
+    socket = null;
+    if (!manualClose) {
+      reconnectTimer = window.setTimeout(() => {
+        const saved = localStorage.getItem("jwt");
+        if (saved) connectSocket(saved, onMessage);
+      }, 1000 + Math.random() * 2000);
+    }
+  };
+
+  socket.onerror = (err) => {
+    console.error("WS error:", err);
+  };
 
   return socket;
 }
 
 export function disconnectSocket() {
-  if (socket) {
-    console.log("👋 Closing WS connection");
-    socket.close();
-    socket = null;
+  if (!socket) return;
+  manualClose = true;
+  console.log("Closing WS (manual)");
+  socket.close();
+  socket = null;
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
   }
 }
 
-export function autoConnect() {
+export function autoConnect(onMessage?: (msg: any) => void) {
   const token = localStorage.getItem("jwt");
-  console.log(" Connecting WS with token:", token);
-  if (token) connectSocket(token);
+  console.log("autoConnect token:", token);
+  if (token) connectSocket(token, onMessage);
 }
