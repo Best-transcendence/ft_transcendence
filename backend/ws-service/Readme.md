@@ -99,6 +99,6 @@ Notes:
   - For multiple tabs per user: this service de-duplicates users in `user:list` (one entry per user id). Switch to broadcasting per connection if you want separate entries per tab.
 
 - `nodemon: not found`
-  - Run `npm install` in ws-service or change `dev` script to `node index.js` if you don’t want nodemon.
+  - Run `npm install` in ws-service or change `dev` script to `node main.js` if you don’t want nodemon.
 
 ---

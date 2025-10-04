@@ -4,10 +4,14 @@ import { WebSocketServer } from 'ws';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
+
+// Adding Env.
 dotenv.config();
 
+// Adding the app.log
 const httpServer = createServer();
-const app = Fastify();
+const app = Fastify({ logger: true });
+
 app.server = httpServer; // Attach fastify to HTTP server
 
 const wss = new WebSocketServer({ server: httpServer });
@@ -16,24 +20,44 @@ const onlineUsers = new Map();
 wss.on('connection', (ws, req) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const token = url.searchParams.get('token');
-  console.log('Incoming WS token:', token);
+  app.log(
+    {
+      token: token ? token : 'MISSING'
+    },
+    'Incoming WS token'
+  )
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     ws.user = payload;
     onlineUsers.set(ws.user.id, ws);
 
-    console.log(`WS connected: User ID ${ws.user.id}`);
+    app.log.info({
+      userId: ws.user?.id || "MISSING"
+    },
+      'Ws Connected'
+    )
     ws.send(JSON.stringify({ type: 'welcome', user: payload }));
 
     broadcastUsers();
 
     ws.on('close', () => {
       onlineUsers.delete(ws.user.id);
-      console.log(` User disconnected: ${ws.user.name}`);
+      app.log.info({
+        userId: ws.user?.id || "MISSING",
+        userName: ws.user?.name || "Unknown"
+      },
+        'User Disconnected'
+      )
       broadcastUsers();
     });
-  } catch(err) {
-    console.log(' Invalid token, closing WS', err.message);
+  } catch (err) {
+    app.log.error({
+      error: err.message,
+      token: token ? 'Present' : 'Missing',
+      ip: req.socket.remoteAddress // we can log the remote IP for failed connection.
+    },
+      'Invalid Websocket Token, Closing Connection'
+    )
     ws.close();
   }
 });
@@ -54,8 +78,13 @@ function broadcastUsers() {
 const start = async () => {
   const port = process.env.WS_PORT || 4000;
   httpServer.listen(port, () => {
-    console.log(` WS Service running on ws://localhost:${port}`);
+    app.log.info({
+      port,
+      url: `ws://localhost:${port}`
+    },
+      'Ws Service Running'
+    )
   });
 };
 
-start();
+
