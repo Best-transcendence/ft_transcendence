@@ -26,7 +26,7 @@ const start = async () => {
       port,
       url: `ws://localhost:${port}`
     },
-      'Ws Service Running'
+    'Ws Service Running'
     );
   });
 };
