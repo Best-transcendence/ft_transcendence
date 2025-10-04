@@ -7,7 +7,7 @@ export function registerWebsocketHandlers(wss, app) {
   wss.on('connection', (ws, req) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const token = url.searchParams.get('token');
-    app.log(
+    app.log.info(
       {
         token: token ? token : 'MISSING'
       },

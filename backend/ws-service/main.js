@@ -16,7 +16,7 @@ app.server = httpServer; // Attach fastify to HTTP server
 
 // __________Enable CORS
 await app.register(fastifyCors, {
-  origin: 'http://localhost:3000',
+  origin: '*',
   methods: ['GET'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 });
