@@ -5,38 +5,38 @@ const prisma = new PrismaClient();
 // Test user profiles for user service
 // These correspond to users created in auth-service
 const userProfiles = [
-  { 
-    authUserId: 1, 
-    name: 'Yulia', 
+  {
+    authUserId: 1,
+    name: 'Yulia',
     email: 'yioffe@example.com',
-    profilePicture: null,
+    profilePicture: '/assets/default-avatar.jpeg',
     bio: 'Pong enthusiast and coding wizard!',
     matchHistory: {},
     stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
   },
-  { 
-    authUserId: 2, 
-    name: 'Tina', 
+  {
+    authUserId: 2,
+    name: 'Tina',
     email: 'thuy-ngu@example.com',
-    profilePicture: null,
+    profilePicture: '/assets/default-avatar.jpeg',
     bio: 'Love competitive gaming and teamwork!',
     matchHistory: {},
     stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
   },
-  { 
-    authUserId: 3, 
-    name: 'Juan', 
+  {
+    authUserId: 3,
+    name: 'Juan',
     email: 'juan-pma@example.com',
-    profilePicture: null,
+    profilePicture: '/assets/default-avatar.jpeg',
     bio: 'Strategic player always looking for a challenge!',
     matchHistory: {},
     stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
   },
-  { 
-    authUserId: 4, 
-    name: 'Camille', 
+  {
+    authUserId: 4,
+    name: 'Camille',
     email: 'cbouvet@example.com',
-    profilePicture: null,
+    profilePicture: '/assets/default-avatar.jpeg',
     bio: 'Fast reflexes and quick thinking!',
     matchHistory: {},
     stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
@@ -45,7 +45,7 @@ const userProfiles = [
 
 async function main() {
   console.log('🌱 Seeding user service database...');
-    
+
   for (const profile of userProfiles) {
     const result = await prisma.userProfile.upsert({
       where: { authUserId: profile.authUserId },

@@ -2,6 +2,7 @@ import { addTheme } from "../components/Theme"
 import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
+import { TimerDisplay } from "../components/Timer";
 
 export function GamePong2D(): string {
   return `
@@ -20,22 +21,47 @@ export function GamePong2D(): string {
 		${ LogOutBtnDisplay() }
 	</div>
 
+${ TimerDisplay() }
+
+
 <!-- Game section -->
 	<div class="flex justify-center w-screen overflow-hidden">
 		<div class="relative"
 		style="position: absolute; top: vh; left: 50%; transform: translateX(-50%); width: 90vw; max-width: 1450px; aspect-ratio: 16/9;">
 
 <!-- Arcade image anchor -->
-			<img src="/assets/machine_tina_transparent.png"
+			<img src="/assets/game_background.png"
 			class="absolute inset-0 w-full h-full object-contain "
 			alt="Arcade machine" />
 
 <!-- Game window -->
 			<div class="absolute z-10 backdrop-blur-sm"
 			style="top: 6.1%; left: 24.1%; width: 51%; height: 59.2%;
-			background: rgba(7,26,29,0.6);
-			border: 8px solid #919bebc7;
+			background: var(--game-area-background);
+			border: 9px solid var(--color-frame);
 			border-radius: 1rem;">
+
+  <!-- Time Up Overlay (hidden by default) inherits from Game window-->
+	<div id="timeUpOverlay"
+		class="absolute inset-0 z-20 hidden"
+		style="border-radius: inherit; background: inherit;">
+
+	<!-- Content column -->
+	<div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4
+				animate-zoomIn">
+		<!-- Top title -->
+		<h2 class="text-2xl font-bold text-white">Time’s up!</h2>
+
+		<!-- Subtitle -->
+		<p class="text-lg text-gray-200 mt-2 mb-6">You won 🥇</p>
+
+		<!-- Button -->
+		<button id="overlayExit"
+				class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
+		Back to Arcade Clash
+		</button>
+	</div>
+	</div>
 
 <!-- Net -->
 				<div class="absolute border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
@@ -60,8 +86,7 @@ export function GamePong2D(): string {
 <!-- Ball -->
 				<div id="ball"
 				class="absolute h-[5%] w-[3.3%] bg-[rgba(255,255,255,0.9)]
-				rounded-[30%] left-[48.3%] top-[47.5%]
-				shadow-[0.8vw_1vw_0.4vw_rgba(0,0,0,0.9)]"></div>
+				rounded-[30%] left-[48.3%] top-[47.5%]"></div>
 
 <!-- Start text -->
 				<p id="startPress"

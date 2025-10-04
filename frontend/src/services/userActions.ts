@@ -60,22 +60,78 @@ export async function editProfilePicture(newPicUrl: string)
 	thisUser.profilePicture = data.user.profilePicture;
 }
 
-export function updateName(newName: string)
+// Updates name + throws error if duplicate
+export async function editName(newName: string)
 {
+	if (thisUser.name == newName)
+		return ;
 
+	const token = localStorage.getItem("jwt");
+
+	try
+	{
+		const response = await fetch(`${API_URL}/users/me`,
+		{
+			method: 'POST',
+			body: JSON.stringify({ name: newName }),
+			headers:
+			{
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${token}`
+			}
+		});
+
+		if (!response.ok)
+		{
+			const errorData = await response.json();
+			if (response.status == 400)
+			{
+				alert(`❌ ${errorData.error}`);
+				return;
+			}
+			throw new Error(`HTTP ${response.status}: ${errorData.error}`);
+		}
+
+		const name = document.querySelector<HTMLElement>("#profile-name");
+		if (name)
+			name.textContent = newName;
+
+		const nameCard = document.querySelector<HTMLElement>("#profile-name-card");
+		if (nameCard)
+			nameCard.textContent = newName;
+
+		const nameLogo = document.querySelector<HTMLElement>("#profile-logo-name"); //changes logoo
+		if (nameLogo)
+			nameLogo.textContent = `Welcome back, ${newName}`;
+
+		const data = await getCurrentUser();
+		thisUser.name = data.user.name;
+	}
+	catch (error)
+	{
+		console.log(error);
+	}
 }
 
-export function checkOldPass(oldPass: string)
+export async function editBio(newBio: string)
 {
+	const token = localStorage.getItem("jwt");
 
-}
+	await fetch(`${API_URL}/users/me`,
+	{
+		method: 'POST',
+		body: JSON.stringify({ bio: newBio }),
+		headers:
+		{
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${token}`
+		}
+	});
 
-export function updatePass(newPass: string)
-{
+	const bio = document.querySelector<HTMLElement>("#profile-bio");
+	if (bio)
+		bio.textContent = newBio;
 
-}
-
-export function deleteAccount()
-{
-
+	const data = await getCurrentUser();
+	thisUser.bio = data.user.bio;
 }

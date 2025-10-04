@@ -18,7 +18,7 @@ export function LoginPage() {
       <!-- Login Card -->
 	   <div class="relative z-10 bg-[#271d35] backdrop-blur-md p-8 rounded-2xl w-96 text-center shadow-[0_0_30px_10px_#7037d3]">
 		<!-- Title -->
-        <h1 class="text-2xl font-heading font-bold mb-6" style="color: white;">
+        <h1 id="form-title" class="text-2xl font-heading font-bold mb-6" style="color: white;">
 
           Sign In
         </h1>
@@ -35,6 +35,7 @@ export function LoginPage() {
 
 		<!-- Email field -->
 		<input
+		    id="email-field"
 			class="p-3 rounded-lg border border-[#161220] outline-none focus:ring-2 focus:ring-[#161220] text-white bg-[#161220] placeholder-gray-400"
 			type="email"
 			placeholder="Email"
@@ -42,6 +43,7 @@ export function LoginPage() {
 
 		<!-- Password field -->
 		<input
+		    id="password-field"
 			class="p-3 rounded-lg border border-[#161220] outline-none focus:ring-2 focus:ring-[#161220] text-white bg-[#161220] placeholder-gray-400"
 			type="password"
 			placeholder="Password"
@@ -55,6 +57,7 @@ export function LoginPage() {
 			placeholder="Confirm Password"
 		/>
           <button
+		    id="submit-button"
             type="submit"
             class="text-white font-semibold py-2 rounded-lg"
             style="background-color: var(--color-button);"
@@ -88,16 +91,13 @@ export function LoginPage() {
           class="mt-4 text-sm cursor-pointer bg-transparent border-none"
           style="color: #e8e8e8;"
         >
-		Don't have an account? <span class="font-bold text-[#8a56ea]">Sign Up</span>
         </button>
 
         <!-- Guest Option -->
         <p
           id="guest-login"
-          class="mt-4 text-sm cursor-pointer"
-          style="color: #e8e8e8;"
-        >
-          Continue as Guest
+		  class="mt-4 text-sm text-accent hover:text-accent-hover transition-colors duration-200">
+		  Continue as Guest
         </p>
       </div>
     </div>

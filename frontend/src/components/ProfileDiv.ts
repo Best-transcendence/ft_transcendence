@@ -13,7 +13,7 @@ export function profileDivDisplay()
 			</div>
 
 				<div>
-					<p class="font-semibold">Welcome back, ${thisUser.name} </p>
+					<p id="profile-logo-name" class="font-semibold">Welcome back, ${thisUser.name} </p>
 					<p class="text-sm text-gray-500">${thisUser.email}</p>
 				</div>
 			</div>`
