@@ -51,6 +51,8 @@ Restart the service after editing `.env`.
 ```bash
 cd ws-service
 npm install
+npm install @fastify/cors@8
+
 ```
 
 2. Development (auto-reload)
@@ -61,6 +63,8 @@ npm run dev
 Notes:
 - `dev` uses nodemon (dev dependency). Ensure `npm install` was run inside `ws-service`.
 - The service logs the loaded secret prefix at startup for quick verification.
+**NOTE** be careful with the version of npm install @fastify/cors@8 because the last verison is just compatible
+with @fastify 5.* and our project is in 4.2.*
 
 ---
 

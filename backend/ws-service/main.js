@@ -3,7 +3,7 @@ import Fastify from 'fastify';
 import { WebSocketServer } from 'ws';
 import dotenv from 'dotenv';
 import { registerWebsocketHandlers } from './routes/websocket.js';
-
+import fastifyCors from '@fastify/cors';
 
 // Adding Env.
 dotenv.config();
@@ -14,6 +14,12 @@ const app = Fastify({ logger: true });
 
 app.server = httpServer; // Attach fastify to HTTP server
 
+// __________Enable CORS
+await app.register(fastifyCors, {
+  origin: 'http://localhost:3000',
+  methods: ['GET'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
 const wss = new WebSocketServer({ server: httpServer });
 
 // Register WebSocket logic
