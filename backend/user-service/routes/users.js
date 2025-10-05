@@ -241,7 +241,44 @@ export default async function (fastify, _opts) {
 					select: { id: true, name: true, profilePicture: true, bio: true,},
 					orderBy: { name: 'asc' }
 				},
-                matchHistory: { type: 'object' },
+                matches:
+				{
+					type: 'array',
+					items:
+					{
+						properties:
+						{
+							id: { type: 'integer' },
+							type: { type: 'string' },
+							date: { type: 'string', format: 'date-time' },
+							player1Id: { type: 'integer' },
+							player2Id: { type: 'integer' },
+							player1Score: { type: 'integer' },
+							player2Score: { type: 'integer' },
+							winnerId: { type: 'integer' },
+							player1:
+							{
+								type: 'object',
+								properties:
+								{
+									id: { type: 'integer' },
+									name: { type: 'string' },
+									profilePicture: { type: 'string' }
+								}
+							},
+							player2:
+							{
+								type: 'object',
+								properties:
+								{
+									id: { type: 'integer' },
+									name: { type: 'string' },
+									profilePicture: { type: 'string' }
+								}
+							}
+						}
+					}
+				},
                 stats: { type: 'object' },
                 createdAt: { type: 'string', format: 'date-time' },
                 updatedAt: { type: 'string', format: 'date-time' }
@@ -273,6 +310,24 @@ export default async function (fastify, _opts) {
 			{
 				select: { id: true, name: true, profilePicture: true, bio: true },
 				orderBy: { name: 'asc'}
+			},
+			player1Matches:
+			{
+				include:
+				{
+					player1: { select: { id: true, name: true, profilePicture: true } },
+					player2: { select: { id: true, name: true, profilePicture: true } }
+				},
+				orderBy: { date: 'desc' }
+			},
+			player2Matches:
+			{
+				include:
+				{
+					player1: { select: { id: true, name: true, profilePicture: true } },
+					player2: { select: { id: true, name: true, profilePicture: true } }
+				},
+				orderBy: { date: 'desc' }
 			}
 		}
       });
@@ -280,6 +335,18 @@ export default async function (fastify, _opts) {
 	if (user.friendOf) // sorts friends name alphabetically
 		user.friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
+	if (user) //combine all matches + sorts by date
+	{
+		const allMatches =
+		[
+			...user.player1Matches,
+			...user.player2Matches
+		].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+		user.matches = allMatches;
+		delete user.player1Matches;
+		delete user.player2Matches;
+	}
       if (!user) {
         return reply.status(404).send({ error: 'User profile not found' });
       }
@@ -298,11 +365,25 @@ export default async function (fastify, _opts) {
       security: [{ Bearer: [] }],
       body: {
         type: 'object',
-        properties: {
-          name: { type: 'string' },
-          profilePicture: { type: 'string' },
-		  action: { type: 'string', enum: ['add_friend', 'remove_friend'] },
-   		  friendId: { type: 'integer' }
+        properties:
+		{
+          	name: { type: 'string' },
+          	profilePicture: { type: 'string' },
+		  	action: { type: 'string', enum: ['add_friend', 'remove_friend', 'create_match'] },
+   		 	friendId: { type: 'integer' },
+		  	matchData:
+		  	{
+				type: 'object',
+				properties:
+				{
+					type: { type: 'string', enum: ['tournament', '1v1', 'AI'] },
+					player2Id: { type: 'integer' },
+					player1Score: { type: 'integer' },
+					player2Score: { type: 'integer' },
+					winnerId: { type: 'integer' },
+					date: { type: 'string', format: 'date-time' }
+				}
+			}
         }
       },
       response: {
@@ -347,7 +428,7 @@ export default async function (fastify, _opts) {
     try {
       await request.jwtVerify();
       const userId = request.user.id;
-      const { action, friendId, ...updateData } = request.body;
+      const { action, friendId, matchData, ...updateData } = request.body;
 
 		if (action === 'add_friend') //Add a friend
 		{
@@ -376,6 +457,41 @@ export default async function (fastify, _opts) {
 			return { message: `${ friendId } and ${ userId } are broken off` };
 		}
 
+		if (action === 'create_match')
+		{
+			const { type, player2Id, player1Score, player2Score, winnerId, date } = matchData;
+			const currentUser = await fastify.prisma.userProfile.findUnique(
+			{
+				where: { authUserId: userId }
+			});
+
+			// retrieve date or create it
+			let matchDate = new Date();
+			if (date)
+				matchDate = new Date(date);
+
+			let finalWinnerId = null; // In case of draw
+			if (player1Score > player2Score)
+				finalWinnerId = currentUser.id;
+			else if (player1Score < player2Score)
+				finalWinnerId = player2Id;
+
+			const match = await fastify.prisma.match.create(
+			{
+				data:
+				{
+					type,
+					date: matchDate,
+					player1Id: currentUser.id,
+					player2Id,
+					player1Score,
+					player2Score,
+					winnerId: finalWinnerId
+				}
+			});
+			return { message: 'Match created successfully', match };
+		}
+
 		const updatedUser = await fastify.prisma.userProfile.update(
 		{
 			where: { authUserId: userId },
@@ -393,5 +509,6 @@ export default async function (fastify, _opts) {
       return reply.status(401).send({ error: 'Unauthorized or update failed' });
     }
   });
+
 }
 
