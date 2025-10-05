@@ -56,12 +56,41 @@ async function main() {
         email: profile.email,
         profilePicture: profile.profilePicture,
         bio: profile.bio,
+		friends: profile.friends || {}, //import profile.friends or empty object
         matchHistory: profile.matchHistory,
         stats: profile.stats
       },
     });
     console.log(`👤 Created/found profile: ${result.name} (${result.email})`);
   }
+
+	// Yulia's friends
+	await prisma.userProfile.update(
+	{
+		where: { authUserId: 1 },
+		data: { friends: { connect: [{ authUserId: 2 }, { authUserId: 3 }] } }
+	});
+
+	// Tina's friends
+	await prisma.userProfile.update(
+	{
+		where: { authUserId: 2 },
+		data: { friends: { connect: [{ authUserId: 1 }, { authUserId: 3}] } }
+	});
+
+	// Juan's friends
+	await prisma.userProfile.update(
+	{
+		where: { authUserId: 3 },
+		data: { friends: { connect: [{ authUserId: 1 }, {authUserId: 2}] } }
+	});
+
+	//Camille's friends
+	await prisma.userProfile.update(
+	{
+		where: { authUserId: 4 },
+		data: { friends: { connect: [{ authUserId: 1 }, { authUserId: 2 }, {authUserId: 3 } ] } }
+	});
 
   console.log('✅ User service seed complete');
 }

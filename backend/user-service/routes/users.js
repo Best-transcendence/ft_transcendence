@@ -235,6 +235,22 @@ export default async function (fastify, _opts) {
                 email: { type: 'string' },
                 profilePicture: { type: 'string' },
                 bio: { type: 'string' },
+				friends:
+				{
+					select: { id: true },
+					orderBy: { name: 'asc' }
+				},
+				friendOf:
+				{
+					select:
+					{
+						id: true,
+						name: true,
+						profilePicture: true,
+						bio: true,
+					},
+					orderBy: { name: 'asc' }
+				},
                 matchHistory: { type: 'object' },
                 stats: { type: 'object' },
                 createdAt: { type: 'string', format: 'date-time' },
@@ -259,8 +275,20 @@ export default async function (fastify, _opts) {
 
       // Find user profile by authUserId from JWT token
       const user = await fastify.prisma.userProfile.findUnique({
-        where: { authUserId: request.user.id }
+        where: { authUserId: request.user.id },
+		include:
+		{
+			friends: { select: { id: true },},
+			friendOf:
+			{
+				select: { id: true, name: true, profilePicture: true, bio: true },
+				orderBy: { name: 'asc'}
+			}
+		}
       });
+
+	if (user.friendOf) // sorts friends name alphabetically
+		user.friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
       if (!user) {
         return reply.status(404).send({ error: 'User profile not found' });
@@ -283,6 +311,8 @@ export default async function (fastify, _opts) {
         properties: {
           name: { type: 'string' },
           profilePicture: { type: 'string' },
+		  action: { type: 'string', enum: ['add_friend', 'remove_friend'] },
+   		  friendId: { type: 'integer' }
         }
       },
       response: {
@@ -327,11 +357,40 @@ export default async function (fastify, _opts) {
     try {
       await request.jwtVerify();
       const userId = request.user.id;
-      const updateData = request.body;
-      const updatedUser = await fastify.prisma.userProfile.update({
-        where: { authUserId: userId },
-        data: updateData
-      });
+      const { action, friendId, ...updateData } = request.body;
+
+		if (action === 'add_friend') //Add a friend
+		{
+			await fastify.prisma.userProfile.update(
+			{
+				where: { authUserId: userId },
+				data: { friends: { connect: { id: friendId } } }
+			});
+			return { message: `${ friendId } added to ${ userId }friendlist` };
+		}
+
+		if (action === 'remove_friend') //Remove from both lists to break link completely
+		{
+			await fastify.prisma.userProfile.update(
+			{
+				where: { authUserId: userId },
+				data: { friends: { disconnect: { id: friendId } } }
+			});
+
+			await fastify.prisma.userProfile.update(
+			{
+				where: { id: friendId },
+				data: { friends: { disconnect: { authUserId: userId } } }
+			});
+
+			return { message: `${ friendId } and ${ userId } are broken off` };
+		}
+
+		const updatedUser = await fastify.prisma.userProfile.update(
+		{
+			where: { authUserId: userId },
+			data: updateData
+		});
 
       return { user: updatedUser };
     } catch (err) {
