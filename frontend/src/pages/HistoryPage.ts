@@ -45,7 +45,6 @@ export function matchesEvents()
 			const friendId = btn.id.split('--')[1];
 			if (!friendId)
 				return ;
-			console.log(`ABOUT TO ASK ${ friendId} as friend`);
 			addFriend(friendId, () => protectedPage(() => HistoryPage(), matchesEvents));
 		});
 	});

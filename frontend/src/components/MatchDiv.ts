@@ -78,7 +78,7 @@ function playerCard(match: any, player: any, score: number)
 		else
 		{
 			befriendButton = `<div class="flex justify-end gap-3 mt-6">
-					<p class="px-6 py-2 bg-[#271d35] text-gray-300 rounded-lg">Request sent</p>
+					<p class="px-6 py-2 bg-[#4a3866]/60 text-[#a89cc6] rounded-lg">Request sent</p>
 				</div>`;
 		}
 	}

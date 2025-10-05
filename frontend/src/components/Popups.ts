@@ -32,6 +32,12 @@ export function triggerPopup()
 				overlay.style.display = "block";
 				popup.style.display = "block";
 
+				if (config.popupId === "confirm-popup" && button.id.startsWith("friend-button--"))
+				{
+					const friendId = button.id.split("--")[1]!;
+					popup.setAttribute("data-friend-id", friendId)
+				}
+
 				setupInputPopup(popup, config);
 
 				popup.querySelectorAll(config.options!).forEach(item =>
@@ -110,12 +116,7 @@ function initProfilePopup(action: any)
 // Confirm/cancel popup
 function initConfirmPopup(action: any, popup: HTMLElement)
 {
-	const clickedButton = document.querySelector('[id^="friend-button--"]:focus')
-						|| document.querySelector('[id^="friend-button--"]'); // Retrieves the friend id
-	if (!clickedButton)
-		return ;
-
-	const friendId = clickedButton.id.split('--')[1];
+	const friendId = popup.getAttribute("data-friend-id");
 	if (!friendId)
 		return ;
 
