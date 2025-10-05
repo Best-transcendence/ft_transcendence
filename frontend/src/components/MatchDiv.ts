@@ -35,14 +35,14 @@ export function matchCard(match: any)
 	<!-- Players vertical cards -->
 		<div class="flex justify-center" style="gap: clamp(0.5rem, 4vw, 2rem);">
 
-			${ playerCard(match, match.player1, match.player1Score) }
+			${ playerCard(match, getSpecialPlayer(match.player1, match), match.player1Score) }
 
 	<!-- VS Divider -->
 			<div class="flex items-center">
 				<span class="text-3xl font-bold text-gray-300">VS</span>
 			</div>
 
-			${ playerCard(match, match.player2, match.player2Score) }
+			${ playerCard(match, getSpecialPlayer(match.player2, match), match.player2Score) }
 
 		</div>
 	</div>
@@ -54,7 +54,7 @@ function playerCard(match: any, player: any, score: number)
 {
 	let winstatus = '';
 	let crown = '';
-	let befriendButton = ''
+	let befriendButton = checkFriendCondition(player.id);
 
 	if (match.winnerId == 0)
 		winstatus = `<h3 class="text-gray-200 font-bold text-lg mb-4">Draw</h3>`;
@@ -65,22 +65,6 @@ function playerCard(match: any, player: any, score: number)
 		winstatus = `<h3 class="text-gray-200 font-bold text-lg mb-4" style="text-shadow: 0 0 2px #000, 0 0 4px #000, 0 0 8px #4c1d95, 0 0 16px #7c22ce, 0 0 24px #7c22ce;">Winner</h3>`
 		crown = `<div class="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10" style="font-size: clamp(1rem, 2vw, 1.875rem);">👑</div>`
 
-	}
-
-	if (player.id !== thisUser.id && !thisUser.friendOf.some((friend: any) => friend.id === player.id))
-	{
-		if (!thisUser.friends.some((friend: any) => friend.id === player.id))
-		{
-			befriendButton = `<div class="flex justify-end gap-3 mt-6">
-					<button id="befriend--${ player.id }" class="px-6 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-600 cursor-pointer">Befriend</button>
-				</div>`;
-		}
-		else
-		{
-			befriendButton = `<div class="flex justify-end gap-3 mt-6">
-					<p class="px-6 py-2 bg-[#4a3866]/60 text-[#a89cc6] rounded-lg">Request sent</p>
-				</div>`;
-		}
 	}
 
 	return `
@@ -94,4 +78,37 @@ function playerCard(match: any, player: any, score: number)
 		<div class="text-2xl font-bold text-gray-200">${ score }</div>
 			${ befriendButton }
 		</div>`;
+}
+
+function checkFriendCondition(playerId: number)
+{
+	if (playerId > 0 && playerId !== thisUser.id && !thisUser.friendOf.some((friend: any) => friend.id === playerId))
+	{
+		if (!thisUser.friends.some((friend: any) => friend.id === playerId))
+		{
+			return `<div class="flex justify-end gap-3 mt-6">
+					<button id="befriend--${ playerId }" class="px-6 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-600 cursor-pointer">Befriend</button>
+				</div>`;
+		}
+		else
+		{
+			return `<div class="flex justify-end gap-3 mt-6">
+					<p class="px-6 py-2 bg-[#4a3866]/60 text-[#a89cc6] rounded-lg">Request sent</p>
+				</div>`;
+		}
+	}
+
+	return '';
+}
+
+function getSpecialPlayer(player: any, match: any)
+{
+	if (player.id == null)
+	{
+		if (match.type == "AI Match")
+			return { id: 0, name: "AI Opponent", profilePicture: "/assets/ai-avatar.jpeg" };
+		return { id: 0, name: "Guest", profilePicture: "/assets/guest-avatar.jpeg" };
+	}
+
+	return player;
 }

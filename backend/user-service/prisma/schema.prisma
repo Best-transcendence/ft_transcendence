@@ -40,14 +40,14 @@ model UserProfile {
   id           Int      @id @default(autoincrement())
   type         String   // "tournament", "1v1" or "AI"
   date         DateTime @default(now())
-  player1Id    Int
-  player2Id    Int
+  player1Id    Int?
+  player2Id    Int?
   player1Score Int
   player2Score Int
   winnerId     Int?  //null for draw
   createdAt   DateTime @default(now())
 
   // Connections with players
-  player1     UserProfile @relation("Player1Matches", fields: [player1Id], references: [id])
-  player2     UserProfile @relation("Player2Matches", fields: [player2Id], references: [id])
+  player1     UserProfile? @relation("Player1Matches", fields: [player1Id], references: [id])
+  player2     UserProfile? @relation("Player2Matches", fields: [player2Id], references: [id])
 }

@@ -29,7 +29,7 @@ function slideMatches(direction: 'prev' | 'next')
 		else if (direction === 'next' && currentMatch < thisUser.matches.length -1)
 			currentMatch++;
 		protectedPage(() => HistoryPage(), matchesEvents);
-	}, 150);
+	}, 200);
 }
 
 export function matchesEvents()
