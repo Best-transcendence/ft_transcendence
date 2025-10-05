@@ -1,4 +1,3 @@
-import { createServer } from 'http';
 import Fastify from 'fastify';
 import { WebSocketServer } from 'ws';
 import dotenv from 'dotenv';
