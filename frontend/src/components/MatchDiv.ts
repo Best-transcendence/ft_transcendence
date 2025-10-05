@@ -1,7 +1,7 @@
 import { thisUser } from "../router"
 import { formatDate } from "../utils"
 
-// No friend div appearance
+// No friend div appearance + button to go back to #intro page
 export function noHistory()
 {
 	return `
@@ -15,6 +15,7 @@ export function noHistory()
 	</div>`;
 }
 
+// Match card display
 export function matchCard(match: any)
 {
 	return `
@@ -48,13 +49,13 @@ export function matchCard(match: any)
 	`;
 }
 
+// Players sub cards - tweaks elements according to winner/loser + friendship status
 function playerCard(match: any, player: any, score: number)
 {
 	let winstatus = '';
 	let crown = '';
 	let befriendButton = ''
 
-	console.log(`WINNER IS ${ match.winnerId}`);
 	if (match.winnerId == 0)
 		winstatus = `<h3 class="text-gray-200 font-bold text-lg mb-4">Draw</h3>`;
 	else if (match.winnerId != player.id)
@@ -66,10 +67,21 @@ function playerCard(match: any, player: any, score: number)
 
 	}
 
-	if (player === thisUser)
-		befriendButton = `<div class="flex justify-end gap-3 mt-6">
-					<button data-action="accept" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">Befriend</button>
+	if (player.id !== thisUser.id && !thisUser.friendOf.some((friend: any) => friend.id === player.id))
+	{
+		if (!thisUser.friends.some((friend: any) => friend.id === player.id))
+		{
+			befriendButton = `<div class="flex justify-end gap-3 mt-6">
+					<button id="befriend--${ player.id }" class="px-6 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-600 cursor-pointer">Befriend</button>
 				</div>`;
+		}
+		else
+		{
+			befriendButton = `<div class="flex justify-end gap-3 mt-6">
+					<p class="px-6 py-2 bg-[#271d35] text-gray-300 rounded-lg">Request sent</p>
+				</div>`;
+		}
+	}
 
 	return `
 		<div class="bg-[#32274a] backdrop-blur-md rounded-2xl p-6 w-[20vw] min-w-[120px] relative">

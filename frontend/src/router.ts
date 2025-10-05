@@ -12,7 +12,7 @@ import { GamePongAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
-import { HistoryPage, slideEvents } from "./pages/HistoryPage";
+import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 //Components:
@@ -129,7 +129,7 @@ export function router() {
 		break;
 
 	case "history":
-		protectedPage(() => HistoryPage(), slideEvents);
+		protectedPage(() => HistoryPage(), matchesEvents);
 		break;
 
     default:

@@ -1,4 +1,5 @@
 import { thisUser, protectedPage } from "../router"
+import { addFriend } from "../services/friendsActions"
 import { addTheme } from "../components/Theme"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { sidebarDisplay } from "../components/SideBar"
@@ -27,15 +28,27 @@ function slideMatches(direction: 'prev' | 'next')
 			currentMatch--;
 		else if (direction === 'next' && currentMatch < thisUser.matches.length -1)
 			currentMatch++;
-		protectedPage(() => HistoryPage(), slideEvents);
+		protectedPage(() => HistoryPage(), matchesEvents);
 	}, 150);
 }
 
-export function slideEvents()
+export function matchesEvents()
 {
 	document.getElementById('prev-match')?.addEventListener('click', () => slideMatches('prev'));
 	document.getElementById('next-match')?.addEventListener('click', () => slideMatches('next'));
 	document.getElementById('play-arcade-clash')?.addEventListener('click', () => window.location.hash = "intro");
+
+	document.querySelectorAll('button[id^="befriend--"]').forEach(btn =>
+	{
+		btn.addEventListener('click', () =>
+		{
+			const friendId = btn.id.split('--')[1];
+			if (!friendId)
+				return ;
+			console.log(`ABOUT TO ASK ${ friendId} as friend`);
+			addFriend(friendId, () => protectedPage(() => HistoryPage(), matchesEvents));
+		});
+	});
 }
 
 function leftArrow()
