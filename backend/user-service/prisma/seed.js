@@ -91,7 +91,7 @@ async function main() {
 	const sampleMatches =
 	[
 		{
-			type: 'tournament',
+			type: 'Tournament Match',
 			player1Id: camille.id,
 			player2Id: yulia.id,
 			player1Score: 5,
@@ -100,7 +100,7 @@ async function main() {
 			date: new Date('2025-10-01T15:45:00Z')
 		},
 		{
-			type: '1v1',
+			type: '1v1 Match',
 			player1Id: camille.id,
 			player2Id: tina.id,
 			player1Score: 2,
@@ -109,7 +109,7 @@ async function main() {
 			date: new Date('2025-09-28T10:30:00Z')
 		},
 		{
-			type: '1v1',
+			type: '1v1 Match',
 			player1Id: camille.id,
 			player2Id: juan.id,
 			player1Score: 0,
