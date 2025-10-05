@@ -261,15 +261,15 @@ export default async function authRoutes(fastify) {
 
         console.log(`[${correlationId}] Successfully created user profile for authUserId: ${newUser.id}`);
       }
-	catch (profileError)
-	{
-		if (profileError.response?.status === 400) // fails signup if name taken
-		{
+      catch (profileError)
+      {
+        if (profileError.response?.status === 400) // fails signup if name taken
+        {
 	 		return reply.status(400).send(
-			{
-				error: profileError.response.data.error || 'Username already taken'
-			});
-		}
+            {
+              error: profileError.response.data.error || 'Username already taken'
+            });
+        }
         // Log the error but don't fail the signup - user account is created
         console.error(`[${correlationId}] Failed to bootstrap user profile for authUserId: ${newUser.id}:`, {
           error: profileError.message,
@@ -279,7 +279,7 @@ export default async function authRoutes(fastify) {
 
         // Continue with successful response - user account is created in auth-service
         console.log(`[${correlationId}] Continuing with signup success despite profile creation failure`);
-	}
+      }
 
       // Return user data without password for security
       return { id: newUser.id, email: newUser.email };
