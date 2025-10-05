@@ -52,20 +52,13 @@ export function matchCard(match: any)
 // Players sub cards - tweaks elements according to winner/loser + friendship status
 function playerCard(match: any, player: any, score: number)
 {
-	let winstatus = '';
-	let crown = '';
-	let befriendButton = checkFriendCondition(player.id);
+	let winstatus = getWinner(match, player);
 
-	if (match.winnerId == 0)
-		winstatus = `<h3 class="text-gray-200 font-bold text-lg mb-4">Draw</h3>`;
-	else if (match.winnerId != player.id)
-		winstatus = `<h3 class="text-gray-200 font-bold text-lg mb-4">Loser</h3>`;
-	else
-	{
-		winstatus = `<h3 class="text-gray-200 font-bold text-lg mb-4" style="text-shadow: 0 0 2px #000, 0 0 4px #000, 0 0 8px #4c1d95, 0 0 16px #7c22ce, 0 0 24px #7c22ce;">Winner</h3>`
+	let crown = '';
+	if (winstatus.includes('Winner'))
 		crown = `<div class="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10" style="font-size: clamp(1rem, 2vw, 1.875rem);">👑</div>`
 
-	}
+	let befriendButton = checkFriendCondition(player.id);
 
 	return `
 		<div class="bg-[#32274a] backdrop-blur-md rounded-2xl p-6 w-[20vw] min-w-[120px] relative">
@@ -80,34 +73,52 @@ function playerCard(match: any, player: any, score: number)
 		</div>`;
 }
 
+// Gets winner + determines winner/loser/draw for current player
+function getWinner(match: any, player: any)
+{
+	let winnerId = 0; // draw
+
+	if (match.player1Score > match.player2Score)
+		winnerId = match.player1.id;
+	else if (match.player1Score < match.player2Score)
+		winnerId = match.player2.id;
+
+	if (winnerId === 0)
+		return `<h3 class="text-gray-200 font-bold text-lg mb-4">Draw</h3>`;
+
+	if (winnerId != player.id)
+		return `<h3 class="text-gray-200 font-bold text-lg mb-4">Loser</h3>`;
+
+	return `<h3 class="text-gray-200 font-bold text-lg mb-4" style="text-shadow: 0 0 2px #000, 0 0 4px #000, 0 0 8px #4c1d95, 0 0 16px #7c22ce, 0 0 24px #7c22ce;">Winner</h3>`;
+
+}
+
+// Checks if "Befriend" conditions are applicable
 function checkFriendCondition(playerId: number)
 {
 	if (playerId > 0 && playerId !== thisUser.id && !thisUser.friendOf.some((friend: any) => friend.id === playerId))
 	{
 		if (!thisUser.friends.some((friend: any) => friend.id === playerId))
-		{
 			return `<div class="flex justify-end gap-3 mt-6">
 					<button id="befriend--${ playerId }" class="px-6 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-600 cursor-pointer">Befriend</button>
 				</div>`;
-		}
 		else
-		{
 			return `<div class="flex justify-end gap-3 mt-6">
 					<p class="px-6 py-2 bg-[#4a3866]/60 text-[#a89cc6] rounded-lg">Request sent</p>
 				</div>`;
-		}
 	}
 
 	return '';
 }
 
+// Returns fields applicable for Guest or AI player display
 function getSpecialPlayer(player: any, match: any)
 {
 	if (player.id == null)
 	{
 		if (match.type == "AI Match")
-			return { id: 0, name: "AI Opponent", profilePicture: "/assets/ai-avatar.jpeg" };
-		return { id: 0, name: "Guest", profilePicture: "/assets/guest-avatar.jpeg" };
+			return { id: -1, name: "AI Opponent", profilePicture: "/assets/ai-avatar.jpeg" };
+		return { id: -2, name: "Guest", profilePicture: "/assets/guest-avatar.jpeg" };
 	}
 
 	return player;

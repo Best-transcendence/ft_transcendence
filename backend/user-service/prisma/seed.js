@@ -31,7 +31,7 @@ const userProfiles = [
     name: 'Camille',
     email: 'cbouvet@example.com',
     profilePicture: '/assets/camille-avatar.jpeg',
-    bio: 'Fast reflexes and quick thinking!'
+    bio: 'Roses are red - Violets are blue - unexpected \'{\' on line 32'
   },
 ];
 
@@ -96,7 +96,6 @@ async function main() {
 			player2Id: yulia.id,
 			player1Score: 5,
 			player2Score: 3,
-			winnerId: tina.id,
 			date: new Date('2025-10-01T15:45:00Z')
 		},
 		{
@@ -105,7 +104,6 @@ async function main() {
 			player2Id: tina.id,
 			player1Score: 2,
 			player2Score: 5,
-			winnerId: tina.id,
 			date: new Date('2025-09-28T10:30:00Z')
 		},
 		{
@@ -114,26 +112,23 @@ async function main() {
 			player2Id: juan.id,
 			player1Score: 0,
 			player2Score: 0,
-			winnerId: null,
 			date: new Date('2025-09-18T11:38:00Z')
 		},
 		{
 			type: 'AI Match',
 			date: new Date('2025-10-06T12:00:00Z'),
-			player1Id: juan.id,
+			player1Id: tina.id,
 			player2Id: null,
 			player1Score: 7,
 			player2Score: 3,
-			winnerId: juan.id
 		},
 		{
 			type: '1v1 Match',
 			date: new Date('2025-10-06T13:00:00Z'),
 			player1Id: null,
-			player2Id: juan.id,
+			player2Id: yulia.id,
 			player1Score: 4,
 			player2Score: 5,
-			winnerId: juan.id
 		}
 	];
 

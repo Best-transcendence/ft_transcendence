@@ -44,7 +44,6 @@ model UserProfile {
   player2Id    Int?
   player1Score Int
   player2Score Int
-  winnerId     Int?  //null for draw
   createdAt   DateTime @default(now())
 
   // Connections with players
