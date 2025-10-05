@@ -18,7 +18,7 @@ export function matchCard(match: any)
 {
 	return `
 	<div id="match-card"
-	class="bg-[#271d35] backdrop-blur-md rounded-2xl w-[700px] p-6 z-50
+	class="bg-[#271d35] rounded-2xl w-[36vw] min-w-[380px] p-6 z-50
 	shadow-[0_0_30px_10px_#7037d3]
 	text-center
 	transform transition-all duration-500 ease-in-outanimate-slide-in"
@@ -31,7 +31,7 @@ export function matchCard(match: any)
 		<p class="text-gray-400 mb-10">${ formatDate(match.date, 'S') }</p>
 
 	<!-- Players vertical cards -->
-		<div class="flex justify-center gap-8">
+		<div class="flex justify-center" style="gap: clamp(0.5rem, 4vw, 2rem);">
 
 			${ playerCard(match, match.player1, match.player1Score) }
 
@@ -61,7 +61,8 @@ function playerCard(match: any, player: any, score: number)
 	else
 	{
 		winstatus = `<h3 class="text-gray-200 font-bold text-lg mb-4" style="text-shadow: 0 0 2px #000, 0 0 4px #000, 0 0 8px #4c1d95, 0 0 16px #7c22ce, 0 0 24px #7c22ce;">Winner</h3>`
-		crown = `<div class="text-3xl absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">👑</div>`
+		crown = `<div class="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10" style="font-size: clamp(1rem, 2vw, 1.875rem);">👑</div>`
+
 	}
 
 	if (player === thisUser)
@@ -70,11 +71,11 @@ function playerCard(match: any, player: any, score: number)
 				</div>`;
 
 	return `
-		<div class="bg-[#32274a] backdrop-blur-md rounded-2xl p-6 w-[280px] relative">
+		<div class="bg-[#32274a] backdrop-blur-md rounded-2xl p-6 w-[20vw] min-w-[120px] relative">
 				${ winstatus }
 			<div class="relative mb-4">
 				${ crown }
-				<img src="${player.profilePicture}" alt="Player Avatar" class="w-24 h-24 rounded-full mx-auto">
+				<img src="${player.profilePicture}" alt="Player Avatar" class="w-[6vw] h-[6vw] min-w-12 min-h-12 max-w-24 max-h-24 rounded-full mx-auto">
 			</div>
 		<h4 class="text-purple-600 font-semibold text-lg mb-2">${player.name}</h4>
 		<div class="text-2xl font-bold text-gray-200">${ score }</div>

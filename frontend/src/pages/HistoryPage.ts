@@ -44,7 +44,7 @@ function leftArrow()
 
 	return `<button id="prev-match"
 	class="text-6xl text-gray-300 hover:text-white cursor-pointer font-bold"
-	style="position: fixed; top: 50%; left: 28%; transform: translateY(-50%); z-index: 51;">
+	style="position: fixed; top: clamp(4rem, 50%, calc(100vh - 4rem)); left: calc(50% - 14vw - 9rem); transform: translateY(-50%); z-index: 51; font-size: clamp(1.5rem, 8vw, 3.75rem);">
 	‹</button>`;
 }
 
@@ -55,7 +55,8 @@ function rightArrow()
 
 	return `<button id="next-match"
 	class="text-6xl text-gray-300 hover:text-white cursor-pointer font-bold"
-	style="position: fixed; top: 50%; right: 28%; transform: translateY(-50%); z-index: 51;">
+	style="position: fixed; top: clamp(4rem, 50%, calc(100vh - 4rem)); right: calc(50% - 14vw - 9rem); transform: translateY(-50%); z-index: 51; font-size: clamp(1.5rem, 8vw, 3.75rem);">
+
 	›</button>`;
 }
 
@@ -76,16 +77,18 @@ export function HistoryPage()
 		</div>
 
 	<!-- Title -->
-	<div flex items-center>
-		<h1 class="text-4xl text-gray-200 text-center font-heading font-bold mb-1">Match History</h1>
-		<p class="text-lg text-gray-400 max-w-xl text-center mb-24">
-			Let's take a trip down Memory Lane!
-		</p>
-	</div>
+		<div class="flex flex-col items-center mb-8">
+			<h1 class="text-4xl text-gray-200 text-center font-heading font-bold mb-1">Match History</h1>
+			<p class="text-lg text-gray-400 max-w-xl text-center mb-8">
+			Let's take a trip down Memory Lane!</p>
+		</div>
 
-		${ leftArrow() }
-
-		${ loadMatches() }
-
-		${ rightArrow() }`;
+<!-- Match section - like the arcade game section -->
+		<div class="flex justify-center w-full">
+			<div class="relative">
+			${ leftArrow() }
+			${ loadMatches() }
+			${ rightArrow() }
+			</div>
+		</div>`;
 }
