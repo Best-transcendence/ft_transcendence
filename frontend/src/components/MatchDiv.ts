@@ -5,13 +5,14 @@ import { formatDate } from "../utils"
 export function noHistory()
 {
 	return `
-	</div>
-	<div flex items-center>
+	<div class="flex flex-col items-center justify-center">
 	<br>
 		<h3 class="text-2xl text-gray-400 text-center font-bold mb-5">No previous matches</h3>
-		<h1 class="text-7xl text-gray-400 text-center font-bold mb-1">:'(</h1>
-	</div>
-	<div>`;
+		<button id="play-arcade-clash"
+			class="px-6 py-3 rounded-xl font-semibold text-gray-200 transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
+			Play Arcade Clash
+		</button>
+	</div>`;
 }
 
 export function matchCard(match: any)

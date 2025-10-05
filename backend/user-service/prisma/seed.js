@@ -92,7 +92,7 @@ async function main() {
 	[
 		{
 			type: 'Tournament Match',
-			player1Id: camille.id,
+			player1Id: tina.id,
 			player2Id: yulia.id,
 			player1Score: 5,
 			player2Score: 3,
@@ -101,7 +101,7 @@ async function main() {
 		},
 		{
 			type: '1v1 Match',
-			player1Id: camille.id,
+			player1Id: juan.id,
 			player2Id: tina.id,
 			player1Score: 2,
 			player2Score: 5,
@@ -110,12 +110,12 @@ async function main() {
 		},
 		{
 			type: '1v1 Match',
-			player1Id: camille.id,
+			player1Id: yulia.id,
 			player2Id: juan.id,
 			player1Score: 0,
 			player2Score: 0,
 			winnerId: null,
-			date: new Date('2025-09-18T11:30:00Z')
+			date: new Date('2025-09-18T11:38:00Z')
 		}
 	];
 

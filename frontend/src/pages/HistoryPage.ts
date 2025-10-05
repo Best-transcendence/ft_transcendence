@@ -35,11 +35,12 @@ export function slideEvents()
 {
 	document.getElementById('prev-match')?.addEventListener('click', () => slideMatches('prev'));
 	document.getElementById('next-match')?.addEventListener('click', () => slideMatches('next'));
+	document.getElementById('play-arcade-clash')?.addEventListener('click', () => window.location.hash = "intro");
 }
 
 function leftArrow()
 {
-	if (currentMatch <= 0)
+	if (currentMatch <= 0 || thisUser.matches.length == 0)
 		return '';
 
 	return `<button id="prev-match"
@@ -50,7 +51,7 @@ function leftArrow()
 
 function rightArrow()
 {
-	if (currentMatch == thisUser.matches.length -1)
+	if (currentMatch == thisUser.matches.length -1 || thisUser.matches.length === 0)
 		return '';
 
 	return `<button id="next-match"
