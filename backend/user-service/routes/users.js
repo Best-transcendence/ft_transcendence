@@ -182,8 +182,8 @@ export default async function (fastify, _opts) {
             authUserId,
             name,
             email,
-            matchHistory: {}, // Initialize as empty object
-            stats: {}, // Initialize as empty object
+            //matchHistory: {}, // Initialize as empty object
+            //stats: {}, // Initialize as empty object
 			profilePicture: "/assets/default-avatar.jpeg", // Sets default profile pic
 			bio: "Hi, I'm playing Arcade Clash"
 		}
