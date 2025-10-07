@@ -116,7 +116,12 @@ function initProfilePopup(action: any)
 // Confirm/cancel popup
 function initConfirmPopup(action: any, popup: HTMLElement)
 {
-	const friendId = popup.getAttribute("data-friend-id");
+	const clickedButton = document.querySelector('[id^="friend-button--"]:focus')
+						|| document.querySelector('[id^="friend-button--"]'); // Retrieves the friend id
+	if (!clickedButton)
+		return ;
+
+	const friendId = clickedButton.id.split('--')[1];
 	if (!friendId)
 		return ;
 
