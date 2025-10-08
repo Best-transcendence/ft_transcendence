@@ -1,44 +1,11 @@
-import { connectSocket } from "../services/ws";
-import { addTheme } from "../components/Theme"
-import { sidebarDisplay } from "../components/SideBar"
-import { profileDivDisplay } from "../components/ProfileDiv"
-import { LogOutBtnDisplay } from "../components/LogOutBtn"
-
-// Suggestion of integration with the background + buttons
-/* export function LobbyPage() {
-  return `
-<!-- Theme -->
-	${ addTheme() }
-
-<!-- Header with user info -->
-	<div class="w-full
-		flex justify-between items-center
-		mb-10">
-
-<!-- Protected pages components -->
-		${ profileDivDisplay() }
-		${ sidebarDisplay() }
-		${ LogOutBtnDisplay() }
-
-	</div>
-
-    <div class="flex flex-col gap-3 mb-10 "
-		style="position: relative; display: inline-block; inline-block; width: 50vw; height: 11vw; min-width: 120px; min-height: 120px;">
-      <h1 class="text-4xl font-bold mb-4">🎮 Lobby</h1>
-      <p class="from-theme-bg1 mb-6">See who’s online and ready to play!</p>
-
-      <div id="online-users" class="grid gap-3"></div>
-    </div>
-  `;
-} */
-
+import { connectSocket, sendWSMessage } from "../services/ws";
+import { triggerInvitePopup } from "../components/Ups";
 
 export function LobbyPage() {
   return `
     <div class="min-h-screen bg-gradient-to-b from-theme-bg1 to-theme-bg2 text-theme-text p-8">
       <h1 class="text-3xl font-bold mb-4">🎮 Lobby</h1>
       <p class="mb-6">See who’s online and ready to play!</p>
-
       <div id="online-users"
            class="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <p class="text-gray-400">Waiting for online users...</p>
@@ -47,50 +14,65 @@ export function LobbyPage() {
   `;
 }
 
-// Attach after render
 export function initLobby() {
   const token = localStorage.getItem("jwt");
-
   if (!token) {
     window.location.hash = "login";
     return;
   }
 
   const usersContainer = document.getElementById("online-users");
+  const myUserId = JSON.parse(atob(token.split(".")[1])).id;
 
   connectSocket(token, (msg) => {
-    if (msg.type === "user:list") {
-      if (!usersContainer) return;
+    switch (msg.type) {
+      case "user:list":
+        if (!usersContainer) return;
+        usersContainer.innerHTML = msg.users
+          .filter((u: any) => u.id !== myUserId)
+          .map(
+            (u: any) => `
+            <div class="bg-white bg-opacity-90 rounded-lg shadow p-4 flex items-center justify-between">
+              <span class="font-semibold text-gray-800">${u.name || u.id}</span>
+              <button class="invite-btn px-3 py-1 text-sm rounded bg-theme-button text-white hover:bg-theme-button-hover"
+                      data-user-id="${u.id}">
+                Invite
+              </button>
+            </div>
+          `
+          )
+          .join("");
 
-      if (msg.users.length === 0) {
-        usersContainer.innerHTML = `<p class="text-gray-400">Nobody online yet </p>`;
-        return;
-      }
+        document.querySelectorAll(".invite-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const userId = (btn as HTMLElement).getAttribute("data-user-id");
+            console.log("📨 Sending invite to user", userId);
+            sendWSMessage("invite", { to: userId });
 
-      usersContainer.innerHTML = msg.users
-        .map(
-          (u: any) => `
-          <div class="bg-white bg-opacity-90 rounded-lg shadow p-4 flex items-center justify-between">
-            <span class="font-semibold text-gray-800">${u.id}</span>
-            <button class="invite-btn px-3 py-1 text-sm rounded bg-theme-button text-white hover:bg-theme-button-hover"
-                    data-user-id="${u.id}">
-              Invite
-            </button>
-          </div>
-        `
-        )
-        .join("");
-
-      // Attach invite listeners
-      document.querySelectorAll(".invite-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const userId = (btn as HTMLElement).getAttribute("data-user-id");
-          console.log(` Invite sent to user ${userId}`);
-
-          // later: send WS message
-          // socket.send(JSON.stringify({ type: "invite", to: userId }));
+            console.log("🧪 Invite message sent:", {
+              type: "invite",
+              to: userId,
+            });
+          });
         });
-      });
+        break;
+
+      case "invite:received":
+        console.log("🎮 Received invite:", msg);
+        triggerInvitePopup(msg);
+        break;
+
+      case "room:start":
+        console.log("🚀 Starting room", msg.roomId);
+        window.location.hash = `remote?room=${msg.roomId}`;
+        break;
+
+      case "invite:declined":
+        alert(`❌ ${msg.from.name} declined your invite`);
+        break;
+
+      default:
+        console.log("⚠️ Unhandled WS message:", msg);
     }
   });
 }

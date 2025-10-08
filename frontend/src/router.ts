@@ -11,7 +11,7 @@ import { GamePongAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
 import { ProfilePage } from "./pages/ProfilePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
-
+import { GamePongRemote, initRemoteGame } from "./pages/GamePongRemote";
 //Components:
 import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn";
@@ -80,13 +80,14 @@ async function protectedPage(
 The router will set up the routing system for the SAP
 with the # for now just to see if everything works.
 */
+
 export function router() {
   const app = document.getElementById("app")!;
-  const page = window.location.hash.replace("#", "") || "login";
+  const hash = window.location.hash.replace("#", "") || "login";
+  const [page, query] = hash.split("?");
 
   if (window.location.pathname.startsWith("/assets/"))
-    //lets us open assets on web
-    return;
+    return; // permite abrir assets directamente
 
   switch (page) {
     case "login":
@@ -104,7 +105,7 @@ export function router() {
       break;
 
     case "intro":
-      protectedPage(() => GameIntroPage()); //go through user data extraction before rendering page
+      protectedPage(() => GameIntroPage());
       break;
 
     case "pong2d":
@@ -123,7 +124,23 @@ export function router() {
       break;
 
     case "profile":
-      protectedPage(() => ProfilePage()); //go through user data extraction before rendering page
+      protectedPage(() => ProfilePage());
+      break;
+
+    case "remote":
+      const roomId = query ? new URLSearchParams(query).get("room") : null;
+
+      if (!roomId) {
+        app.innerHTML = `<p class="text-red-500">❌ Error: Room ID no encontrado</p>`;
+        return;
+      }
+
+      protectedPage(
+        () => GamePongRemote(),
+        () => {
+          initRemoteGame(roomId);
+        }
+      );
       break;
 
     default:
