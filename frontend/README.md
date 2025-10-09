@@ -175,5 +175,3 @@ case "intro":
   protectedPage(() => GameIntroPage());
   break;
 ```
-
-It’s easy to maintain and expand later.

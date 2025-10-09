@@ -3,22 +3,33 @@ import { addTheme } from "../components/Theme"
 import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
+import { thisUser } from "../router";
 
-// Suggestion of integration with the background + buttons
-/* export function LobbyPage() {
+// cache + helper to get the user name
+const nameById: Record<string, string> = {};
+
+const EMOJIS = ['⚡','🚀','🐉','🦊','🐱','🐼','🐧','🐸','🦄','👾','⭐','🌟','🍀'];
+function emojiForId(id: string | number) {
+  const s = String(id);
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return EMOJIS[h % EMOJIS.length];
+}
+
+export function LobbyPage() {
   return `
-<!-- Theme -->
-	${ addTheme() }
+	<!-- Theme -->
+		${ addTheme() }
 
-<!-- Header with user info -->
-	<div class="w-full
-		flex justify-between items-center
-		mb-10">
+	<!-- Header with user info -->
+		<div class="w-full
+			flex justify-between items-center
+			mb-10">
 
-<!-- Protected pages components -->
-		${ profileDivDisplay() }
-		${ sidebarDisplay() }
-		${ LogOutBtnDisplay() }
+	<!-- Protected pages components -->
+			${ profileDivDisplay() }
+			${ sidebarDisplay() }
+			${ LogOutBtnDisplay() }
 
 	</div>
 
@@ -30,25 +41,9 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn"
       <div id="online-users" class="grid gap-3"></div>
     </div>
   `;
-} */
-
-
-export function LobbyPage() {
-  return `
-    <div class="min-h-screen bg-gradient-to-b from-theme-bg1 to-theme-bg2 text-theme-text p-8">
-      <h1 class="text-3xl font-bold mb-4">🎮 Lobby</h1>
-      <p class="mb-6">See who’s online and ready to play!</p>
-
-      <div id="online-users"
-           class="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        <p class="text-gray-400">Waiting for online users...</p>
-      </div>
-    </div>
-  `;
 }
 
-// Attach after render
-export function initLobby() {
+export async function initLobby() {
   const token = localStorage.getItem("jwt");
 
   if (!token) {
@@ -56,41 +51,44 @@ export function initLobby() {
     return;
   }
 
-  const usersContainer = document.getElementById("online-users");
+  connectSocket(token, async (msg) => {
+    if (msg.type !== "user:list") return;
 
-  connectSocket(token, (msg) => {
-    if (msg.type === "user:list") {
-      if (!usersContainer) return;
+	    // Re-query each time so we don't cache null before the page mounts
+    const usersContainer = document.getElementById("online-users");
+    if (!usersContainer) return;
 
-      if (msg.users.length === 0) {
-        usersContainer.innerHTML = `<p class="text-gray-400">Nobody online yet </p>`;
-        return;
-      }
-      // TODO: disable button invite for yourself (you can only invite others, not your user)
-      usersContainer.innerHTML = msg.users
-        .map(
-          (u: any) => `
+    if (!Array.isArray(msg.users) || msg.users.length === 0) {
+      usersContainer.innerHTML = `<p class="text-gray-400">Nobody online yet</p>`;
+      return;
+    }
+
+	const filteredUsers = msg.users.filter(
+	(u: any) => String(u.id) !== String(thisUser?.id)
+	);
+
+		usersContainer.innerHTML = msg.users.map((u: any) => {
+  	  const id = u?.id ?? "";
+      const label = `${emojiForId(id)} - ${id}`;
+      return `
           <div class="bg-white bg-opacity-90 rounded-lg shadow p-4 flex items-center justify-between">
-            <span class="font-semibold text-gray-800">${u.id}</span>
+            <span class="font-semibold text-gray-800">${label} - ${id}</span>
             <button class="invite-btn px-3 py-1 text-sm rounded bg-theme-button text-white hover:bg-theme-button-hover"
-                    data-user-id="${u.id}">
+                    data-user-id="${id}">
               Invite
             </button>
           </div>
         `
-        )
+		})
         .join("");
 
       // Attach invite listeners
-      document.querySelectorAll(".invite-btn").forEach((btn) => {
+      usersContainer.querySelectorAll(".invite-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           const userId = (btn as HTMLElement).getAttribute("data-user-id");
           console.log(` Invite sent to user ${userId}`);
-
-          // later: send WS message
           // socket.send(JSON.stringify({ type: "invite", to: userId }));
         });
       });
-    }
   });
 }
