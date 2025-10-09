@@ -113,6 +113,7 @@ export async function editName(newName: string)
 	}
 }
 
+// Edit Bio
 export async function editBio(newBio: string)
 {
 	const token = localStorage.getItem("jwt");

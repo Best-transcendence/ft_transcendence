@@ -66,7 +66,7 @@ export function initLobby() {
         usersContainer.innerHTML = `<p class="text-gray-400">Nobody online yet </p>`;
         return;
       }
-
+      // TODO: disable button invite for yourself (you can only invite others, not your user)
       usersContainer.innerHTML = msg.users
         .map(
           (u: any) => `

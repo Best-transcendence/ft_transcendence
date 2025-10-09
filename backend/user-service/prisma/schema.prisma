@@ -27,10 +27,26 @@ model UserProfile {
   bio           String @default("Hi, I'm playing Arcade Clash")
 
   // Friends relationships (many-to-many)
-  friends       UserProfile[] @relation("UserFriends")
-  friendOf      UserProfile[] @relation("UserFriends")
+  friends       UserProfile[] @relation("UserFriends") // Who's in my friends list
+  friendOf      UserProfile[] @relation("UserFriends") // Whose friendlist I'm in
 
-  // Game data
-  matchHistory  Json?     // Game match history (empty object initially)
-  stats         Json?     // User statistics (empty object initially)
+  // Match history relationships
+  player1Matches Match[] @relation("Player1Matches")
+  player2Matches Match[] @relation("Player2Matches")
+}
+
+  // Match table model
+  model Match {
+  id           Int      @id @default(autoincrement())
+  type         String   // "tournament", "1v1" or "AI"
+  date         DateTime @default(now())
+  player1Id    Int?
+  player2Id    Int?
+  player1Score Int
+  player2Score Int
+  createdAt   DateTime @default(now())
+
+  // Connections with players
+  player1     UserProfile? @relation("Player1Matches", fields: [player1Id], references: [id])
+  player2     UserProfile? @relation("Player2Matches", fields: [player2Id], references: [id])
 }

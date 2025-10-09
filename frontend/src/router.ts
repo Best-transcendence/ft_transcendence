@@ -1,5 +1,6 @@
 //Services:
 import { getCurrentUser, login, signup } from "./services/api";
+import { connectSocket } from "./services/ws";
 
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
@@ -10,13 +11,16 @@ import { GamePongTournament } from "./games/Tournament";
 import { GamePongAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
 import { ProfilePage } from "./pages/ProfilePage";
+import { FriendsPage } from "./pages/Friends";
+import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 //Components:
 import { sideBar } from "./components/SideBar";
-import { logOutBtn } from "./components/LogOutBtn";
-import { TriggerPopup } from "./components/Popups";
-import { connectSocket } from "./services/ws";
+import { logOutBtn } from "./components/LogOutBtn"
+import { triggerPopup } from "./components/Popups"
+import { friendRequest } from "./components/FriendRequestDiv"
+
 
 // Centralizes user extraction into a variable
 export let thisUser: any = undefined;
@@ -52,28 +56,26 @@ async function fetchUser() {
 }; */
 
 //tmp async function to render visual edit without having to relog
-async function protectedPage(
-  renderer: () => string | Promise<string>,
-  afterRender?: () => void | Promise<void>
-) {
-  const app = document.getElementById("app")!;
+export async function protectedPage(renderer: () => string, ...postRender: (() => void)[])
+{
+	const app = document.getElementById("app")!;
 
-  await fetchUser();
-  if (thisUser != undefined) {
-    const html = await renderer();
-    app.innerHTML = html;
+	await fetchUser();
+	if (thisUser != undefined)
+	{
+		app.innerHTML = renderer();
 
-    sideBar(); //centralise sidebar attach here
-    logOutBtn(); //centralise logout button attach here
-    TriggerPopup();
-    initGame();
+		sideBar();
+		logOutBtn();
 
-    if (afterRender) await afterRender();
-  } else {
-    console.error("Failed to load user");
-    window.location.hash = "login";
-  }
-}
+		postRender?.forEach(fn => fn()); // specific page functions for a given page
+	}
+	else
+	{
+		console.error("Failed to load user");
+		window.location.hash = "login";
+	}
+};
 
 //_______ Info
 /*
@@ -104,27 +106,32 @@ export function router() {
       break;
 
     case "intro":
-      protectedPage(() => GameIntroPage()); //go through user data extraction before rendering page
+      protectedPage(() => GameIntroPage());
       break;
 
     case "pong2d":
-      protectedPage(() => GamePong2D());
-      app.innerHTML = GamePong2D();
+      protectedPage(() => GamePong2D(), initGame);
       break;
 
-    case "tournament":
-      protectedPage(() => GamePongTournament());
-      app.innerHTML = GamePongTournament();
-      break;
+	case "tournament":
+		protectedPage(() => GamePongTournament(), initGame);
+		break;
 
-    case "AIopponent":
-      protectedPage(() => GamePongAIOpponent());
-      app.innerHTML = GamePongAIOpponent();
-      break;
+	case "AIopponent":
+		protectedPage(() => GamePongAIOpponent(), initGame);
+		break;
 
-    case "profile":
-      protectedPage(() => ProfilePage()); //go through user data extraction before rendering page
-      break;
+	case "profile":
+		protectedPage(() => ProfilePage(), triggerPopup);
+		break;
+
+	case "friends":
+		protectedPage(() => FriendsPage(), triggerPopup, friendRequest);
+		break;
+
+	case "history":
+		protectedPage(() => HistoryPage(), matchesEvents);
+		break;
 
     default:
       app.innerHTML = NotFoundPage();
