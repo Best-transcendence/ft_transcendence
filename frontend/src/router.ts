@@ -21,21 +21,17 @@ import { logOutBtn } from "./components/LogOutBtn"
 import { triggerPopup } from "./components/Popups"
 import { friendRequest } from "./components/FriendRequestDiv"
 
+
 // Centralizes user extraction into a variable
 export let thisUser: any = undefined;
 
-async function fetchUser()
-{
-	try
-	{
-		const data = await getCurrentUser();
-		thisUser = data.user;
-	}
-	catch
-	{
-		thisUser = undefined;
-	}
-
+async function fetchUser() {
+  try {
+    const data = await getCurrentUser();
+    thisUser = data.user;
+  } catch {
+    thisUser = undefined;
+  }
 }
 
 /*  Centralizing the user data extraction for the
@@ -101,7 +97,12 @@ export function router() {
       break;
 
     case "lobby":
-      protectedPage(() =>  LobbyPage());
+      protectedPage(
+        () => LobbyPage(),
+        () => {
+          initLobby();
+        }
+      );
       break;
 
     case "intro":
@@ -109,8 +110,8 @@ export function router() {
       break;
 
     case "pong2d":
-		protectedPage(() => GamePong2D(), initGame);
-		break;
+      protectedPage(() => GamePong2D(), initGame);
+      break;
 
 	case "tournament":
 		protectedPage(() => GamePongTournament(), initGame);
@@ -133,7 +134,7 @@ export function router() {
 		break;
 
     default:
-  		app.innerHTML = NotFoundPage();
+      app.innerHTML = NotFoundPage();
   }
 }
 
@@ -145,8 +146,12 @@ function attachLoginListeners() {
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const email = (document.getElementById("email-field") as HTMLInputElement)?.value.trim();
-    const password = (document.getElementById("password-field") as HTMLInputElement)?.value;
+    const email = (
+      document.getElementById("email-field") as HTMLInputElement
+    )?.value.trim();
+    const password = (
+      document.getElementById("password-field") as HTMLInputElement
+    )?.value;
     const name = (
       document.getElementById("name-field") as HTMLInputElement
     )?.value?.trim();
@@ -182,12 +187,16 @@ function attachLoginListeners() {
         console.log("Logged in:", user);
         localStorage.setItem("jwt", user.token);
 
-		//TODO: adapt this to the WebSocket microservice
+        //TODO: adapt this to the WebSocket microservice
         console.log("✅ Logged in with token:", user.token);
 
         // ________ connect global WebSocket
-        connectSocket(user.token);
-		//end:TODO
+        // Always connect WS using localStorage
+        const token = localStorage.getItem("jwt") || user.token;
+        if (token) {
+          connectSocket(token);
+        }
+        // connectSocket(user.token);
 
         await fetchUser();
         window.location.hash = "intro"; // navigate to gamePage
@@ -222,7 +231,9 @@ function attachLoginListeners() {
   const confirmPasswordField = document.getElementById(
     "confirm-password-field"
   );
-  const submitButton = document.getElementById("submit-button") as HTMLButtonElement | null;
+  const submitButton = document.getElementById(
+    "submit-button"
+  ) as HTMLButtonElement | null;
   const title = document.getElementById("form-title");
 
   function render() {
@@ -234,8 +245,7 @@ function attachLoginListeners() {
       // Texts
       if (submitButton) submitButton.textContent = "Register";
       if (title) title.textContent = "Sign Up";
-      signupToggle.innerHTML =
-    `Already have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign In</span>`;
+      signupToggle.innerHTML = `Already have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign In</span>`;
     } else {
       // Hide signup fields
       nameField?.classList.add("hidden");
@@ -245,17 +255,15 @@ function attachLoginListeners() {
       if (title) title.textContent = "Sign In";
       signupToggle.innerHTML =
         'Don\'t have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign Up</span>';
-
     }
   }
 
   signupToggle?.addEventListener("click", () => {
     isSignupMode = !isSignupMode;
 
-	    render();
-	});
+    render();
+  });
 
-	  // Initial render so text/visibility is consistent even if HTML shipped empty
-	  render();
-
+  // Initial render so text/visibility is consistent even if HTML shipped empty
+  render();
 }

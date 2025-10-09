@@ -128,21 +128,21 @@ export default async function (fastify, _opts) {
       }
 
 	  // Name uniqueness check
-	const existingNameUser = await fastify.prisma.userProfile.findFirst(
-	{
-		where:
+      const existingNameUser = await fastify.prisma.userProfile.findFirst(
+        {
+          where:
 		{
-			name: name,
-			NOT: { authUserId: authUserId } // Exclude current -> for name update
+		  name: name,
+		  NOT: { authUserId: authUserId } // Exclude current -> for name update
 		}
-	});
+        });
 
-	// Check for existing users to prevent duplicates
-	if (existingNameUser)
-	{
-		console.error(`[${correlationId}] Username '${name}' already taken`);
-		return reply.status(400).send({ error: 'Username already taken' });
-	}
+      // Check for existing users to prevent duplicates
+      if (existingNameUser)
+      {
+        console.error(`[${correlationId}] Username '${name}' already taken`);
+        return reply.status(400).send({ error: 'Username already taken' });
+      }
 
       console.log(`[${correlationId}] Bootstrap request for authUserId: ${authUserId}, name: ${name}, email: ${email}`);
 
@@ -184,9 +184,9 @@ export default async function (fastify, _opts) {
             email,
             //matchHistory: {}, // Initialize as empty object
             //stats: {}, // Initialize as empty object
-			profilePicture: "/assets/default-avatar.jpeg", // Sets default profile pic
-			bio: "Hi, I'm playing Arcade Clash"
-		}
+            profilePicture: '/assets/default-avatar.jpeg', // Sets default profile pic
+            bio: 'Hi, I\'m playing Arcade Clash'
+          }
         });
 
         console.log(`[${correlationId}] Successfully created profile for authUserId: ${authUserId}`);
@@ -235,45 +235,45 @@ export default async function (fastify, _opts) {
                 email: { type: 'string' },
                 profilePicture: { type: 'string' },
                 bio: { type: 'string' },
-				friends: { select: { id: true }, },
-				friendOf:
+                friends: { select: { id: true }, },
+                friendOf:
 				{
-					select: { id: true, name: true, profilePicture: true, bio: true,},
-					orderBy: { name: 'asc' }
+				  select: { id: true, name: true, profilePicture: true, bio: true,},
+				  orderBy: { name: 'asc' }
 				},
                 matches:
 				{
-					type: 'array',
-					items:
+				  type: 'array',
+				  items:
 					{
-						properties:
+					  properties:
 						{
-							id: { type: 'integer' },
-							type: { type: 'string' },
-							date: { type: 'string', format: 'date-time' },
-							player1Id: { type: 'integer' },
-							player2Id: { type: 'integer' },
-							player1Score: { type: 'integer' },
-							player2Score: { type: 'integer' },
-							winnerId: { type: 'integer' },
-							player1:
+						  id: { type: 'integer' },
+						  type: { type: 'string' },
+						  date: { type: 'string', format: 'date-time' },
+						  player1Id: { type: 'integer' },
+						  player2Id: { type: 'integer' },
+						  player1Score: { type: 'integer' },
+						  player2Score: { type: 'integer' },
+						  winnerId: { type: 'integer' },
+						  player1:
 							{
-								type: 'object',
-								properties:
+							  type: 'object',
+							  properties:
 								{
-									id: { type: 'integer' },
-									name: { type: 'string' },
-									profilePicture: { type: 'string' }
+								  id: { type: 'integer' },
+								  name: { type: 'string' },
+								  profilePicture: { type: 'string' }
 								}
 							},
-							player2:
+						  player2:
 							{
-								type: 'object',
-								properties:
+							  type: 'object',
+							  properties:
 								{
-									id: { type: 'integer' },
-									name: { type: 'string' },
-									profilePicture: { type: 'string' }
+								  id: { type: 'integer' },
+								  name: { type: 'string' },
+								  profilePicture: { type: 'string' }
 								}
 							}
 						}
@@ -303,50 +303,50 @@ export default async function (fastify, _opts) {
       // Find user profile by authUserId from JWT token
       const user = await fastify.prisma.userProfile.findUnique({
         where: { authUserId: request.user.id },
-		include:
+        include:
 		{
-			friends: { select: { id: true },},
-			friendOf:
+		  friends: { select: { id: true },},
+		  friendOf:
 			{
-				select: { id: true, name: true, profilePicture: true, bio: true },
-				orderBy: { name: 'asc'}
+			  select: { id: true, name: true, profilePicture: true, bio: true },
+			  orderBy: { name: 'asc'}
 			},
-			player1Matches:
+		  player1Matches:
 			{
-				include:
+			  include:
 				{
-					player1: { select: { id: true, name: true, profilePicture: true } },
-					player2: { select: { id: true, name: true, profilePicture: true } }
+				  player1: { select: { id: true, name: true, profilePicture: true } },
+				  player2: { select: { id: true, name: true, profilePicture: true } }
 				},
-				orderBy: { date: 'desc' }
+			  orderBy: { date: 'desc' }
 			},
-			player2Matches:
+		  player2Matches:
 			{
-				include:
+			  include:
 				{
-					player1: { select: { id: true, name: true, profilePicture: true } },
-					player2: { select: { id: true, name: true, profilePicture: true } }
+				  player1: { select: { id: true, name: true, profilePicture: true } },
+				  player2: { select: { id: true, name: true, profilePicture: true } }
 				},
-				orderBy: { date: 'desc' }
+			  orderBy: { date: 'desc' }
 			}
 		}
       });
 
-	if (user.friendOf) // sorts friends name alphabetically
-		user.friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+      if (user.friendOf) // sorts friends name alphabetically
+        user.friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
-	if (user) //combine all matches + sorts by date
-	{
-		const allMatches =
+      if (user) //combine all matches + sorts by date
+      {
+        const allMatches =
 		[
-			...user.player1Matches,
-			...user.player2Matches
+		  ...user.player1Matches,
+		  ...user.player2Matches
 		].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-		user.matches = allMatches;
-		delete user.player1Matches;
-		delete user.player2Matches;
-	}
+        user.matches = allMatches;
+        delete user.player1Matches;
+        delete user.player2Matches;
+      }
       if (!user) {
         return reply.status(404).send({ error: 'User profile not found' });
       }
@@ -373,18 +373,18 @@ export default async function (fastify, _opts) {
    		 	friendId: { type: 'integer' },
 		  	matchData:
 		  	{
-				type: 'object',
-				properties:
+		  	  type: 'object',
+		  	  properties:
 				{
-					type: { type: 'string', enum: ['tournament', '1v1', 'AI'] },
-					player2Id: { type: 'integer' },
-					player1Score: { type: 'integer' },
-					player2Score: { type: 'integer' },
-					winnerId: { type: 'integer' },
-					date: { type: 'string', format: 'date-time' }
+				  type: { type: 'string', enum: ['tournament', '1v1', 'AI'] },
+				  player2Id: { type: 'integer' },
+				  player1Score: { type: 'integer' },
+				  player2Score: { type: 'integer' },
+				  winnerId: { type: 'integer' },
+				  date: { type: 'string', format: 'date-time' }
 				}
-			}
-        }
+		  	}
+		}
       },
       response: {
         200: {
@@ -430,73 +430,73 @@ export default async function (fastify, _opts) {
       const userId = request.user.id;
       const { action, friendId, matchData, ...updateData } = request.body;
 
-		if (action === 'add_friend') //Add a friend
-		{
-			await fastify.prisma.userProfile.update(
-			{
-				where: { authUserId: userId },
-				data: { friends: { connect: { id: friendId } } }
-			});
-			return { message: `${ friendId } added to ${ userId }friendlist` };
-		}
+      if (action === 'add_friend') //Add a friend
+      {
+        await fastify.prisma.userProfile.update(
+          {
+            where: { authUserId: userId },
+            data: { friends: { connect: { id: friendId } } }
+          });
+        return { message: `${ friendId } added to ${ userId }friendlist` };
+      }
 
-		if (action === 'remove_friend') //Remove from both lists to break link completely
-		{
-			await fastify.prisma.userProfile.update(
-			{
-				where: { authUserId: userId },
-				data: { friends: { disconnect: { id: friendId } } }
-			});
+      if (action === 'remove_friend') //Remove from both lists to break link completely
+      {
+        await fastify.prisma.userProfile.update(
+          {
+            where: { authUserId: userId },
+            data: { friends: { disconnect: { id: friendId } } }
+          });
 
-			await fastify.prisma.userProfile.update(
-			{
-				where: { id: friendId },
-				data: { friends: { disconnect: { authUserId: userId } } }
-			});
+        await fastify.prisma.userProfile.update(
+          {
+            where: { id: friendId },
+            data: { friends: { disconnect: { authUserId: userId } } }
+          });
 
-			return { message: `${ friendId } and ${ userId } are broken off` };
-		}
+        return { message: `${ friendId } and ${ userId } are broken off` };
+      }
 
-		if (action === 'create_match')
-		{
-			const { type, player2Id, player1Score, player2Score, winnerId, date } = matchData;
-			const currentUser = await fastify.prisma.userProfile.findUnique(
-			{
-				where: { authUserId: userId }
-			});
+      if (action === 'create_match')
+      {
+        const { type, player2Id, player1Score, player2Score, _winnerId, date } = matchData;
+        const currentUser = await fastify.prisma.userProfile.findUnique(
+          {
+            where: { authUserId: userId }
+          });
 
-			// retrieve date or create it
-			let matchDate = new Date();
-			if (date)
-				matchDate = new Date(date);
+        // retrieve date or create it
+        let matchDate = new Date();
+        if (date)
+          matchDate = new Date(date);
 
-			let finalWinnerId = null; // In case of draw
-			if (player1Score > player2Score)
-				finalWinnerId = currentUser.id;
-			else if (player1Score < player2Score)
-				finalWinnerId = player2Id;
+        let finalWinnerId = null; // In case of draw
+        if (player1Score > player2Score)
+          finalWinnerId = currentUser.id;
+        else if (player1Score < player2Score)
+          finalWinnerId = player2Id;
 
-			const match = await fastify.prisma.match.create(
-			{
-				data:
+        const match = await fastify.prisma.match.create(
+          {
+            data:
 				{
-					type,
-					date: matchDate,
-					player1Id: currentUser.id,
-					player2Id,
-					player1Score,
-					player2Score,
-					winnerId: finalWinnerId
+				  type,
+				  date: matchDate,
+				  player1Id: currentUser.id,
+				  player2Id,
+				  player1Score,
+				  player2Score,
+				  winnerId: finalWinnerId
 				}
-			});
-			return { message: 'Match created successfully', match };
-		}
+          });
+        return { message: 'Match created successfully', match };
+      }
 
-		const updatedUser = await fastify.prisma.userProfile.update(
-		{
-			where: { authUserId: userId },
-			data: updateData
-		});
+      const updatedUser = await fastify.prisma.userProfile.update(
+        {
+          where: { authUserId: userId },
+          data: updateData
+        });
 
       return { user: updatedUser };
     } catch (err) {
@@ -504,7 +504,7 @@ export default async function (fastify, _opts) {
         return reply.status(404).send({ error: 'User profile not found' });
       }
 	  if (err.code === 'P2002'){
-		return reply.status(400).send({ error: 'Username already taken'});
+        return reply.status(400).send({ error: 'Username already taken'});
 	  }
       return reply.status(401).send({ error: 'Unauthorized or update failed' });
     }

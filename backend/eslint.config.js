@@ -16,7 +16,8 @@ export default [
         global: 'readonly',
         module: 'readonly',
         require: 'readonly',
-        exports: 'readonly'
+        exports: 'readonly',
+        URL: 'readonly'
       }
     },
     rules: {

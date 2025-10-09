@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test - Juan</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .messages { border: 1px solid #ccc; height: 300px; overflow-y: auto; padding: 10px; margin: 10px 0; }
+        .message { margin: 5px 0; padding: 5px; background-color: #f8f9fa; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🔌 WebSocket Test - Juan</h1>
+    <div id="status" class="status disconnected">Not connected</div>
+    <div id="messages" class="messages"></div>
+    
+    <script>
+        const status = document.getElementById('status');
+        const messages = document.getElementById('messages');
+        
+        // JWT Token for Juan (user ID: 3)
+        const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzU5MzEyNzg1fQ.N_1qAbBjdjEO3WW-STez-5_f-haW-fn599UuJ9cmNQM';
+        
+        // Connect to WebSocket
+        const ws = new WebSocket(`ws://localhost:4000?token=${JWT_TOKEN}`);
+        
+        ws.onopen = () => {
+            status.textContent = '✅ Connected to WebSocket as Juan';
+            status.className = 'status connected';
+            addMessage('Connected to WebSocket server');
+        };
+        
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            addMessage(`📨 Received: ${JSON.stringify(data, null, 2)}`);
+        };
+        
+        ws.onclose = () => {
+            status.textContent = '❌ Disconnected from WebSocket';
+            status.className = 'status disconnected';
+            addMessage('Disconnected from WebSocket server');
+        };
+        
+        ws.onerror = (error) => {
+            status.textContent = '🚨 WebSocket Error';
+            status.className = 'status error';
+            addMessage(`Error: ${error}`);
+        };
+        
+        function addMessage(text) {
+            const message = document.createElement('div');
+            message.className = 'message';
+            message.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+            messages.appendChild(message);
+            messages.scrollTop = messages.scrollHeight;
+        }
+        
+        // Add some test functionality
+        window.sendTestMessage = () => {
+            if (ws.readyState === WebSocket.OPEN) {
+                const message = {
+                    type: 'test',
+                    message: 'Hello from Juan!',
+                    timestamp: new Date().toISOString()
+                };
+                ws.send(JSON.stringify(message));
+                addMessage(`📤 Sent: ${JSON.stringify(message)}`);
+            } else {
+                addMessage('❌ Cannot send message - not connected');
+            }
+        };
+    </script>
+    
+    <button onclick="sendTestMessage()">Send Test Message</button>
+    <p><small>JWT Token: ${JWT_TOKEN.substring(0, 20)}...</small></p>
+</body>
+</html>

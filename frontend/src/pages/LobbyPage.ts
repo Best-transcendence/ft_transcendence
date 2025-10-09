@@ -37,16 +37,20 @@ export function LobbyPage() {
   return `
     <div class="min-h-screen bg-gradient-to-b from-theme-bg1 to-theme-bg2 text-theme-text p-8">
       <h1 class="text-3xl font-bold mb-4">🎮 Lobby</h1>
-      <p class="from-theme-bg1 mb-6">See who’s online and ready to play!</p>
+      <p class="mb-6">See who’s online and ready to play!</p>
 
-      <div id="online-users" class="grid gap-3"></div>
+      <div id="online-users"
+           class="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <p class="text-gray-400">Waiting for online users...</p>
+      </div>
     </div>
   `;
 }
 
-// attach after render
+// Attach after render
 export function initLobby() {
   const token = localStorage.getItem("jwt");
+
   if (!token) {
     window.location.hash = "login";
     return;
@@ -56,18 +60,37 @@ export function initLobby() {
 
   connectSocket(token, (msg) => {
     if (msg.type === "user:list") {
-      usersContainer!.innerHTML = msg.users
+      if (!usersContainer) return;
+
+      if (msg.users.length === 0) {
+        usersContainer.innerHTML = `<p class="text-gray-400">Nobody online yet </p>`;
+        return;
+      }
+      // TODO: disable button invite for yourself (you can only invite others, not your user)
+      usersContainer.innerHTML = msg.users
         .map(
           (u: any) => `
-          <div class="theme-text bg-opacity-90 rounded-lg shadow p-4 flex items-center justify-between">
-            <span class="font-semibold" from-theme-text>${u.id}</span>
-            <button class="px-3 py-1 text-sm rounded bg-theme-button text-white hover:bg-theme-button-hover">
+          <div class="bg-white bg-opacity-90 rounded-lg shadow p-4 flex items-center justify-between">
+            <span class="font-semibold text-gray-800">${u.id}</span>
+            <button class="invite-btn px-3 py-1 text-sm rounded bg-theme-button text-white hover:bg-theme-button-hover"
+                    data-user-id="${u.id}">
               Invite
             </button>
           </div>
         `
         )
         .join("");
+
+      // Attach invite listeners
+      document.querySelectorAll(".invite-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const userId = (btn as HTMLElement).getAttribute("data-user-id");
+          console.log(` Invite sent to user ${userId}`);
+
+          // later: send WS message
+          // socket.send(JSON.stringify({ type: "invite", to: userId }));
+        });
+      });
     }
   });
 }

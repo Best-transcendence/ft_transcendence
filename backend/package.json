@@ -1,0 +1,17 @@
+{
+  "name": "ft-transcendence-backend",
+  "version": "1.0.0",
+  "description": "Backend microservices for ft_transcendence",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint auth-service/*.js auth-service/routes/*.js auth-service/plugins/*.js auth-service/prisma/*.js gateway/*.js user-service/*.js user-service/routes/*.js user-service/plugins/*.js user-service/prisma/*.js ws-service/*.js",
+    "lint:fix": "eslint auth-service/*.js auth-service/routes/*.js auth-service/plugins/*.js auth-service/prisma/*.js gateway/*.js user-service/*.js user-service/routes/*.js user-service/plugins/*.js user-service/prisma/*.js ws-service/*.js --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.1.0"
+  }
+}
