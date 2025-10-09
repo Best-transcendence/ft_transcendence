@@ -1,3 +1,6 @@
+ // TODO: it doesn't get the user id if it's a freshly created account
+
+
 - user-service: schema.prisma: model Stats
 
 - remove stats: profile.stats from seed.js: from async functino main()
@@ -27,7 +30,7 @@ So it’s safe — it won’t duplicate or throw an error if a Stats row already
 
 - suggestion applied for the intro page to be aligned with the website style
 
-- lobby page: // small cache + helper to get the user name
+- lobby page: //
 
 const EMOJIS = ['⚡','🚀','🐉','🦊','🐱','🐼','🐧','🐸','🦄','👾','⭐','🌟','🍀'];
 function emojiForId(id: string | number) {
@@ -37,6 +40,8 @@ function emojiForId(id: string | number) {
   return EMOJIS[h % EMOJIS.length];
 }
 
+- filter own
+	const others = msg.users.filter((u: any) => String(u?.id ?? "") !== selfId);
 
 - async
 
@@ -48,5 +53,37 @@ export async function initLobby() {
     return;
   }
 
-  connectSocket(token, async (msg) => {
+
+- have to save in a variable
+  const socket = connectSocket(token, (msg) => {
+
+  // Proactively request the list NOW (covers first-visit race)
+  try {
+    // If socket already open, send immediately
+    if (socket?.readyState === 1 /* WebSocket.OPEN */) {
+      socket.send?.(JSON.stringify({ type: "user:list:request" }));
+    }
+
+    // Also request once it opens (covers slower connections)
+    socket?.addEventListener?.("open", () => {
+      try { socket.send?.(JSON.stringify({ type: "user:list:request" })); } catch {}
+    });
+  } catch {}
+}
+
+
+- check if there another user online
+  setTimeout(() => {
+	if (! otherUser) {
+		usersContainer.innerHTML = 'p class="text-gray-400">Nobody online yet</p>';
+		}
+	}, 1500);
+
+	// actively request if there's another user once the socket is open
+	try {
+		socket?.addEventListener?.("open", () => {
+			try { socket.send?.(JSON.stringify({type: "user:list:request"})); } catch{}
+		})
+	} catch {}
+}
 

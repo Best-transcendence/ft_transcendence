@@ -1255,10 +1255,6 @@ video {
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
 }
 
-.bg-opacity-90 {
-  --tw-bg-opacity: 0.9;
-}
-
 .bg-\[radial-gradient\(circle\2c rgba\(0\2c 0\2c 0\2c 0\)_50\%\2c rgba\(0\2c 0\2c 0\2c 1\)_100\%\)\] {
   background-image: radial-gradient(circle,rgba(0,0,0,0) 50%,rgba(0,0,0,1) 100%);
 }

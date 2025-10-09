@@ -8,7 +8,8 @@ import { thisUser } from "../router";
 // cache + helper to get the user name
 const nameById: Record<string, string> = {};
 
-const EMOJIS = ['⚡','🚀','🐉','🦊','🐱','🐼','🐧','🐸','🦄','👾','⭐','🌟','🍀'];
+// TODO display the username if it's needed
+const EMOJIS = ['⚡','💗','🌸','🦊','🐱','🐼','🐧','🪼','🐭','👾','⭐','🌟','🍀'];
 function emojiForId(id: string | number) {
   const s = String(id);
   let h = 0;
@@ -51,28 +52,30 @@ export async function initLobby() {
     return;
   }
 
-  connectSocket(token, async (msg) => {
+  const usersContainer = document.getElementById("online-users");
+  if (!usersContainer) return;
+
+ // TODO: it doesn't get the user id if it's a freshly created account
+  const selfId = String(thisUser?.id ?? "");
+
+  usersContainer.innerHTML = `<p class="text-gray-400">Waiting for online users…</p>`;
+
+  const socket = connectSocket(token, (msg) => {
     if (msg.type !== "user:list") return;
 
-	    // Re-query each time so we don't cache null before the page mounts
-    const usersContainer = document.getElementById("online-users");
-    if (!usersContainer) return;
-
     if (!Array.isArray(msg.users) || msg.users.length === 0) {
-      usersContainer.innerHTML = `<p class="text-gray-400">Nobody online yet</p>`;
+      usersContainer.innerHTML = `<p class="text-gray-400">No other players online</p>`;
       return;
     }
 
-	const filteredUsers = msg.users.filter(
-	(u: any) => String(u.id) !== String(thisUser?.id)
-	);
+	const others = msg.users.filter((u: any) => String(u?.id ?? "") !== selfId);
 
-		usersContainer.innerHTML = msg.users.map((u: any) => {
+	usersContainer.innerHTML = others.map((u: any) => {
   	  const id = u?.id ?? "";
       const label = `${emojiForId(id)} - ${id}`;
       return `
-          <div class="bg-white bg-opacity-90 rounded-lg shadow p-4 flex items-center justify-between">
-            <span class="font-semibold text-gray-800">${label} - ${id}</span>
+          <div class="bg-[#271d35] backdrop-blur-md rounded-lg shadow-[0_0_30px_10px_#7037d3] p-4 flex items-center justify-between">
+            <span class="text-gray-300 font-medium">${label}</span>
             <button class="invite-btn px-3 py-1 text-sm rounded bg-theme-button text-white hover:bg-theme-button-hover"
                     data-user-id="${id}">
               Invite
@@ -81,7 +84,7 @@ export async function initLobby() {
         `
 		})
         .join("");
-
+	
       // Attach invite listeners
       usersContainer.querySelectorAll(".invite-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -91,4 +94,18 @@ export async function initLobby() {
         });
       });
   });
+
+ // TODO: it doesn't load the new users just after on reload
+  // Proactively request the list NOW (covers first-visit race)
+  try {
+    // If socket already open, send immediately
+    if (socket?.readyState === 1 /* WebSocket.OPEN */) {
+      socket.send?.(JSON.stringify({ type: "user:list:request" }));
+    }
+
+    // Also request once it opens (covers slower connections)
+    socket?.addEventListener?.("open", () => {
+      try { socket.send?.(JSON.stringify({ type: "user:list:request" })); } catch {}
+    });
+  } catch {}
 }
