@@ -10,36 +10,28 @@ const userProfiles = [
     name: 'Yulia',
     email: 'yioffe@example.com',
     profilePicture: '/assets/default-avatar.jpeg',
-    bio: 'Pong enthusiast and coding wizard!',
-    matchHistory: {},
-    stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
+    bio: 'Pong enthusiast and coding wizard!'
   },
   {
     authUserId: 2,
     name: 'Tina',
     email: 'thuy-ngu@example.com',
     profilePicture: '/assets/default-avatar.jpeg',
-    bio: 'Love competitive gaming and teamwork!',
-    matchHistory: {},
-    stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
+    bio: 'Love competitive gaming and teamwork!'
   },
   {
     authUserId: 3,
     name: 'Juan',
     email: 'juan-pma@example.com',
     profilePicture: '/assets/default-avatar.jpeg',
-    bio: 'Strategic player always looking for a challenge!',
-    matchHistory: {},
-    stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
+    bio: 'Strategic player always looking for a challenge!'
   },
   {
     authUserId: 4,
     name: 'Camille',
     email: 'cbouvet@example.com',
-    profilePicture: '/assets/default-avatar.jpeg',
-    bio: 'Fast reflexes and quick thinking!',
-    matchHistory: {},
-    stats: { totalMatches: 0, wins: 0, losses: 0, winRate: 0 }
+    profilePicture: '/assets/camille-avatar.jpeg',
+    bio: 'Roses are red - Violets are blue - unexpected \'{\' on line 32'
   },
 ];
 
@@ -57,7 +49,6 @@ async function main() {
         profilePicture: profile.profilePicture,
         bio: profile.bio,
 		friends: profile.friends || {}, //import profile.friends or empty object
-        matchHistory: profile.matchHistory,
         stats: profile.stats
       },
     });
@@ -91,6 +82,58 @@ async function main() {
 		where: { authUserId: 4 },
 		data: { friends: { connect: [{ authUserId: 1 }, { authUserId: 2 }, {authUserId: 3 } ] } }
 	});
+
+	const yulia = await prisma.userProfile.findUnique({ where: { authUserId: 1 } });
+	const tina = await prisma.userProfile.findUnique({ where: { authUserId: 2 } });
+	const juan = await prisma.userProfile.findUnique({ where: { authUserId: 3 } });
+	const camille = await prisma.userProfile.findUnique({ where: { authUserId: 4 } });
+
+	const sampleMatches =
+	[
+		{
+			type: 'Tournament Match',
+			player1Id: tina.id,
+			player2Id: yulia.id,
+			player1Score: 5,
+			player2Score: 3,
+			date: new Date('2025-10-01T15:45:00Z')
+		},
+		{
+			type: '1v1 Match',
+			player1Id: juan.id,
+			player2Id: tina.id,
+			player1Score: 2,
+			player2Score: 5,
+			date: new Date('2025-09-28T10:30:00Z')
+		},
+		{
+			type: '1v1 Match',
+			player1Id: yulia.id,
+			player2Id: juan.id,
+			player1Score: 0,
+			player2Score: 0,
+			date: new Date('2025-09-18T11:38:00Z')
+		},
+		{
+			type: 'AI Match',
+			date: new Date('2025-10-06T12:00:00Z'),
+			player1Id: tina.id,
+			player2Id: null,
+			player1Score: 7,
+			player2Score: 3,
+		},
+		{
+			type: '1v1 Match',
+			date: new Date('2025-10-06T13:00:00Z'),
+			player1Id: null,
+			player2Id: yulia.id,
+			player1Score: 4,
+			player2Score: 5,
+		}
+	];
+
+	for (const matchData of sampleMatches)
+  		await prisma.match.create({ data: matchData });
 
   console.log('✅ User service seed complete');
 }

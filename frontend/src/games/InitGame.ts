@@ -1,3 +1,5 @@
+import { thisUser } from "../router";
+import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
 
 export function initGame(): void {
@@ -48,7 +50,7 @@ export function initGame(): void {
 
   document.addEventListener("keydown", (e) => {
 	if (e.code === "Space" && !running) {
-		// TODO setup to 90 
+		// TODO setup to 90
 		startTimer(5);
 		startGame();
 	}

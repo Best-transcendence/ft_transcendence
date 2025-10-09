@@ -1,4 +1,5 @@
 // timer.ts
+import { MatchObject, saveMatch } from "../services/matchActions"
 export function TimerDisplay(): string {
   return `
     <div id="timer"
@@ -9,7 +10,7 @@ export function TimerDisplay(): string {
   `;
 }
 
-							// TODO setup to 90 
+							// TODO setup to 90
 export function startTimer(duration: number = 5): void {
   let remaining = duration;
   const timerElement = document.getElementById("timer");
@@ -41,3 +42,4 @@ export function startTimer(duration: number = 5): void {
 	render();
   }, 1000);
 }
+

@@ -32,6 +32,12 @@ export function triggerPopup()
 				overlay.style.display = "block";
 				popup.style.display = "block";
 
+				if (config.popupId === "confirm-popup" && button.id.startsWith("friend-button--"))
+				{
+					const friendId = button.id.split("--")[1]!;
+					popup.setAttribute("data-friend-id", friendId)
+				}
+
 				setupInputPopup(popup, config);
 
 				popup.querySelectorAll(config.options!).forEach(item =>

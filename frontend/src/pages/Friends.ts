@@ -9,7 +9,7 @@ import { confirmPopup } from "../components/Popups"
 // Interface for friend (safer than using "any")
 export interface Friend
 {
-	id: string,
+	id: number,
 	name: string,
 	profilePicture: string,
 	bio: string
