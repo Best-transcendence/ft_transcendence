@@ -54,6 +54,14 @@ ${ TimerDisplay() }
 		<!-- Subtitle -->
 		<p class="text-lg text-gray-200 mt-2 mb-6">You won 🥇</p>
 
+		<!-- Button -->
+		<button id="overlayExit"
+				class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
+		Back to Arcade Clash
+		</button>
+	</div>
+	</div>
+
 <!-- Net -->
 				<div class="absolute border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
 				h-[96%] top-[2%] left-[calc(50%-0.4vw)]"></div>
