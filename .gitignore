@@ -56,8 +56,11 @@ pids/
 coverage/
 .nyc_output/
 
-# Docker
-.dockerignore
+# Docker volumes and data
+docker-data/
+
+# Vite build artifacts
+.vite/
 
 # Temporary folders
 tmp/
