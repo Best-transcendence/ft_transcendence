@@ -1,7 +1,1 @@
-docker-compose up --build
-
-services:
-  db: { ... , profiles: ["dev","prod"] }
-  backend: { ... , profiles: ["dev"] }
-  frontend: { ... , profiles: ["dev"] }
-  proxy: { ... , profiles: ["dev","prod"] }
+// TODO: implement when all services have Dockerfiles

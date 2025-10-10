@@ -27,4 +27,4 @@ clean:
 	@echo "🧹 Cleaning up..."
 	rm -rf node_modules
 	rm -f prisma/auth.db
-	rm -rf prisma/migrations
+	rm -f prisma/*.db
