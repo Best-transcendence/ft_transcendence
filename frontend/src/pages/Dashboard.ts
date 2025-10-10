@@ -4,7 +4,7 @@ import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { thisUser } from "../router";
 
-// Prisma model //TODO work on it maybe merge with Camille Match modell
+// Prisma model //TODO work on it maybe merge with Camille Matches modell
 type Stats = {
   userId: number;
   gamesPlayed: number;

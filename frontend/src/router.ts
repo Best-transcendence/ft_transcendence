@@ -89,7 +89,8 @@ export function router() {
   const app = document.getElementById("app")!;
 
 	const rawHash = window.location.hash.slice(1);
-	const [route, query] = rawHash.split("?");
+	const [route, query] = rawHash.split("?"); // to get the route and after the ? to get the query
+	
 	const page = route || "login";
 
 	// TODO store in the gameinit if it's needed

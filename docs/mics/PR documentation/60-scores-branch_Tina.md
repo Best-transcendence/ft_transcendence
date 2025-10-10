@@ -1,5 +1,10 @@
- // TODO: it doesn't get the user id if it's a freshly created account
+- better socket following, but just after the second load
 
+- fixed invitation in the lobby
+
+- fixed roomid for players with the right route 
+
+- default users doesn't appear themselves for invitations (new users still do)
 
 - user-service: schema.prisma: model Stats
 
@@ -7,31 +12,9 @@
         friends: profile.friends || {}, //import profile.friends or empty object
         // stats: profile.stats
 
-
-- CREATE TABLE UserProfile, migration sql deleted:
-upsert means:
-
-“Update if it exists, otherwise insert (create) a new one.”
-
-So it’s safe — it won’t duplicate or throw an error if a Stats row already exists.
-
-    "matchHistory" JSONB,
-    "stats" JSONB
-
-	// 
-	const users = await prisma.userProfile.findMany({ select: { id: true } });
-	for (const u of users) {
-	await prisma.stats.upsert({
-		where: { userId: u.id },
-		update: {},
-		create: { userId: u.id }, // defaults (0s)
-	});
-	}
-
 - suggestion applied for the intro page to be aligned with the website style
 
-- lobby page: //
-
+- lobby page emoji signs for the players you can invite
 const EMOJIS = ['⚡','🚀','🐉','🦊','🐱','🐼','🐧','🐸','🦄','👾','⭐','🌟','🍀'];
 function emojiForId(id: string | number) {
   const s = String(id);
@@ -40,21 +23,10 @@ function emojiForId(id: string | number) {
   return EMOJIS[h % EMOJIS.length];
 }
 
-- filter own
+- it's not going filter selfid if it's a freshly created account, but it's working on the seed ones
 	const others = msg.users.filter((u: any) => String(u?.id ?? "") !== selfId);
 
-- async
-
-export async function initLobby() {
-  const token = localStorage.getItem("jwt");
-
-  if (!token) {
-    window.location.hash = "login";
-    return;
-  }
-
-
-- have to save in a variable
+- have to save in a variable to check the socket later 
   const socket = connectSocket(token, (msg) => {
 
   // Proactively request the list NOW (covers first-visit race)
@@ -71,27 +43,13 @@ export async function initLobby() {
   } catch {}
 }
 
+- 404 page design
 
-- check if there another user online
-  setTimeout(() => {
-	if (! otherUser) {
-		usersContainer.innerHTML = 'p class="text-gray-400">Nobody online yet</p>';
-		}
-	}, 1500);
+- Statistics named to Dashboard
 
-	// actively request if there's another user once the socket is open
-	try {
-		socket?.addEventListener?.("open", () => {
-			try { socket.send?.(JSON.stringify({type: "user:list:request"})); } catch{}
-		})
-	} catch {}
-}
+- Dashboard Design
 
-- 404 page
-
-- Statistics to Dashboard		<li data-action="stats" class="cursor-pointer hover:text-purple-700">Dashboard</li>
-
-- AI 
+- AI Opponent
 export function initGameAIOpponent(): void {
 	// --- AI config (left paddle) ---
 	const aiEnabled = true;       // left paddle is AI
@@ -110,5 +68,3 @@ export function initGameAIOpponent(): void {
     desired = clamp(desired, -aiMaxSpeed, aiMaxSpeed);
 
     p1Vel = desired; // direct control (no input/friction)
-
-- Dashboard Design

@@ -13,7 +13,7 @@ function emojiForId(id: number) {
 }
 
 
-// ADD: simple in-page invite popup (works even when tab isn't active)
+// simple in-page invite popup
 function showInvitePopup(fromLabel: string, onAccept: () => void, onDecline: () => void) {
   const overlay = document.createElement("div");
   overlay.className = "fixed inset-0 z-50 flex items-center justify-center bg-black/60";
@@ -30,7 +30,7 @@ function showInvitePopup(fromLabel: string, onAccept: () => void, onDecline: () 
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) { onDecline(); overlay.remove(); }
   });
-  document.body.appendChild(overlay);
+  document.body.appendChild(overlay); // inserts the overlay <div> into the DOM, after this line, it becomes visible in the browser, appears on screen
   (overlay.querySelector("#iv-accept") as HTMLButtonElement).onclick = () => { onAccept(); overlay.remove(); };
   (overlay.querySelector("#iv-decline") as HTMLButtonElement).onclick = () => { onDecline(); overlay.remove(); };
 }
@@ -76,14 +76,13 @@ export async function initLobby() {
  // TODO: it doesn't get the user id if it's a freshly created account
   const selfId = String(thisUser?.id ?? "");
 
-
   usersContainer.innerHTML = `<p class="text-gray-400">Waiting for online users…</p>`;
 
   const socket = connectSocket(token, (msg) => {
-switch (msg.type) {
+	switch (msg.type) {
 
       case "user:list": {
-        const list = Array.isArray(msg.users) ? msg.users : [];
+        const list = Array.isArray(msg.users) ? msg.users : []; // safer to store in a list
         const others = list.filter((u: any) => String(u?.id ?? "") !== selfId);
 
         if (others.length === 0) {
@@ -105,12 +104,11 @@ switch (msg.type) {
             </div>`;
         }).join("");
 
-        // Attach invite listeners (sender)
+        // Sender, invite listeners
         usersContainer.querySelectorAll(".invite-btn").forEach((btn) => {
           btn.addEventListener("click", () => {
             const userId = (btn as HTMLElement).getAttribute("data-user-id");
             if (!userId) return;
-            if (String(userId) === selfId) return; // don't invite yourself
             socket?.send?.(JSON.stringify({ type: "invite:send", to: Number(userId) }));
             console.log(`Invite sent to user ${userId}`);
           });
@@ -118,7 +116,7 @@ switch (msg.type) {
         break;
       }
 
-      // 🔔 INVITE RECEIVER → show in-page popup (no browser suppression)
+      // Invite receiver, in-page popup
       case "invite:incoming": {
         const from = msg.from ?? {};
         const fromText = from.name ? `${from.name} (${from.id})` : `Player ${from.id}`;
@@ -132,27 +130,26 @@ switch (msg.type) {
         break;
       }
 
-      // 🎯 INVITE ACCEPTED → route both to same room
+      // Invite accepted event → route both to same room
       case "invite:accepted": {
         const room = msg.roomId;
         window.location.hash = `pong2d?room=${encodeURIComponent(room)}`;
         break;
       }
-
+	 // Invite declined event
       case "invite:declined": {
         const who = msg.from?.name ?? `Player ${msg.from?.id ?? ""}`;
         console.log(`${who} declined your invite.`);
         break;
       }
-
+	  // ignore others:
       default:
-        // ignore others
-        break;
+        	break;
     }
   });
 
- // TODO: it doesn't load the new users just after on reload
-  // Proactively request the list NOW (covers first-visit race)
+ 	// TODO: it doesn't load the new users just after on reload
+  // Proactively request the list
   try {
     // If socket already open, send immediately
     if (socket?.readyState === 1 /* WebSocket.OPEN */) {

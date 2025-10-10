@@ -4,10 +4,10 @@ import jwt from 'jsonwebtoken';
 const onlineUsers = new Map();
 
 export function registerWebsocketHandlers(wss, app) {
-	  // ✅ Local helper lives in the same scope as your handlers
+	  // unique room ID string for the players playing a match together
   const makeRoomId = (a, b) => {
     const [x, y] = [Number(a) || 0, Number(b) || 0].sort((m, n) => m - n);
-    return `room-${x}-${y}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    return `room-${x}-${y}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`; // timestamp encoded in base-36 and six random number 
   };
 
   wss.on('connection', (ws, req) => {
@@ -33,22 +33,20 @@ export function registerWebsocketHandlers(wss, app) {
 
       broadcastUsers();
      
-	//   NEW: handle client messages
       ws.on('message', (raw) => {
-        let msg;
+        
+		// handle client messages
+		let msg;
         try { msg = JSON.parse(raw); } catch { return; }
 
         // Simple router for WS messages
         switch (msg.type) {
 
-          /* -------------------------------------------
-           * SENDER ➜ SERVER: invite someone to play
-           * payload: { type: 'invite:send', to: <userId> }
-           * ------------------------------------------- */
+        
+			// SENDER -> SERVER: invite someone to play
+			// payload: { type: 'invite:send', to: <userId> }
           case 'invite:send': {
             const toId = Number(msg.to);
-            // Guard: cannot invite yourself or invalid target
-            if (!toId || toId === ws.user.id) return;
 
             const target = onlineUsers.get(toId);
             if (target && target.readyState === 1) {
@@ -56,7 +54,6 @@ export function registerWebsocketHandlers(wss, app) {
               target.send(JSON.stringify({
                 type: 'invite:incoming',
                 from: { id: ws.user.id, name: ws.user.name },
-                // you can pass mode/map if you want later, e.g. msg.mode
               }));
             } else {
               // Optionally tell sender that user is offline/unavailable
@@ -65,10 +62,9 @@ export function registerWebsocketHandlers(wss, app) {
             break;
           }
 
-          /* ----------------------------------------------------
-           * TARGET ➜ SERVER: reply to an invite
-           * payload: { type: 'invite:response', to: <inviterId>, accepted: true|false }
-           * ---------------------------------------------------- */
+        
+			// TARGET -> SERVER: reply to an invite
+			// payload: { type: 'invite:response', to: <inviterId>, accepted: true|false
           case 'invite:response': {
             const inviterId = Number(msg.to);
             const inviter = onlineUsers.get(inviterId);
