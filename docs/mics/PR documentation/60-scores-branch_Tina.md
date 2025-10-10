@@ -89,4 +89,26 @@ export async function initLobby() {
 
 - 404 page
 
-- 	Statistics to Dashboard		<li data-action="stats" class="cursor-pointer hover:text-purple-700">Dashboard</li>
+- Statistics to Dashboard		<li data-action="stats" class="cursor-pointer hover:text-purple-700">Dashboard</li>
+
+- AI 
+export function initGameAIOpponent(): void {
+	// --- AI config (left paddle) ---
+	const aiEnabled = true;       // left paddle is AI
+	const aiMaxSpeed = 2.0;       // how fast the AI can move (<= your maxSpeed)
+	const aiFollowStrength = 0.15; // smoothing (0..1), higher = snappier
+	
+	// TODO more difficult AI movements
+	// target is to center the paddle on the ball
+    const ballCenterY = ballY + BALL_H / 2;
+    const paddleCenterY = p1Y + PADDLE_H / 2;
+
+    // desired velocity toward the ball
+    let desired = (ballCenterY - paddleCenterY) * aiFollowStrength;
+
+    // cap the AI's speed
+    desired = clamp(desired, -aiMaxSpeed, aiMaxSpeed);
+
+    p1Vel = desired; // direct control (no input/friction)
+
+- Dashboard Design

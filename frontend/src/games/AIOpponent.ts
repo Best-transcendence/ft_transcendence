@@ -23,7 +23,6 @@ export function GamePongAIOpponent(): string {
 
 ${ TimerDisplay() }
 
-
 <!-- Game section -->
 	<div class="flex justify-center w-screen overflow-hidden">
 		<div class="relative"
@@ -71,6 +70,20 @@ ${ TimerDisplay() }
 				class="absolute bottom-[5%] left-1/2 -translate-x-1/2 text-center
 				bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
 				Press Space To Start The Game
+				</p>
+
+				<p id="controlsHint"
+					class="absolute bottom-[15%] left-1/2 -translate-x-1/2 text-center
+					bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
+					You are the <span class="font-semibold text-white">RIGHT</span> paddle
+					<span class="font-semibold"><br>
+					Use the 
+					<span class="text-purple-600">↑</span>
+					<span class="text-purple-600">↓</span>
+					<span class="text-purple-600">←</span>
+					<span class="text-purple-600">→</span>
+					arrows!
+				</p></span>
 				</p>
 
 <!-- Audio -->

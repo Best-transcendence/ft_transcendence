@@ -19,6 +19,19 @@ nvm alias default 22.12.0
 
 # Usage
 
+# Device compatibility
+
+Run and connect to the network from your phone
+```bash
+npm run dev -- --host 0.0.0.0 --port 3004
+```
+Or connect to the link from localtunnel
+
+```bash
+npx localtunnel --port 3004
+curl https://loca.lt/mytunnelpassword
+```
+
 ## ⚙️ Setup & Run (Local Dev)
 
 ### 1. Install dependencies

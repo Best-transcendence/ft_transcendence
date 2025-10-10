@@ -10,9 +10,12 @@ import { GamePong2D } from "./games/Pong2d";
 import { GamePongTournament } from "./games/Tournament";
 import { GamePongAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
+import { initGameTournament } from "./games/InitGameTournament";
+import { initGameAIOpponent } from "./games/InitGameAIOpponent";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
+import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 //Components:
@@ -120,11 +123,11 @@ if (window.location.pathname.startsWith("/assets/"))
       break;
 
 	case "tournament":
-		protectedPage(() => GamePongTournament(), initGame);
+		protectedPage(() => GamePongTournament(), initGameTournament);
 		break;
 
 	case "AIopponent":
-		protectedPage(() => GamePongAIOpponent(), initGame);
+		protectedPage(() => GamePongAIOpponent(), initGameAIOpponent);
 		break;
 
 	case "profile":
@@ -133,6 +136,10 @@ if (window.location.pathname.startsWith("/assets/"))
 
 	case "friends":
 		protectedPage(() => FriendsPage(), triggerPopup, friendRequest);
+		break;
+	
+	case "dashboard":
+		protectedPage(() => DashboardPage());
 		break;
 
 	case "history":

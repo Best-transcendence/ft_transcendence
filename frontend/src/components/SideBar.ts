@@ -34,8 +34,8 @@ export function sideBar()
 				case "friends":
 					window.location.hash = "friends";
 					break;
-				case "stats":
-					/* TODO - Tina intended to do the stats module  */
+				case "dashboard":
+					window.location.hash = "dashboard";
 					break;
 				case "history":
 					window.location.hash = "history";
@@ -59,7 +59,7 @@ export function sidebarDisplay()
 			<li data-action="playpong" class="cursor-pointer hover:text-purple-700">Arcade Clash</li>
 			<li data-action="profile" class="cursor-pointer hover:text-purple-700">Profile</li>
 			<li data-action="friends" class="cursor-pointer hover:text-purple-700">Friends</li>
-			<li data-action="stats" class="cursor-pointer hover:text-purple-700">Dashboard</li>
+			<li data-action="dashboard" class="cursor-pointer hover:text-purple-700">Dashboard</li>
 			<li data-action="history" class="cursor-pointer hover:text-purple-700">Match history</li>
 		</ul>
 
