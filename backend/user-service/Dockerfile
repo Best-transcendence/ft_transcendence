@@ -26,7 +26,8 @@ RUN mkdir -p /app/data && chmod 777 /app/data
 ENV USER_SERVICE_PORT=3002
 ENV USER_SERVICE_URL=http://localhost:3002
 ENV USER_DATABASE_URL=file:./data/user.db
-ENV JWT_SECRET=super-secret-pass-change-in-production
+# TODO: remove secrets from here
+ENV JWT_SECRET=ft-transcendence-dev-secret-change-in-production
 ENV NODE_ENV=production
 
 # Add seed script to package.json
