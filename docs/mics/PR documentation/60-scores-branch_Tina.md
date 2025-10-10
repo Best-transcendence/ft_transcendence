@@ -60,11 +60,3 @@ export function initGameAIOpponent(): void {
 	// target is to center the paddle on the ball
     const ballCenterY = ballY + BALL_H / 2;
     const paddleCenterY = p1Y + PADDLE_H / 2;
-
-    // desired velocity toward the ball
-    let desired = (ballCenterY - paddleCenterY) * aiFollowStrength;
-
-    // cap the AI's speed
-    desired = clamp(desired, -aiMaxSpeed, aiMaxSpeed);
-
-    p1Vel = desired; // direct control (no input/friction)
