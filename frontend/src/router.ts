@@ -10,9 +10,12 @@ import { GamePong2D } from "./games/Pong2d";
 import { GamePongTournament } from "./games/Tournament";
 import { GamePongAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
+import { initGameTournament } from "./games/InitGameTournament";
+import { initGameAIOpponent } from "./games/InitGameAIOpponent";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
+import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 //Components:
@@ -84,9 +87,16 @@ with the # for now just to see if everything works.
 */
 export function router() {
   const app = document.getElementById("app")!;
-  const page = window.location.hash.replace("#", "") || "login";
 
-  if (window.location.pathname.startsWith("/assets/"))
+	const rawHash = window.location.hash.slice(1);
+	const [route, query] = rawHash.split("?"); // to get the route and after the ? to get the query
+	
+	const page = route || "login";
+
+	// TODO store in the gameinit if it's needed
+	const params = new URLSearchParams(query || "");
+
+if (window.location.pathname.startsWith("/assets/"))
     //lets us open assets on web
     return;
 
@@ -114,11 +124,11 @@ export function router() {
       break;
 
 	case "tournament":
-		protectedPage(() => GamePongTournament(), initGame);
+		protectedPage(() => GamePongTournament(), initGameTournament);
 		break;
 
 	case "AIopponent":
-		protectedPage(() => GamePongAIOpponent(), initGame);
+		protectedPage(() => GamePongAIOpponent(), initGameAIOpponent);
 		break;
 
 	case "profile":
@@ -127,6 +137,10 @@ export function router() {
 
 	case "friends":
 		protectedPage(() => FriendsPage(), triggerPopup, friendRequest);
+		break;
+	
+	case "dashboard":
+		protectedPage(() => DashboardPage());
 		break;
 
 	case "history":

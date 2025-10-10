@@ -7,9 +7,10 @@ CREATE TABLE "UserProfile" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "profilePicture" TEXT,
-    "bio" TEXT,
-    "matchHistory" JSONB,
-    "stats" JSONB
+    "bio" TEXT
+	-- TODO check if we need for the setups matchHistory and stats
+    -- "matchHistory" JSONB,
+    -- "stats" JSONB
 );
 
 -- CreateTable
