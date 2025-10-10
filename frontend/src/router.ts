@@ -84,9 +84,15 @@ with the # for now just to see if everything works.
 */
 export function router() {
   const app = document.getElementById("app")!;
-  const page = window.location.hash.replace("#", "") || "login";
 
-  if (window.location.pathname.startsWith("/assets/"))
+	const rawHash = window.location.hash.slice(1);
+	const [route, query] = rawHash.split("?");
+	const page = route || "login";
+
+	// TODO store in the gameinit if it's needed
+	const params = new URLSearchParams(query || "");
+
+if (window.location.pathname.startsWith("/assets/"))
     //lets us open assets on web
     return;
 
