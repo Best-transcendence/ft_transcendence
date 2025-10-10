@@ -40,6 +40,20 @@ ${ TimerDisplay() }
 			border: 9px solid #919bebc7;
 			border-radius: 1rem;">
 
+<!-- Time Up Overlay (hidden by default) inherits from Game window-->
+	<div id="timeUpOverlay"
+		class="absolute inset-0 z-20 hidden"
+		style="border-radius: inherit; background: inherit;">
+
+	<!-- Content column -->
+	<div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4
+				animate-zoomIn">
+		<!-- Top title -->
+		<h2 class="text-2xl font-bold text-white">Time’s up!</h2>
+
+		<!-- Subtitle -->
+		<p class="text-lg text-gray-200 mt-2 mb-6">You won 🥇</p>
+
 <!-- Net -->
 				<div class="absolute border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
 				h-[96%] top-[2%] left-[calc(50%-0.4vw)]"></div>
@@ -72,7 +86,7 @@ ${ TimerDisplay() }
 				Press Space To Start The Game
 				</p>
 
-				<p id="controlsHint"
+				<p id="keyboardHintAI"
 					class="absolute bottom-[15%] left-1/2 -translate-x-1/2 text-center
 					bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
 					You are the <span class="font-semibold text-white">RIGHT</span> paddle
