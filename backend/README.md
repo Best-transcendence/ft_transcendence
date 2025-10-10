@@ -6,31 +6,37 @@ This backend is built using a **microservices architecture** with Fastify, Prism
 
 The system is structured using a **microservices architecture**, designed to keep concerns separated and services independently deployable. Here's how it works from the perspective of a request initiated by the frontend:
 
-- **Frontend (Port 3000)**  
-  A single-page application (SPA) that initiates all requests to the backend.  
+- **Frontend (Port 3000)**
+  A single-page application (SPA) that initiates all requests to the backend.
   It never talks directly to individual services like Auth or User — instead, it goes through the API Gateway.
 
-- **API Gateway (Port 3003)**  
-  Acts as the **single entry point** for all backend services.  
-  - Routes requests to the correct internal microservice  
-    - `/auth/*` → Auth Service  
-    - `/users/*` → User Service  
-  - Validates JWT tokens for protected routes  
-  - Adds logging, correlation IDs, and error boundaries  
+- **API Gateway (Port 3003)**
+  Acts as the **single entry point** for all backend services.
+  - Routes requests to the correct internal microservice
+    - `/auth/*` → Auth Service
+    - `/users/*` → User Service
+  - Validates JWT tokens for protected routes
+  - Adds logging, correlation IDs, and error boundaries
   - Makes the frontend simpler and more secure
 
-- **Auth Service (Port 3001)**  
-  Handles **user registration, login, and authentication**.  
-  - Stores secure credentials (email, hashed password)  
-  - Issues and validates JWT tokens  
-  - Does not manage user profiles or game data  
+- **Auth Service (Port 3001)**
+  Handles **user registration, login, and authentication**.
+  - Stores secure credentials (email, hashed password)
+  - Issues and validates JWT tokens
+  - Does not manage user profiles or game data
 
-- **User Service (Port 3002)**  
-  Manages **user profile data and game-related information**.  
-  - Stores public info like name, avatar, and bio  
-  - Maintains friend relationships, match history, and statistics  
-  - Each record is linked to the Auth Service via `authUserId`  
+- **User Service (Port 3002)**
+  Manages **user profile data and game-related information**.
+  - Stores public info like name, avatar, and bio
+  - Maintains friend relationships, match history, and statistics
+  - Each record is linked to the Auth Service via `authUserId`
   - Supports a `/users/bootstrap` route for creating a new profile after registration
+
+- ** Websocket connection (Port : 4000) **
+  Manae websocket connection so every user logged can connect to the others.
+  - Create a connection when the user loggin in the website getting the ID of each user.
+  - Connects directly with the front end, throught the port 4000.
+  - Works independently of the gateway as is not a direct http request.
 
 This design allows services to evolve independently. For example, if we later add a `matchmaking` or `notification` service, the frontend doesn't need to change — it will still just talk to the Gateway.
 
@@ -66,16 +72,25 @@ rm -f backend/gateway/*.db
 
 This project uses **pre-commit hooks** to ensure code quality. The hooks automatically run ESLint on backend files before each commit.
 
+**Prerequisites:**
+- A `backend/package.json` file with linting scripts must exist
+- ESLint dependencies must be installed in the backend directory
+
 **Setup commands:**
 
 ```bash
 # 1. Install Husky (Git hooks manager) in project root
 npm install --save-dev husky
 
-# 2. Initialize Husky
+# 2. Install ESLint dependencies in backend directory
+cd backend
+npm install
+cd ..
+
+# 3. Initialize Husky
 npx husky init
 
-# 3. Create the pre-commit hook
+# 4. Create the pre-commit hook
 echo '#!/bin/sh
 if git diff --cached --name-only | grep -q "^backend/"; then
   echo "🔍 Backend files changed, running linter..."
@@ -87,10 +102,10 @@ if git diff --cached --name-only | grep -q "^backend/"; then
   echo "✅ Backend linting passed!"
 fi' > .husky/pre-commit
 
-# 4. Make the hook executable
+# 5. Make the hook executable
 chmod +x .husky/pre-commit
 
-# 5. Add prepare script to root package.json
+# 6. Add prepare script to root package.json
 npm pkg set scripts.prepare="husky"
 ```
 
@@ -99,6 +114,11 @@ npm pkg set scripts.prepare="husky"
 - ✅ Automatically runs `npm run lint:fix` to fix auto-fixable issues
 - ✅ Prevents commit if linting fails
 - ✅ Can be bypassed with `git commit --no-verify` if needed
+
+**Backend package.json structure:**
+The `backend/package.json` contains linting scripts that run ESLint across all microservices:
+- `npm run lint` - Check for linting errors
+- `npm run lint:fix` - Fix auto-fixable linting errors
 
 ### Code Style Guidelines
 
@@ -111,7 +131,7 @@ npm pkg set scripts.prepare="husky"
   fastify.get('/health', async (_request, _reply) => {
     return { status: 'ok' };
   });
-  
+
   // ❌ Bad - will trigger linting warning
   fastify.get('/health', async (request, reply) => {
     return { status: 'ok' };
@@ -125,8 +145,13 @@ npm pkg set scripts.prepare="husky"
 │   Frontend      │    │   API Gateway   │    │   Auth Service  │
 │   (Port 3000)   │◄──►│   (Port 3003)   │◄──►│   (Port 3001)   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
+        │                       │
+        │                       │
+        ▼                       │
+┌─────────────────┐             │
+│    Websocket    │             │
+│   (Port 4000)   │             │
+└─────────────────┘             ▼
                        ┌─────────────────┐
                        │  User Service   │
                        │   (Port 3002)   │
@@ -162,6 +187,12 @@ npm run seed
 **Gateway Setup:**
 ```bash
 cd backend/gateway
+npm install
+```
+
+**Websocket Setup:**
+```bash
+cd ws-service
 npm install
 ```
 
@@ -203,11 +234,18 @@ npm install  # Just in case something new happened
 npm run dev
 ```
 
+**Terminal 5 - Frontend (Port 3000):**
+```bash
+cd ws-service
+npm install  # Just in case something new happened
+npm run dev
+```
+
 ### Verify Services
 ```bash
 # Check if all services are running
 curl http://localhost:3001/health  # Auth Service
-curl http://localhost:3002/health  # User Service  
+curl http://localhost:3002/health  # User Service
 curl http://localhost:3003/health  # Gateway
 curl http://localhost:3000         # Frontend
 ```
@@ -248,32 +286,32 @@ sequenceDiagram
 
     F->>G: POST /auth/signup
     Note over F,G: {name, email, password, confirmPassword}
-    
+
     G->>A: POST /auth/signup
     Note over G,A: Proxy request
-    
+
     A->>A: Validate input
     Note over A: Check email format, password match
-    
+
     A->>ADB: Check existing users
     Note over A,ADB: Prevent duplicates
-    
+
     A->>ADB: Create user
     Note over A,ADB: Store in auth database
-    
+
     A->>U: POST /users/bootstrap
     Note over A,U: {authUserId, name, email}
     Note over A,U: Correlation ID for tracking
-    
+
     U->>UDB: Create/Update profile
     Note over U,UDB: Idempotent operation
-    
+
     U-->>A: 201/200 Response
     Note over U,A: Profile created/updated
-    
+
     A-->>G: 200 Response
     Note over A,G: {id, name, email}
-    
+
     G-->>F: 200 Response
     Note over G,F: Registration successful
 ```
@@ -295,25 +333,25 @@ sequenceDiagram
 
     F->>G: POST /auth/login
     Note over F,G: {email, password}
-    
+
     G->>A: POST /auth/login
     Note over G,A: Proxy request
-    
+
     A->>A: Validate credentials
     Note over A: Check email format, password length
-    
+
     A->>ADB: Find user by email
     Note over A,ADB: Lookup user in auth database
-    
+
     A->>A: Verify password
     Note over A: Compare with stored password
-    
+
     A->>A: Generate JWT token
     Note over A: Sign token with user ID
-    
+
     A-->>G: 200 Response
     Note over A,G: {token, user: {id, name, email}}
-    
+
     G-->>F: 200 Response
     Note over G,F: Login successful with JWT
 ```
@@ -335,22 +373,22 @@ sequenceDiagram
 
     F->>G: GET /users/me
     Note over F,G: Authorization: Bearer <JWT>
-    
+
     G->>G: Validate JWT token
     Note over G: Extract user ID from token
-    
+
     G->>U: GET /users/me
     Note over G,U: Forward with JWT
-    
+
     U->>U: Verify JWT token
     Note over U: Extract authUserId from token
-    
+
     U->>UDB: Find profile by authUserId
     Note over U,UDB: Lookup user profile
-    
+
     U-->>G: 200 Response
     Note over U,G: {user: {id, authUserId, name, email, ...}}
-    
+
     G-->>F: 200 Response
     Note over G,F: Complete user profile
 ```
@@ -380,15 +418,15 @@ model UserProfile {
   email       String   -- Duplicated for performance
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   -- Profile information
   profilePicture String?
   bio           String?
-  
+
   -- Friends relationships
   friends       UserProfile[] @relation("UserFriends")
   friendOf      UserProfile[] @relation("UserFriends")
-  
+
   -- Game data
   matchHistory  Json?  -- Game match history
   stats         Json?  -- User statistics
@@ -481,7 +519,7 @@ All requests include correlation IDs for tracking across services:
 ```bash
 # Check service health
 curl http://localhost:3001/health  # Auth Service
-curl http://localhost:3002/health  # User Service  
+curl http://localhost:3002/health  # User Service
 curl http://localhost:3003/health  # Gateway
 ```
 
@@ -568,7 +606,7 @@ curl http://localhost:3003/health  # Gateway
 
 # Clean node_modules (if needed)
 rm -rf backend/auth-service/node_modules
-rm -rf backend/user-service/node_modules  
+rm -rf backend/user-service/node_modules
 rm -rf backend/gateway/node_modules
 rm -rf frontend/node_modules
 
