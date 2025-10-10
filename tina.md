@@ -87,3 +87,6 @@ export async function initLobby() {
 	} catch {}
 }
 
+- 404 page
+
+- 	Statistics to Dashboard		<li data-action="stats" class="cursor-pointer hover:text-purple-700">Dashboard</li>

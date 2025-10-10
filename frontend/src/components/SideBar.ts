@@ -59,7 +59,7 @@ export function sidebarDisplay()
 			<li data-action="playpong" class="cursor-pointer hover:text-purple-700">Arcade Clash</li>
 			<li data-action="profile" class="cursor-pointer hover:text-purple-700">Profile</li>
 			<li data-action="friends" class="cursor-pointer hover:text-purple-700">Friends</li>
-			<li data-action="stats" class="cursor-pointer hover:text-purple-700">Statistics</li>
+			<li data-action="stats" class="cursor-pointer hover:text-purple-700">Dashboard</li>
 			<li data-action="history" class="cursor-pointer hover:text-purple-700">Match history</li>
 		</ul>
 
