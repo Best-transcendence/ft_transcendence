@@ -36,8 +36,12 @@ clean:
 docker:
 	@echo "🐳 Building user-service Docker image..."
 	docker build -t ft_transcendence_user_service .
+	@echo "🛑 Stopping existing container if running..."
+	docker stop user_service 2>/dev/null || true
+	docker rm user_service 2>/dev/null || true
 	@echo "🚀 Starting user-service Docker container..."
-	docker run -d --name user_service -p 3002:3002 ft_transcendence_user_service
+	docker network create ft_transcendence_network 2>/dev/null || true
+	docker run -d --name user_service --network ft_transcendence_network -p 3002:3002 ft_transcendence_user_service
 	@echo "✅ Container started! Following logs..."
 	@echo "📋 Press Ctrl+C to stop following logs (container keeps running)"
 	docker logs -f user_service

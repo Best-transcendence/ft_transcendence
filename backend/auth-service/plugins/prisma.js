@@ -1,8 +1,40 @@
 import fp from 'fastify-plugin';
 import { PrismaClient } from '@prisma/client';
+import { execSync } from 'child_process';
 
 // Plugin to integrate Prisma ORM with Fastify
 export default fp(async (fastify, _opts) => {
+  try {
+    // Initialize database schema if needed
+    console.log('🔄 Initializing database...');
+    execSync('npx prisma db push --accept-data-loss', { stdio: 'inherit' });
+    console.log('✅ Database initialized successfully');
+    
+    // Check if database needs seeding
+    console.log('🌱 Checking if database needs seeding...');
+    const prisma = new PrismaClient();
+    
+    try {
+      const userCount = await prisma.user.count();
+      
+      if (userCount === 0) {
+        console.log('🌱 Database is empty, running seed script...');
+        execSync('npm run seed', { stdio: 'inherit' });
+        console.log('✅ Database seeded successfully');
+      } else {
+        console.log(`ℹ️ Database already has ${userCount} users, skipping seed`);
+      }
+    } catch (seedError) {
+      console.log('⚠️ Seeding error:', seedError.message);
+      // Continue anyway - app can still work without seed data
+    } finally {
+      await prisma.$disconnect();
+    }
+  } catch (error) {
+    console.log('⚠️ Database initialization warning:', error.message);
+    // Continue anyway - database might already exist
+  }
+
   // Create new Prisma client instance
   const prisma = new PrismaClient();
     
