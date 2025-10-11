@@ -1,1 +1,185 @@
-// TODO: implement when all services have Dockerfiles
+services:
+  # =============================================================================
+  # DATABASE SERVICES
+  # =============================================================================
+  
+  # User Service Database (SQLite)
+  user-db:
+    image: alpine:latest
+    volumes:
+      - user_data:/app/data
+    command: ["sh", "-c", "mkdir -p /app/data && chmod 777 /app/data && tail -f /dev/null"]
+    networks:
+      - ft_transcendence_network
+
+  # Auth Service Database (SQLite)  
+  auth-db:
+    image: alpine:latest
+    volumes:
+      - auth_data:/app/data
+    command: ["sh", "-c", "mkdir -p /app/data && chmod 777 /app/data && tail -f /dev/null"]
+    networks:
+      - ft_transcendence_network
+
+  # =============================================================================
+  # BACKEND SERVICES
+  # =============================================================================
+
+  # User Service
+  user-service:
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    container_name: user_service
+    environment:
+      - USER_SERVICE_PORT=${USER_SERVICE_PORT}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - USER_DATABASE_URL=${USER_DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=${NODE_ENV}
+    ports:
+      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
+    volumes:
+      - user_data:/app/data
+    depends_on:
+      - user-db
+    networks:
+      - ft_transcendence_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${USER_SERVICE_PORT}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    container_name: auth_service
+    environment:
+      - AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - AUTH_DATABASE_URL=${AUTH_DATABASE_URL}
+      - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=${NODE_ENV}
+    ports:
+      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
+    volumes:
+      - auth_data:/app/data
+    depends_on:
+      - auth-db
+      - user-service
+    networks:
+      - ft_transcendence_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${AUTH_SERVICE_PORT}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Gateway Service
+  gateway-service:
+    build:
+      context: ./backend/gateway
+      dockerfile: Dockerfile
+    container_name: gateway_service
+    environment:
+      - GATEWAY_PORT=${GATEWAY_PORT}
+      - GATEWAY_URL=${GATEWAY_URL}
+      - AUTH_SERVICE_URL=http://auth_service:${AUTH_SERVICE_PORT}
+      - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
+      - WS_SERVICE_URL=http://ws_service:${WS_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=${NODE_ENV}
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    depends_on:
+      - auth-service
+      - user-service
+    networks:
+      - ft_transcendence_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${GATEWAY_PORT}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # WebSocket Service
+  ws-service:
+    build:
+      context: ./backend/ws-service
+      dockerfile: Dockerfile
+    container_name: ws_service
+    environment:
+      - WS_PORT=${WS_PORT}
+      - WS_SERVICE_URL=${WS_SERVICE_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - GATEWAY_URL=http://gateway_service:${GATEWAY_PORT}
+      - AUTH_SERVICE_URL=http://auth_service:${AUTH_SERVICE_PORT}
+      - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=${NODE_ENV}
+    ports:
+      - "${WS_PORT}:${WS_PORT}"
+    depends_on:
+      - auth-service
+      - user-service
+      - gateway-service
+    networks:
+      - ft_transcendence_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${WS_PORT}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # =============================================================================
+  # FRONTEND SERVICE
+  # =============================================================================
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend_service
+    environment:
+      - FRONTEND_PORT=${FRONTEND_PORT}
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    depends_on:
+      - gateway-service
+      - ws-service
+    networks:
+      - ft_transcendence_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${FRONTEND_PORT}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+
+networks:
+  ft_transcendence_network:
+    driver: bridge
+    name: ft_transcendence_network
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+
+volumes:
+  user_data:
+    driver: local
+  auth_data:
+    driver: local
