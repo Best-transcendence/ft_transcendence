@@ -60,3 +60,25 @@ export function initGameAIOpponent(): void {
 	// target is to center the paddle on the ball
     const ballCenterY = ballY + BALL_H / 2;
     const paddleCenterY = p1Y + PADDLE_H / 2;
+
+	 backend/user-service/prisma/migrations/20250910164408_init/migration.sql |   7 ++--
+ backend/user-service/prisma/migrations/20251009205740_init/migration.sql |  13 ++++++++
+ backend/user-service/prisma/schema.prisma                                |  20 ++++++++++++
+ backend/user-service/prisma/seed.js                                      |  12 ++++++-
+ backend/ws-service/routes/websocket.js                                   |  78 ++++++++++++++++++++++++++++++++++++++++++++
+ docs/mics/PR documentation/60-scores-branch_Tina.md                      |  62 +++++++++++++++++++++++++++++++++++
+ docs/mics/{ => PR documentation}/friend_PR_Camille.md                    |   0
+ docs/mics/{ => PR documentation}/frontend_fixes.md                       |   0
+ docs/mics/{ => PR documentation}/history_page_PR_Camille.md              |   0
+ frontend/README.md                                                       |  15 +++++++--
+ frontend/public/output.css                                               | 118 +++++++++++++++++++++++++++++++++++++++++++++++++-----------------
+ frontend/src/components/SideBar.ts                                       |   6 ++--
+ frontend/src/games/AIOpponent.ts                                         |  15 ++++++++-
+ frontend/src/games/InitGameAIOpponent.ts                                 | 203 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ frontend/src/games/InitGameTournament.ts                                 | 183 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ frontend/src/pages/Dashboard.ts                                          |  91 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ frontend/src/pages/GameIntroPage.ts                                      |   2 +-
+ frontend/src/pages/LobbyPage.ts                                          | 190 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----------------------------------
+ frontend/src/pages/NotFoundPage.ts                                       |  26 ++++++++++++---
+ frontend/src/router.ts                                                   |  22 ++++++++++---
+ 20 files changed, 954 insertions(+), 109 deletions(-)
