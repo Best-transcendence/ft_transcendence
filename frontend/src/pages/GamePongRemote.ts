@@ -115,7 +115,7 @@ export function initRemoteGame(roomId: string) {
       socket?.send(JSON.stringify({
         type: "game:move",
         direction: e.key,
-        action: "down", // 👈 tecla presionada
+        action: "down",
         roomId,
       }));
     }
@@ -126,7 +126,7 @@ export function initRemoteGame(roomId: string) {
       socket?.send(JSON.stringify({
         type: "game:move",
         direction: e.key,
-        action: "up", // 👈 tecla soltada
+        action: "up", 
         roomId,
       }));
     }
