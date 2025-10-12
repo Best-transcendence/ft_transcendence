@@ -46,10 +46,10 @@ export function initLobby() {
         document.querySelectorAll(".invite-btn").forEach((btn) => {
           btn.addEventListener("click", () => {
             const userId = (btn as HTMLElement).getAttribute("data-user-id");
-            console.log("📨 Sending invite to user", userId);
+            console.log(" Sending invite to user", userId);
             sendWSMessage("invite", { to: userId });
 
-            console.log("🧪 Invite message sent:", {
+            console.log(" Invite message sent:", {
               type: "invite",
               to: userId,
             });
@@ -63,16 +63,16 @@ export function initLobby() {
         break;
 
       case "room:start":
-        console.log("🚀 Starting room", msg.roomId);
+        console.log(" Starting room", msg.roomId);
         window.location.hash = `remote?room=${msg.roomId}`;
         break;
 
       case "invite:declined":
-        alert(`❌ ${msg.from.name} declined your invite`);
+        alert(` ${msg.from.name} declined your invite`);
         break;
 
       default:
-        console.log("⚠️ Unhandled WS message:", msg);
+        console.log(" Unhandled WS message:", msg);
     }
   });
 }

@@ -30,7 +30,6 @@ export function registerWebsocketHandlers(wss, app) {
           const data = JSON.parse(msg);
 
           switch (data.type) {
-            // 🎮 Lógica de salas
             case 'invite':
               roomHandlers.handleInvite(ws, {
                 ...data,
@@ -52,7 +51,7 @@ export function registerWebsocketHandlers(wss, app) {
               });
               break;
 
-            // 🕹️ Lógica de juego
+            //  Lógica de juego
             case 'game:join':
               gameHandlers.handleGameJoin(ws, {
                 ...data,
@@ -69,17 +68,17 @@ export function registerWebsocketHandlers(wss, app) {
               break;
 
             default:
-              app.log.warn({ type: data.type }, '⚠️ Unhandled WS message');
+              app.log.warn({ type: data.type }, ' Unhandled WS message');
           }
         } catch (e) {
-          app.log.error('❌ Bad WS message', e);
+          app.log.error(' Bad WS message', e);
         }
       });
 
       // Desconexión del cliente
       ws.on('close', () => {
         onlineUsers.delete(String(ws.user.id));
-        app.log.info({ userId: ws.user.id }, '❌ Disconnected');
+        app.log.info({ userId: ws.user.id }, ' Disconnected');
         broadcastUsers();
       });
     } catch (err) {

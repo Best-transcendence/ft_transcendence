@@ -17,7 +17,7 @@ export function registerRoomHandlers(wss, onlineUsers, app) {
         from: { id: ws.user.id, name: ws.user.name },
       })
     );
-    app.log.info(`✅ Invite sent from ${ws.user.id} to ${to}`);
+    app.log.info(` Invite sent from ${ws.user.id} to ${to}`);
   }
 
   function handleInviteAccepted(ws, data) {
@@ -40,7 +40,7 @@ export function registerRoomHandlers(wss, onlineUsers, app) {
       )
     );
 
-    app.log.info(`🚀 Room created: ${roomId} (${from} vs ${ws.user.id})`);
+    app.log.info(` Room created: ${roomId} (${from} vs ${ws.user.id})`);
   }
 
   function handleInviteDeclined(ws, data) {

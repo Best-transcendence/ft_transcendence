@@ -68,7 +68,7 @@ function handleGameMove(ws, data) {
     }
   }
 
-  app.log.info(`🎮 ${action} ${direction} by player ${ws.user.id} in room ${roomId}`);
+  app.log.info(` ${action} ${direction} by player ${ws.user.id} in room ${roomId}`);
 }
 
 

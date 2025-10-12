@@ -13,12 +13,12 @@ export function GamePongRemote(): string {
 
     switch (msg.type) {
       case "room:start":
-        console.log("🚀 Room started:", msg.roomId);
+        console.log(" Room started:", msg.roomId);
         initRemoteGame(msg.roomId);
         break;
 
       case "game:start":
-        console.log("🎮 Game started in room:", msg.roomId);
+        console.log(" Game started in room:", msg.roomId);
         startTimer(5);
         break;
 
@@ -154,6 +154,6 @@ function updateGameState(state: any) {
 }
 
 function showGameOver(winner: string) {
-  alert(`🏆 Game Over! Winner: ${winner}`);
+  alert(` Game Over! Winner: ${winner}`);
   window.location.hash = "intro";
 }
