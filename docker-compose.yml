@@ -1,27 +1,5 @@
 services:
   # =============================================================================
-  # DATABASE SERVICES
-  # =============================================================================
-  
-  # User Service Database (SQLite)
-  user-db:
-    image: alpine:latest
-    volumes:
-      - user_data:/app/data
-    command: ["sh", "-c", "mkdir -p /app/data && chmod 777 /app/data && tail -f /dev/null"]
-    networks:
-      - ft_transcendence_network
-
-  # Auth Service Database (SQLite)  
-  auth-db:
-    image: alpine:latest
-    volumes:
-      - auth_data:/app/data
-    command: ["sh", "-c", "mkdir -p /app/data && chmod 777 /app/data && tail -f /dev/null"]
-    networks:
-      - ft_transcendence_network
-
-  # =============================================================================
   # BACKEND SERVICES
   # =============================================================================
 
@@ -31,22 +9,24 @@ services:
       context: ./backend/user-service
       dockerfile: Dockerfile
     container_name: user_service
+    env_file:
+      - .env
     environment:
       - USER_SERVICE_PORT=${USER_SERVICE_PORT}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
       - USER_DATABASE_URL=${USER_DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
+      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
     ports:
       - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     volumes:
       - user_data:/app/data
-    depends_on:
-      - user-db
     networks:
       - ft_transcendence_network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${USER_SERVICE_PORT}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      test: ["CMD-SHELL", "curl -f http://localhost:${USER_SERVICE_PORT}/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -58,6 +38,8 @@ services:
       context: ./backend/auth-service
       dockerfile: Dockerfile
     container_name: auth_service
+    env_file:
+      - .env
     environment:
       - AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT}
       - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
@@ -65,17 +47,19 @@ services:
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
+      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
     ports:
       - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
     volumes:
       - auth_data:/app/data
     depends_on:
-      - auth-db
-      - user-service
+      user-service:
+        condition: service_healthy
     networks:
       - ft_transcendence_network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${AUTH_SERVICE_PORT}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      test: ["CMD-SHELL", "curl -f http://localhost:${AUTH_SERVICE_PORT}/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -87,6 +71,8 @@ services:
       context: ./backend/gateway
       dockerfile: Dockerfile
     container_name: gateway_service
+    env_file:
+      - .env
     environment:
       - GATEWAY_PORT=${GATEWAY_PORT}
       - GATEWAY_URL=${GATEWAY_URL}
@@ -95,15 +81,19 @@ services:
       - WS_SERVICE_URL=http://ws_service:${WS_PORT}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
+      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
     ports:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
     depends_on:
-      - auth-service
-      - user-service
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
     networks:
       - ft_transcendence_network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${GATEWAY_PORT}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      test: ["CMD-SHELL", "curl -f http://localhost:${GATEWAY_PORT}/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -115,6 +105,8 @@ services:
       context: ./backend/ws-service
       dockerfile: Dockerfile
     container_name: ws_service
+    env_file:
+      - .env
     environment:
       - WS_PORT=${WS_PORT}
       - WS_SERVICE_URL=${WS_SERVICE_URL}
@@ -124,16 +116,21 @@ services:
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
+      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
     ports:
       - "${WS_PORT}:${WS_PORT}"
     depends_on:
-      - auth-service
-      - user-service
-      - gateway-service
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      gateway-service:
+        condition: service_healthy
     networks:
       - ft_transcendence_network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${WS_PORT}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      test: ["CMD-SHELL", "curl -f http://localhost:${WS_PORT}/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -143,23 +140,27 @@ services:
   # FRONTEND SERVICE
   # =============================================================================
 
-  # Frontend Service
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend_service
+    env_file:
+      - .env
     environment:
       - FRONTEND_PORT=${FRONTEND_PORT}
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     depends_on:
-      - gateway-service
-      - ws-service
+      gateway-service:
+        condition: service_healthy
+      ws-service:
+        condition: service_healthy
     networks:
       - ft_transcendence_network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${FRONTEND_PORT}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      test: ["CMD-SHELL", "curl -f http://localhost:${FRONTEND_PORT}/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

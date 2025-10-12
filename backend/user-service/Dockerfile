@@ -12,6 +12,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 
+# Install curl for Docker healthcheck
+RUN apk add --no-cache curl
+
 # Copy Prisma schema and generate client
 COPY prisma/ ./prisma/
 RUN npx prisma generate
