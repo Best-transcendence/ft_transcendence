@@ -17,7 +17,11 @@ export default [
         module: 'readonly',
         require: 'readonly',
         exports: 'readonly',
-        URL: 'readonly'
+        URL: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly'
       }
     },
     rules: {
