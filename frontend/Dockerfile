@@ -6,30 +6,22 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files and install dependencies
 COPY package*.json ./
-
-# Install dependencies
 RUN npm ci
 
-# Install curl for Docker healthcheck
+# Install curl for external healthchecks (used by docker-compose)
 RUN apk add --no-cache curl
 
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the frontend
 RUN npm run build
 
-# Set environment variables (can be overridden by docker run -e)
-ENV FRONTEND_PORT=${FRONTEND_PORT:-3000}
-
-# Expose port
-EXPOSE ${FRONTEND_PORT:-3000}
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:${FRONTEND_PORT:-3000}/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+# Expose the default port (can be overridden by docker-compose)
+EXPOSE 3000
 
 # Start the application using Vite preview
-CMD ["sh", "-c", "npm run preview -- --host 0.0.0.0 --port ${FRONTEND_PORT:-3000}"]
+CMD ["sh", "-c", "npm run preview -- --host 0.0.0.0 --port 3000"]
+
