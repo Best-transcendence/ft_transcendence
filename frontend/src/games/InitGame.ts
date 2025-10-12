@@ -48,7 +48,7 @@ export function initGame(): void {
 
   document.addEventListener("keydown", (e) => {
 	if (e.code === "Space" && !running) {
-		// TODO setup to 90 
+		// TODO setup to 90
 		startTimer(5);
 		startGame();
 	}
