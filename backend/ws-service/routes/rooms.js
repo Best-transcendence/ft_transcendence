@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 
-export function registerRoomHandlers(wss, onlineUsers, app) {
-  const rooms = new Map(); // roomId -> [playerA, playerB]
+export const rooms = new Map(); // roomId -> { players: [...], state: {...} }
 
+export function registerRoomHandlers(wss, onlineUsers, app) {
   function handleInvite(ws, data) {
     const { to } = data;
     const target = onlineUsers.get(to);
@@ -26,9 +26,10 @@ export function registerRoomHandlers(wss, onlineUsers, app) {
     if (!inviter) return;
 
     const roomId = uuidv4();
-    rooms.set(roomId, [from, ws.user.id]);
+    rooms.set(roomId, {
+      players: [inviter, ws],
+    });
 
-    // Notify both
     [inviter, ws].forEach((client) =>
       client.send(
         JSON.stringify({

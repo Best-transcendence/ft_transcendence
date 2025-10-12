@@ -1,10 +1,12 @@
 import jwt from 'jsonwebtoken';
 import { registerRoomHandlers } from './rooms.js';
+import { registerGameHandlers } from './game.js';
 
 const onlineUsers = new Map();
 
 export function registerWebsocketHandlers(wss, app) {
   const roomHandlers = registerRoomHandlers(wss, onlineUsers, app);
+  const gameHandlers = registerGameHandlers(wss, onlineUsers, app);
 
   wss.on('connection', (ws, req) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
@@ -15,50 +17,67 @@ export function registerWebsocketHandlers(wss, app) {
       const payload = jwt.verify(token, process.env.JWT_SECRET);
       ws.user = payload;
 
-      // Save the user Id as string
+      // Guardar el usuario conectado
       onlineUsers.set(String(ws.user.id), ws);
+      app.log.info({ userId: ws.user.id }, '✅ WS Connected');
 
-      app.log.info({ userId: ws.user.id }, ' WS Connected');
       ws.send(JSON.stringify({ type: 'welcome', user: payload }));
       broadcastUsers();
 
-      // Message Handler.
+      // Escuchar mensajes entrantes
       ws.on('message', (msg) => {
         try {
           const data = JSON.parse(msg);
 
           switch (data.type) {
+            // 🎮 Lógica de salas
             case 'invite':
               roomHandlers.handleInvite(ws, {
                 ...data,
-                to: String(data.to), // Make sure the id is a string
+                to: String(data.to),
               });
               break;
 
             case 'invite:accepted':
               roomHandlers.handleInviteAccepted(ws, {
                 ...data,
-                from: String(data.from), // Make sure from is string.
+                from: String(data.from),
               });
               break;
 
             case 'invite:declined':
               roomHandlers.handleInviteDeclined(ws, {
                 ...data,
-                from: String(data.from), // make sure again.
+                from: String(data.from),
+              });
+              break;
+
+            // 🕹️ Lógica de juego
+            case 'game:join':
+              gameHandlers.handleGameJoin(ws, {
+                ...data,
+                roomId: String(data.roomId),
+              });
+              break;
+
+            case 'game:move':
+              gameHandlers.handleGameMove(ws, {
+                ...data,
+                roomId: String(data.roomId),
+                direction: data.direction,
               });
               break;
 
             default:
-              app.log.warn({ type: data.type }, 'Unhandled WS message');
+              app.log.warn({ type: data.type }, '⚠️ Unhandled WS message');
           }
         } catch (e) {
-          app.log.error('Bad WS message', e);
+          app.log.error('❌ Bad WS message', e);
         }
       });
 
+      // Desconexión del cliente
       ws.on('close', () => {
-        // Delete id as string.
         onlineUsers.delete(String(ws.user.id));
         app.log.info({ userId: ws.user.id }, '❌ Disconnected');
         broadcastUsers();
@@ -79,6 +98,7 @@ export function registerWebsocketHandlers(wss, app) {
     }));
 
     const payload = JSON.stringify({ type: 'user:list', users });
+
     for (const client of onlineUsers.values()) {
       if (client.readyState === 1) client.send(payload);
     }
