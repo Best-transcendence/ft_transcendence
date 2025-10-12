@@ -19,7 +19,7 @@ export function registerWebsocketHandlers(wss, app) {
 
       // Guardar el usuario conectado
       onlineUsers.set(String(ws.user.id), ws);
-      app.log.info({ userId: ws.user.id }, '✅ WS Connected');
+      app.log.info({ userId: ws.user.id }, ' WS Connected');
 
       ws.send(JSON.stringify({ type: 'welcome', user: payload }));
       broadcastUsers();
