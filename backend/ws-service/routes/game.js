@@ -1,4 +1,3 @@
-// backend/ws-service/game.js
 import { rooms } from './rooms.js';
 
 export function registerGameHandlers(wss, onlineUsers, app) {
@@ -7,7 +6,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     const room = rooms.get(roomId);
     if (!room) return;
 
-    // Initialize state if first time
+    // Inicializar estado si es la primera vez
     if (!room.state) {
       room.state = {
         p1Y: 37.5,
@@ -34,13 +33,18 @@ export function registerGameHandlers(wss, onlineUsers, app) {
 
     app.log.info(`🎮 Player joined room ${roomId}`);
 
-    // Start game when 2 players are in
+    // Iniciar juego cuando haya 2 jugadores
     if (room.players.length === 2) {
       room.players.forEach(client => {
         client.send(JSON.stringify({ type: 'game:start', roomId }));
       });
+
       resetBall(room.state);
-      startGameLoop(roomId, room);
+
+      // ⏳ Esperar 1 segundo para que el frontend cargue
+      setTimeout(() => {
+        startGameLoop(roomId, room);
+      }, 1000);
     }
   }
 
@@ -55,11 +59,9 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     const isDown = action === "down";
 
     if (playerIndex === 0) {
-      // Player 1 (left) uses W/S
       if (direction === "w") room.state.p1Up = isDown;
       else if (direction === "s") room.state.p1Down = isDown;
     } else if (playerIndex === 1) {
-      // Player 2 (right) uses ArrowUp/ArrowDown
       if (direction === "ArrowUp") room.state.p2Up = isDown;
       else if (direction === "ArrowDown") room.state.p2Down = isDown;
     }
@@ -75,7 +77,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     room.loopId = setInterval(() => {
       const state = room.state;
 
-      // Paddle movement
+      // Movimiento de paddles
       state.p1Vel = applyInput(state.p1Up, state.p1Down, state.p1Vel);
       state.p2Vel = applyInput(state.p2Up, state.p2Down, state.p2Vel);
 
@@ -83,16 +85,16 @@ export function registerGameHandlers(wss, onlineUsers, app) {
       state.p1Y = clamp(state.p1Y + state.p1Vel, 0, maxY);
       state.p2Y = clamp(state.p2Y + state.p2Vel, 0, maxY);
 
-      // Ball movement
+      // Movimiento de la pelota
       state.ballX += state.ballVelX;
       state.ballY += state.ballVelY;
 
-      // Bounce on top/bottom
+      // Rebote arriba/abajo
       if (state.ballY <= 0 || state.ballY >= FIELD - BALL_H) {
         state.ballVelY *= -1;
       }
 
-      // Left paddle collision
+      // Colisión con paddle izquierdo
       if (
         state.ballX <= PADDLE_W &&
         state.ballY + BALL_H >= state.p1Y &&
@@ -102,7 +104,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         state.ballVelX *= -1;
       }
 
-      // Right paddle collision
+      // Colisión con paddle derecho
       if (
         state.ballX + BALL_W >= FIELD - PADDLE_W &&
         state.ballY + BALL_H >= state.p2Y &&
@@ -112,7 +114,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         state.ballVelX *= -1;
       }
 
-      // Scoring
+      // Puntos
       const ballCenterX = state.ballX + BALL_W / 2;
       if (ballCenterX < 0) {
         state.s2++;
@@ -123,13 +125,13 @@ export function registerGameHandlers(wss, onlineUsers, app) {
       }
 
       broadcastGameState(room);
-    }, 1000 / 60); // ~60fps
+    }, 1000 / 60); // 60 FPS
   }
 
   function applyInput(up, down, vel) {
     if (up) vel -= 0.5;
     if (down) vel += 0.5;
-    if (!up && !down) vel *= 0.9; // friction
+    if (!up && !down) vel *= 0.9; // fricción
     return clamp(vel, -2.5, 2.5);
   }
 
@@ -140,13 +142,14 @@ export function registerGameHandlers(wss, onlineUsers, app) {
   function resetBall(state) {
     state.ballX = 50 - 3.3 / 2;
     state.ballY = 50 - 5 / 2;
-    state.ballVelX = Math.random() > 0.5 ? 2.5 : -2.5;
-    state.ballVelY = Math.random() > 0.5 ? 1.5 : -1.5;
+
+    // ⚙️ Velocidad reducida para mejor jugabilidad
+    state.ballVelX = Math.random() > 0.5 ? 1.2 : -1.2;
+    state.ballVelY = Math.random() > 0.5 ? 0.8 : -0.8;
   }
 
   function broadcastGameState(room) {
     const state = room.state;
-    // Send normalized percentages (0–100)
     const normalized = {
       p1Y: state.p1Y,
       p2Y: state.p2Y,
