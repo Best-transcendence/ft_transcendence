@@ -45,6 +45,22 @@
 | 13 | User & game stats dashboards       | 2,5,8,9         | 12                       | - Minor
 | 14 | Expanded browser compatibility     | 3,12,13         | —                        | - Minor
 
+0. Project Foundations - Tournament system
+1. Backend framework (Node.js+Fastify) - DONE
+2. Database (SQLight + Prisma) - DONE
+3. Frontend framework (TS+Tailwind/R) - Framework applied to all colors, better structured output.css
+4. Microservices architecture - DONE
+5. DevOps: log management - not started 
+6. Standard User Management - friend button, online status of friends, add validation for empty input and others in profile edit, match history
+7. WAF + Vault (secrets mgmt) - not started, Camille
+8. Auth: JWT + 2FA - not started, Camille
+9. SSR integration patterns (confirm) - not started, Tina
+10. Responsive (all devices) - not started, Tina
+11. Accessibility features - not started
+12. AI opponent - Yulia need to make it more complex
+13. User & game stats dashboards - in progress by Tina
+14. Expanded browser compatibility - test close to evaluation
+15. Remote players - TEST: Consider network issues, such as unexpected disconnections or lag
 
 # Supplementary Roadmap
 
