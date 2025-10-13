@@ -166,11 +166,21 @@ export default async function authRoutes(fastify) {
         return reply.status(400).send({ error: 'All fields are required' });
       }
 
-      // Normalize email
-      const normalizedEmail = email.toLowerCase();
+	// Normalize and validate lowercase only
+	const normalizedEmail = email.toLowerCase();
+	const normalizedName = name.toLowerCase();
+
+	// Check for capital letters
+	if (email !== normalizedEmail) {
+	return reply.status(400).send({ error: 'Email cannot contain capital letters' });
+	}
+
+	if (name !== normalizedName) {
+	return reply.status(400).send({ error: 'Username cannot contain capital letters' });
+	}
 
       // Basic validation for email and username characters
-      const allowedChars = /^[A-Za-z0-9@.]+$/;
+      const allowedChars = /^[a-z0-9_.]+$/;
 
       if (!normalizedEmail.includes('@') || !normalizedEmail.includes('.')) {
         return reply.status(400).send({ error: 'Please enter a valid email address' });
@@ -178,7 +188,7 @@ export default async function authRoutes(fastify) {
 
       if (!allowedChars.test(name)) {
         return reply.status(400).send({
-          error: 'Username can only contain letters, numbers, @ and .'
+          error: 'Username can only contain letters, numbers, _ and .'
         });
       }
 
