@@ -31,30 +31,30 @@ export function LobbyPageTournament() {
           <div class="rounded-xl border border-white/10 p-4">
             <div class="text-sm text-gray-300 mb-2">Add Player</div>
 
-			  <div class="flex items-center gap-2">
-				<input
-				id="friend-name"
-				type="text"
-				placeholder="Friend username"
-				class="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-				/>
-				<button
-				id="btn-add-friend"
-				class="shrink-0 px-4 py-2 rounded-lg border border-white/10 hover:border-violet-400 text-gray-200"
-				>
-				Add Friend
-				</button>
-			</div>
+            <div class="flex items-center gap-2">
+              <input
+                id="friend-name"
+                type="text"
+                placeholder="Friend username"
+                class="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+              <button
+                id="btn-add-friend"
+                class="shrink-0 px-4 py-2 rounded-lg border border-white/10 hover:border-violet-400 text-gray-200"
+              >
+                Add Friend
+              </button>
+            </div>
 
-			<div class="mt-3">
-				<button
-				id="btn-add-guest"
-				class="w-full px-3 py-2 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white"
-				>
-				Add Guest
-				</button>
-			</div>
-			</div>
+            <div class="mt-3">
+              <button
+                id="btn-add-guest"
+                class="w-full px-3 py-2 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white"
+              >
+                Add Guest
+              </button>
+            </div>
+          </div>
 
           <!-- Rules -->
           <div class="rounded-xl border border-white/10 p-4">
@@ -88,9 +88,25 @@ export function LobbyPageTournament() {
         <div class="md:col-span-3 rounded-xl border border-white/10 p-4">
           <div class="text-sm text-gray-300 mb-2">Match Generator</div>
           <div id="matchgenerator" class="flex flex-wrap gap-2 min-h-[42px]"></div>
- 			<div class="text-xs text-gray-400 mt-2">You’ll see your matchups once you press Matchmaking! </div>
-        </div>
+          <div class="text-xs text-gray-400 mt-2">You’ll see your matchups once you press Matchmaking! </div>
         </div>
       </div>
+    </div>
+
+    <!-- Only change: switch counter display when selecting 8 or 4 -->
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const mode4 = document.getElementById('mode-4');
+        const mode8 = document.getElementById('mode-8');
+        const countEl = document.getElementById('count');
+        const maxEl = document.getElementById('max');
+
+        const toFour = () => { countEl.textContent = '0'; maxEl.textContent = '4'; };
+        const toEightFlipped = () => { countEl.textContent = '8'; maxEl.textContent = '0'; }; // per request: show 8/0
+
+        mode4?.addEventListener('change', () => { if (mode4.checked) toFour(); });
+        mode8?.addEventListener('change', () => { if (mode8.checked) toEightFlipped(); });
+      });
+    </script>
   `;
 }
