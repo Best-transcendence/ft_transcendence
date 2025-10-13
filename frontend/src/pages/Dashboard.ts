@@ -35,7 +35,7 @@ export function DashboardPage(): string {
     </div>
 
     <!-- Stats Card -->
-    <div class="mx-auto bg-[#271d35] backdrop-blur-md rounded-2xl w-full max-w-[560px] p-6 space-y-6 shadow-[0_0_30px_10px_#7037d3]">
+    <div class="mx-auto bg-slate-900 backdrop-blur-md rounded-2xl w-full max-w-[560px] p-6 space-y-6 shadow-[0_0_30px_10px_#7037d3]">
 
       <!-- Top row: Games / Record -->
       <div class="grid grid-cols-2 gap-4">
