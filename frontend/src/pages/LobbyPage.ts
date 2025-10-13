@@ -18,7 +18,7 @@ function showInvitePopup(fromLabel: string, onAccept: () => void, onDecline: () 
   const overlay = document.createElement("div");
   overlay.className = "fixed inset-0 z-50 flex items-center justify-center bg-black/60";
   overlay.innerHTML = `
-    <div class="bg-[#271d35] text-gray-200 rounded-2xl p-6 w-[min(90vw,380px)]
+    <div class="bg-slate-900 text-gray-200 rounded-2xl p-6 w-[min(90vw,380px)]
                 shadow-[0_0_30px_10px_#7037d3] text-center">
       <p class="mb-5 text-lg">🎮 Game invite from <b>${fromLabel}</b></p>
       <div class="flex gap-3 justify-center">
@@ -95,9 +95,9 @@ export async function initLobby() {
           const idNum = Number(id) || 0;
           const label = `${emojiForId(idNum)} - ${id}`;
           return `
-            <div class="bg-[#271d35] backdrop-blur-md rounded-lg shadow-[0_0_30px_10px_#7037d3] p-4 flex items-center justify-between">
+            <div class="bg-slate-900 backdrop-blur-md rounded-lg shadow-[0_0_30px_10px_#7037d3] p-4 flex items-center justify-between">
               <span class="text-gray-300 font-medium">${label}</span>
-              <button class="invite-btn px-3 py-1 text-sm rounded bg-theme-button text-white hover:bg-theme-button-hover"
+              <button class="invite-btn px-3 py-1 text-sm rounded bg-purple-600 text-white hover:bg-purple-700"
                       data-user-id="${id}">
                 Invite
               </button>
