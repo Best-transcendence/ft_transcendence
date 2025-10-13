@@ -10,6 +10,7 @@ import { GamePong2D } from "./games/Pong2d";
 import { GamePongTournament } from "./games/Tournament";
 import { GamePongAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
+import { LobbyPageTournament } from "./pages/LobbyPageTournament";
 import { initGameTournament } from "./games/InitGameTournament";
 import { initGameAIOpponent } from "./games/InitGameAIOpponent";
 import { ProfilePage } from "./pages/ProfilePage";
@@ -114,6 +115,13 @@ if (window.location.pathname.startsWith("/assets/"))
         }
       );
       break;
+
+	case "lobbytournament":
+      protectedPage(
+        () => LobbyPageTournament(),
+      );
+      break;
+
 
     case "intro":
       protectedPage(() => GameIntroPage());
