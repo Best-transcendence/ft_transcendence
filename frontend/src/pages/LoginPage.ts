@@ -16,9 +16,9 @@ export function LoginPage() {
       </div>
 
       <!-- Login Card -->
-	   <div class="relative z-10 bg-[#271d35] backdrop-blur-md p-8 rounded-2xl w-96 text-center shadow-[0_0_30px_10px_#7037d3]">
+	   <div class="relative z-10 bg-slate-900 backdrop-blur-md p-8 rounded-2xl w-96 text-center shadow-[0_0_30px_10px_#7037d3]">
 		<!-- Title -->
-        <h1 id="form-title" class="text-2xl font-heading font-bold mb-6" style="color: white;">
+        <h1 id="form-title" class="text-2xl font-heading font-bold mb-6 text-white">
 
           Sign In
         </h1>
@@ -28,7 +28,7 @@ export function LoginPage() {
 		<!-- Name field (hidden by default) -->
 		<input
 			id="name-field"
-			class="p-3 rounded-lg border border-[#161220] outline-none focus:ring-2 focus:ring-[#161220] hidden text-white bg-[#161220] placeholder-gray-400"
+			class="p-3 rounded-lg border border-slate-800 outline-none focus:ring-2 focus:ring-slate-800 hidden text-white bg-slate-800 placeholder-gray-400"
 			type="text"
 			placeholder="Name (unique)"
 		/>
@@ -36,7 +36,7 @@ export function LoginPage() {
 		<!-- Email field -->
 		<input
 		    id="email-field"
-			class="p-3 rounded-lg border border-[#161220] outline-none focus:ring-2 focus:ring-[#161220] text-white bg-[#161220] placeholder-gray-400"
+			class="p-3 rounded-lg border border-slate-800 outline-none focus:ring-2 focus:ring-slate-800 text-white bg-slate-800 placeholder-gray-400"
 			type="email"
 			placeholder="Email"
 		/>
@@ -44,7 +44,7 @@ export function LoginPage() {
 		<!-- Password field -->
 		<input
 		    id="password-field"
-			class="p-3 rounded-lg border border-[#161220] outline-none focus:ring-2 focus:ring-[#161220] text-white bg-[#161220] placeholder-gray-400"
+			class="p-3 rounded-lg border border-slate-800 outline-none focus:ring-2 focus:ring-slate-800 text-white bg-slate-800 placeholder-gray-400"
 			type="password"
 			placeholder="Password"
 		/>
@@ -52,24 +52,21 @@ export function LoginPage() {
 		<!-- Confirm Password field (hidden by default) -->
 		<input
 			id="confirm-password-field"
-			class="p-3 rounded-lg border border-[#161220] outline-none focus:ring-2 focus:ring-[#161220] hidden text-white bg-[#161220]  placeholder-gray-400"
+			class="p-3 rounded-lg border border-slate-800 outline-none focus:ring-2 focus:ring-slate-800 hidden text-white bg-slate-800 placeholder-gray-400"
 			type="password"
 			placeholder="Confirm Password"
 		/>
           <button
 		    id="submit-button"
             type="submit"
-            class="text-white font-semibold py-2 rounded-lg"
-            style="background-color: var(--color-button);"
-            onmouseover="this.style.backgroundColor='var(--color-button-hover)'"
-            onmouseout="this.style.backgroundColor='var(--color-button)'"
+            class="text-white font-semibold py-2 rounded-lg bg-purple-600 hover:bg-purple-500 transition-colors"
           >
             Login
           </button>
         </form>
 
         <!-- Divider -->
-        <div class="my-4 text-[#e8e8e8]">OR</div>
+        <div class="my-4 text-gray-300">OR</div>
 
         <!-- Google Sign-in -->
         <button
@@ -88,8 +85,7 @@ export function LoginPage() {
         <!-- Sign Up Button -->
         <button
           id="signup-toggle"
-          class="mt-4 text-sm cursor-pointer bg-transparent border-none"
-          style="color: #e8e8e8;"
+          class="mt-4 text-sm cursor-pointer bg-transparent border-none text-gray-300"
         >
         </button>
 
