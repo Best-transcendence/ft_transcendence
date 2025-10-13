@@ -63,7 +63,7 @@ export function ProfilePage()
 	${ profilePopup() }
 
 <!-- Profile info card -->
-	<div class="bg-[#271d35] backdrop-blur-md
+	<div class="bg-slate-900 backdrop-blur-md
 	rounded-2xl w-[100%] max-w-[500px] p-6 space-y-6 shadow-[0_0_30px_10px_#7037d3]">
 
 <!-- Username -->

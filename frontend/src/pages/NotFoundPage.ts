@@ -18,7 +18,7 @@ export function NotFoundPage() {
 	<button
 		onclick="window.location.hash='intro'"
 		class="px-8 py-4 rounded-2xl font-semibold text-white text-lg transition hover:shadow-lg cursor-pointer
-			bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
+			bg-purple-600 hover:bg-purple-700">
 		Back to Arcade Clash
 	</button>
 	</div>

@@ -1,6 +1,6 @@
 export function LoginPage() {
   return `
-    <div class="relative flex items-center justify-center min-h-screen text-theme-text overflow-hidden
+    <div class="relative flex items-center justify-center min-h-screen text-white overflow-hidden
       bg-[radial-gradient(ellipse_at_bottom,_rgba(255,165,0,0.35)_0%,_transparent_40%),radial-gradient(circle_at_80%_20%,_rgba(122,44,208,0.3)_0%,_transparent_30%),linear-gradient(180deg,_#140533_0%,_#3c1282_50%,_#0a0f3d_100%)]">
 
       <!-- Bubble Layer -->
@@ -28,7 +28,7 @@ export function LoginPage() {
 		<!-- Name field (hidden by default) -->
 		<input
 			id="name-field"
-			class="p-3 rounded-lg border border-slate-800 outline-none focus:ring-2 focus:ring-slate-800 hidden text-white bg-slate-800 placeholder-gray-400"
+			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 hidden text-white bg-[#161220] placeholder-gray-400"
 			type="text"
 			placeholder="Name (unique)"
 		/>
@@ -36,7 +36,7 @@ export function LoginPage() {
 		<!-- Email field -->
 		<input
 		    id="email-field"
-			class="p-3 rounded-lg border border-slate-800 outline-none focus:ring-2 focus:ring-slate-800 text-white bg-slate-800 placeholder-gray-400"
+			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#161220] placeholder-gray-400"
 			type="email"
 			placeholder="Email"
 		/>
@@ -44,7 +44,7 @@ export function LoginPage() {
 		<!-- Password field -->
 		<input
 		    id="password-field"
-			class="p-3 rounded-lg border border-slate-800 outline-none focus:ring-2 focus:ring-slate-800 text-white bg-slate-800 placeholder-gray-400"
+			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#161220] placeholder-gray-400"
 			type="password"
 			placeholder="Password"
 		/>
@@ -52,7 +52,7 @@ export function LoginPage() {
 		<!-- Confirm Password field (hidden by default) -->
 		<input
 			id="confirm-password-field"
-			class="p-3 rounded-lg border border-slate-800 outline-none focus:ring-2 focus:ring-slate-800 hidden text-white bg-slate-800 placeholder-gray-400"
+			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 hidden text-white bg-[#161220] placeholder-gray-400"
 			type="password"
 			placeholder="Confirm Password"
 		/>

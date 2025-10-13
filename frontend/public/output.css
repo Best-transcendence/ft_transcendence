@@ -1203,13 +1203,18 @@ video {
   border-color: rgb(209 213 219 / var(--tw-border-opacity, 1));
 }
 
-.border-slate-800 {
+.border-gray-600 {
   --tw-border-opacity: 1;
-  border-color: rgb(30 41 59 / var(--tw-border-opacity, 1));
+  border-color: rgb(75 85 99 / var(--tw-border-opacity, 1));
 }
 
 .border-white\/10 {
   border-color: rgb(255 255 255 / 0.1);
+}
+
+.bg-\[\#161220\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(22 18 32 / var(--tw-bg-opacity, 1));
 }
 
 .bg-\[\#222222\]\/80 {
@@ -1293,18 +1298,9 @@ video {
   background-color: rgb(220 38 38 / var(--tw-bg-opacity, 1));
 }
 
-.bg-slate-800 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1));
-}
-
 .bg-slate-900 {
   --tw-bg-opacity: 1;
   background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1));
-}
-
-.bg-theme-button {
-  background-color: var(--color-button);
 }
 
 .bg-transparent {
@@ -1485,13 +1481,14 @@ video {
   color: rgb(168 156 198 / var(--tw-text-opacity, 1));
 }
 
-.text-\[var\(--color-accent-2\)\] {
-  color: var(--color-accent-2);
-}
-
 .text-black {
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity, 1));
+}
+
+.text-cyan-400 {
+  --tw-text-opacity: 1;
+  color: rgb(34 211 238 / var(--tw-text-opacity, 1));
 }
 
 .text-gray-200 {
@@ -1671,15 +1668,22 @@ will update automatically the other styles.
 */
 
 :root {
-  /* Default theme */
-  --color-bg-1: #0d0c3d;
-  --color-bg-2: #1d1f70;
-  --color-accent-1: #5b2ca8;
-  --color-accent-2: #2fd2f7;
-  --color-accent-3: #ffcc00;
+  /* Default theme - updated to match Tailwind colors */
+  --color-bg-1: #0f172a;
+  /* slate-900 */
+  --color-bg-2: #1e293b;
+  /* slate-800 */
+  --color-accent-1: #7c3aed;
+  /* violet-600 */
+  --color-accent-2: #22d3ee;
+  /* cyan-400 */
+  --color-accent-3: #fbbf24;
+  /* amber-400 */
   --color-text: #ffffff;
-  --color-button: #7037d3;
-  --color-button-hover: #8a56ea;
+  --color-button: #7c3aed;
+  /* violet-600 */
+  --color-button-hover: #8b5cf6;
+  /* violet-500 */
   --color-frame: #919bebc7;
   --game-area-background: #071a1d;
 }
@@ -1840,10 +1844,6 @@ body {
   background-color: rgb(185 28 28 / var(--tw-bg-opacity, 1));
 }
 
-.hover\:bg-theme-button-hover:hover {
-  background-color: var(--color-button-hover);
-}
-
 .hover\:text-purple-700:hover {
   --tw-text-opacity: 1;
   color: rgb(126 34 206 / var(--tw-text-opacity, 1));
@@ -1879,11 +1879,6 @@ body {
 .focus\:ring-purple-500:focus {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(168 85 247 / var(--tw-ring-opacity, 1));
-}
-
-.focus\:ring-slate-800:focus {
-  --tw-ring-opacity: 1;
-  --tw-ring-color: rgb(30 41 59 / var(--tw-ring-opacity, 1));
 }
 
 @media (min-width: 768px) {

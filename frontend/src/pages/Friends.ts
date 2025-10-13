@@ -56,7 +56,7 @@ function noFriends()
 function friendCard(friend: Friend)
 {
 	return `
-	<div class="bg-[#271d35] backdrop-blur-md rounded-2xl p-4 shadow-[0_0_30px_10px_#7037d3] h-[170px] relative overflow-hidden">
+	<div class="bg-slate-900 backdrop-blur-md rounded-2xl p-4 shadow-[0_0_30px_10px_#7037d3] h-[170px] relative overflow-hidden">
 		<div class="flex items-start gap-4 absolute left-5 top-5">
 			<img src=${ friend.profilePicture }  alt="Friend Avatar" class="w-24 h-24 rounded-full">
 				<div class="mr-3">
