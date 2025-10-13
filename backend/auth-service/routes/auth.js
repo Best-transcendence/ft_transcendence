@@ -181,6 +181,9 @@ export default async function authRoutes(fastify) {
 	return reply.status(400).send({ error: 'Email cannot contain capital letters' });
 	}
 
+	name = name.trim();
+	email = email.trim();
+
 	// Space checks
 	if (/\s/.test(name)) {
 	return reply.status(400).send({ error: 'Username cannot contain spaces' });
@@ -190,8 +193,9 @@ export default async function authRoutes(fastify) {
 	return reply.status(400).send({ error: 'Email cannot contain spaces' });
 	}
 
-      // Basic validation for email and username characters
-      const allowedChars = /^[a-z0-9_.]+$/;
+      // validation for email and username characters
+	  const allowedChars = /^[a-z0-9_.\-]+$/;
+	  const allowedEmailChars = /^[a-z0-9_.@-]+$/;
 
       if (!email.includes('@') || !email.includes('.')) {
         return reply.status(400).send({ error: 'Please enter a valid email address' });
@@ -199,7 +203,13 @@ export default async function authRoutes(fastify) {
 
       if (!allowedChars.test(name)) {
         return reply.status(400).send({
-          error: 'Username cannot contain special characters - only letters, numbers, _ and .'
+          error: 'Username cannot contain special characters - only letters, numbers, _, - and .'
+        });
+      }
+
+	  if (!allowedEmailChars.test(email)) {
+        return reply.status(400).send({
+          error: 'Email cannot contain special characters - only letters, numbers, _, -, @ and .'
         });
       }
 
