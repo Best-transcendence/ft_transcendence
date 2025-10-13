@@ -30,45 +30,45 @@ export function registerWebsocketHandlers(wss, app) {
           const data = JSON.parse(msg);
 
           switch (data.type) {
-            case 'invite':
-              roomHandlers.handleInvite(ws, {
-                ...data,
-                to: String(data.to),
-              });
-              break;
+          case 'invite':
+            roomHandlers.handleInvite(ws, {
+              ...data,
+              to: String(data.to),
+            });
+            break;
 
-            case 'invite:accepted':
-              roomHandlers.handleInviteAccepted(ws, {
-                ...data,
-                from: String(data.from),
-              });
-              break;
+          case 'invite:accepted':
+            roomHandlers.handleInviteAccepted(ws, {
+              ...data,
+              from: String(data.from),
+            });
+            break;
 
-            case 'invite:declined':
-              roomHandlers.handleInviteDeclined(ws, {
-                ...data,
-                from: String(data.from),
-              });
-              break;
+          case 'invite:declined':
+            roomHandlers.handleInviteDeclined(ws, {
+              ...data,
+              from: String(data.from),
+            });
+            break;
 
             //  Lógica de juego
-            case 'game:join':
-              gameHandlers.handleGameJoin(ws, {
-                ...data,
-                roomId: String(data.roomId),
-              });
-              break;
+          case 'game:join':
+            gameHandlers.handleGameJoin(ws, {
+              ...data,
+              roomId: String(data.roomId),
+            });
+            break;
 
-            case 'game:move':
-              gameHandlers.handleGameMove(ws, {
-                ...data,
-                roomId: String(data.roomId),
-                direction: data.direction,
-              });
-              break;
+          case 'game:move':
+            gameHandlers.handleGameMove(ws, {
+              ...data,
+              roomId: String(data.roomId),
+              direction: data.direction,
+            });
+            break;
 
-            default:
-              app.log.warn({ type: data.type }, ' Unhandled WS message');
+          default:
+            app.log.warn({ type: data.type }, ' Unhandled WS message');
           }
         } catch (e) {
           app.log.error(' Bad WS message', e);
