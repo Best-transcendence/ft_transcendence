@@ -1810,6 +1810,44 @@ body {
   font-family: var(--font-body);
 }
 
+/* Fix autofill styling for input fields */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #161220 inset !important;
+  -webkit-text-fill-color: white !important;
+  background-color: #161220 !important;
+}
+
+/* For Firefox autofill */
+
+input:-moz-autofill {
+  background-color: #161220 !important;
+  color: white !important;
+}
+
+.autofill\:bg-\[\#161220\]:-webkit-autofill {
+  --tw-bg-opacity: 1;
+  background-color: rgb(22 18 32 / var(--tw-bg-opacity, 1));
+}
+
+.autofill\:bg-\[\#161220\]:autofill {
+  --tw-bg-opacity: 1;
+  background-color: rgb(22 18 32 / var(--tw-bg-opacity, 1));
+}
+
+.autofill\:text-white:-webkit-autofill {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+.autofill\:text-white:autofill {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
 .hover\:bg-\[var\(--color-button-hover\)\]:hover {
   background-color: var(--color-button-hover);
 }

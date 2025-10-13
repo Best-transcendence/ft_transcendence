@@ -28,7 +28,7 @@ export function LoginPage() {
 		<!-- Name field (hidden by default) -->
 		<input
 			id="name-field"
-			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 hidden text-white bg-[#161220] placeholder-gray-400"
+			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 hidden text-white bg-[#161220] placeholder-gray-400 autofill:bg-[#161220] autofill:text-white"
 			type="text"
 			placeholder="Name (unique)"
 		/>
@@ -36,7 +36,7 @@ export function LoginPage() {
 		<!-- Email field -->
 		<input
 		    id="email-field"
-			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#161220] placeholder-gray-400"
+			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#161220] placeholder-gray-400 autofill:bg-[#161220] autofill:text-white"
 			type="email"
 			placeholder="Email"
 		/>
@@ -44,7 +44,7 @@ export function LoginPage() {
 		<!-- Password field -->
 		<input
 		    id="password-field"
-			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#161220] placeholder-gray-400"
+			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 text-white bg-[#161220] placeholder-gray-400 autofill:bg-[#161220] autofill:text-white"
 			type="password"
 			placeholder="Password"
 		/>
@@ -52,7 +52,7 @@ export function LoginPage() {
 		<!-- Confirm Password field (hidden by default) -->
 		<input
 			id="confirm-password-field"
-			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 hidden text-white bg-[#161220] placeholder-gray-400"
+			class="p-3 rounded-lg border border-gray-600 outline-none focus:ring-2 focus:ring-purple-500 hidden text-white bg-[#161220] placeholder-gray-400 autofill:bg-[#161220] autofill:text-white"
 			type="password"
 			placeholder="Confirm Password"
 		/>

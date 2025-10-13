@@ -136,3 +136,19 @@ html, body {
 body {
   font-family: var(--font-body);
 }
+
+/* Fix autofill styling for input fields */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #161220 inset !important;
+  -webkit-text-fill-color: white !important;
+  background-color: #161220 !important;
+}
+
+/* For Firefox autofill */
+input:-moz-autofill {
+  background-color: #161220 !important;
+  color: white !important;
+}
