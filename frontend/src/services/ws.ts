@@ -72,3 +72,11 @@ export function autoConnect(onMessage?: (msg: any) => void) {
   console.log("autoConnect token:", token);
   if (token) connectSocket(token, onMessage);
 }
+
+export function sendWSMessage(type: string, payload: any = {}) {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ type, ...payload }));
+  } else {
+    console.warn(" Cannot send WS message: socket not open");
+  }
+}
