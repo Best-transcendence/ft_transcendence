@@ -111,6 +111,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		loop();
 	}
 
+<<<<<<< HEAD
   function stopGame(fullReset = false) {
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
     running = false;
@@ -139,6 +140,12 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
     }
   }
   
+=======
+	function stopGame() {
+		running = false;
+		if (animationFrameId) cancelAnimationFrame(animationFrameId);
+	}
+>>>>>>> 5c42fe2ab4830b9c3a2f9a473068185a81e68f1e
 
 	function resetGame() {
 		stopGame();
@@ -311,7 +318,10 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 
 	// Expose reset function globally for restart button
 	(window as any).resetAIGame = resetGame;
+<<<<<<< HEAD
   
+=======
+>>>>>>> 5c42fe2ab4830b9c3a2f9a473068185a81e68f1e
 }
 
 
