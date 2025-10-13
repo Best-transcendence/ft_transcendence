@@ -122,6 +122,7 @@ export function router() {
       break;
     case "remote":
       const roomId = query ? new URLSearchParams(query).get("room") : null;
+      localStorage.setItem("roomId", roomId); // Keep the room ID.
       if (!roomId) {
         app.innerHTML = NotFoundPage();
         return;

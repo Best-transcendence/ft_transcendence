@@ -103,6 +103,7 @@ export async function initLobby() {
 
       case "room:start": {
         const room = msg.roomId;
+        localStorage.setItem("roomId", msg.roomId); // Keep the room ID.
         window.location.hash = `remote?room=${encodeURIComponent(room)}`;
         break;
       }

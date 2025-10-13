@@ -43,7 +43,7 @@ export function triggerInvitePopup(inviteData: { from: { id: string; name?: stri
   });
 
   overlay.querySelector("#acceptInvite")?.addEventListener("click", () => {
-    sendWSMessage("invite:accepted", { from: inviteData.from.id });
+    sendWSMessage("invite:accepted", { from: inviteData.from.id }); 
     cleanup();
   });
 

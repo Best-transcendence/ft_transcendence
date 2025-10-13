@@ -6,7 +6,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     const room = rooms.get(roomId);
     if (!room) return;
 
-    // Inicializar estado si es la primera vez
+    // Initialize game state if it's the first time
     if (!room.state) {
       room.state = {
         p1Y: 37.5,
@@ -33,7 +33,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
 
     app.log.info(`🎮 Player joined room ${roomId}`);
 
-    // Iniciar juego cuando haya 2 jugadores
+    // Start game when 2 players are in the room
     if (room.players.length === 2) {
       room.players.forEach(client => {
         client.send(JSON.stringify({ type: 'game:start', roomId }));
@@ -41,7 +41,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
 
       resetBall(room.state);
 
-      // ⏳ Esperar 1 segundo para que el frontend cargue
+      // Wait 1 second before starting the game loop to allow frontend to load
       setTimeout(() => {
         startGameLoop(roomId, room);
       }, 1000);
@@ -58,6 +58,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
 
     const isDown = action === "down";
 
+    // Map input to player movement flags
     if (playerIndex === 0) {
       if (direction === "w") room.state.p1Up = isDown;
       else if (direction === "s") room.state.p1Down = isDown;
@@ -77,7 +78,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     room.loopId = setInterval(() => {
       const state = room.state;
 
-      // Movimiento de paddles
+      // Update paddle velocity based on input
       state.p1Vel = applyInput(state.p1Up, state.p1Down, state.p1Vel);
       state.p2Vel = applyInput(state.p2Up, state.p2Down, state.p2Vel);
 
@@ -85,16 +86,16 @@ export function registerGameHandlers(wss, onlineUsers, app) {
       state.p1Y = clamp(state.p1Y + state.p1Vel, 0, maxY);
       state.p2Y = clamp(state.p2Y + state.p2Vel, 0, maxY);
 
-      // Movimiento de la pelota
+      // Update ball position
       state.ballX += state.ballVelX;
       state.ballY += state.ballVelY;
 
-      // Rebote arriba/abajo
+      // Bounce off top/bottom walls
       if (state.ballY <= 0 || state.ballY >= FIELD - BALL_H) {
         state.ballVelY *= -1;
       }
 
-      // Colisión con paddle izquierdo
+      // Left paddle collision
       if (
         state.ballX <= PADDLE_W &&
         state.ballY + BALL_H >= state.p1Y &&
@@ -104,7 +105,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         state.ballVelX *= -1;
       }
 
-      // Colisión con paddle derecho
+      // Right paddle collision
       if (
         state.ballX + BALL_W >= FIELD - PADDLE_W &&
         state.ballY + BALL_H >= state.p2Y &&
@@ -114,7 +115,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         state.ballVelX *= -1;
       }
 
-      // Puntos
+      // Scoring logic
       const ballCenterX = state.ballX + BALL_W / 2;
       if (ballCenterX < 0) {
         state.s2++;
@@ -125,14 +126,14 @@ export function registerGameHandlers(wss, onlineUsers, app) {
       }
 
       broadcastGameState(room);
-    }, 1000 / 60); // 60 FPS
+    }, 1000 / 60); // Run at ~60 FPS
   }
 
   function applyInput(up, down, vel) {
-    if (up) vel -= 0.5;
-    if (down) vel += 0.5;
-    if (!up && !down) vel *= 0.9; // fricción
-    return clamp(vel, -2.5, 2.5);
+    if (up) vel -= 0.3;
+    if (down) vel += 0.3;
+    if (!up && !down) vel *= 0.9; // Apply friction
+    return clamp(vel, -1.5, 1.5);
   }
 
   function clamp(val, min, max) {
@@ -143,9 +144,9 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     state.ballX = 50 - 3.3 / 2;
     state.ballY = 50 - 5 / 2;
 
-    // ⚙️ Velocidad reducida para mejor jugabilidad
-    state.ballVelX = Math.random() > 0.5 ? 1.2 : -1.2;
-    state.ballVelY = Math.random() > 0.5 ? 0.8 : -0.8;
+    // Set slower initial ball velocity
+    state.ballVelX = Math.random() > 0.5 ? 0.6 : -0.6;
+    state.ballVelY = Math.random() > 0.5 ? 0.4 : -0.4;
   }
 
   function broadcastGameState(room) {

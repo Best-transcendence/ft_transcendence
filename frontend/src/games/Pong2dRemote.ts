@@ -13,13 +13,12 @@ export function GamePongRemote(): string {
 
     switch (msg.type) {
       case "room:start":
-        console.log(" Room started:", msg.roomId);
         initRemoteGame(msg.roomId);
         break;
 
       case "game:start":
-        console.log(" Game started in room:", msg.roomId);
         startTimer(5);
+        document.getElementById("startPress")?.remove();
         break;
 
       case "game:update":
@@ -44,59 +43,69 @@ export function GamePongRemote(): string {
       ${LogOutBtnDisplay()}
     </div>
 
-    <!-- Timer -->
-    ${startTimer(5)}
-
     <!-- Game section -->
     <div class="flex justify-center w-screen overflow-hidden">
       <div class="relative"
-        style="position: absolute; top: vh; left: 50%; transform: translateX(-50%); width: 90vw; max-width: 1450px; aspect-ratio: 16/9;">
+        style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 90vw; max-width: 1450px; aspect-ratio: 16/9;">
 
         <!-- Arcade image anchor -->
         <img src="/assets/game_background.png"
           class="absolute inset-0 w-full h-full object-contain"
-          alt
+          alt="Arcade machine" />
+
+        <!-- Game window (make positioning context explicit + ensure z-index above bg) -->
+        <div class="absolute z-10 backdrop-blur-sm relative"
           style="top: 6.1%; left: 24.1%; width: 51%; height: 59.2%;
           background: var(--game-area-background);
           border: 9px solid var(--color-frame);
           border-radius: 1rem;">
 
-        <!-- Time Up Overlay -->
-        <div id="timeUpOverlay"
-          class="absolute inset-0 z-20 hidden"
-          style="border-radius: inherit; background: inherit;">
-          <div class="relative hrounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
-              Back to Arcade Clash
-            </button>
+          <!-- Time Up Overlay -->
+          <div id="timeUpOverlay"
+            class="absolute inset-0 z-20 hidden"
+            style="border-radius: inherit; background: inherit;">
+            <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
+              <h2 class="text-2xl font-bold text-white">Time’s up!</h2>
+              <p class="text-lg text-gray-200 mt-2 mb-6">You won 🥇</p>
+              <button id="overlayExit"
+                class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
+                Back to Arcade Clash
+              </button>
+            </div>
           </div>
+
+          <!-- Net -->
+          <div class="absolute border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
+            h-[96%] top-[2%] left-[calc(50%-0.4vw)]"></div>
+
+          <!-- Scores -->
+          <span id="score1"
+            class="absolute z-20 top-[5%] left-[25%] text-[1.5vw] leading-none select-none">0</span>
+          <span id="score2"
+            class="absolute z-20 top-[5%] right-[25%] text-[1.5vw] leading-none select-none">0</span>
+
+          <!-- Paddles (explicit z-index + anchors) -->
+          <div id="paddle1"
+            class="absolute z-20 h-[25%] w-[3.3%] bg-[rgba(255,255,255,0.9)] top-[37.5%] left-0"></div>
+          <div id="paddle2"
+            class="absolute z-20 h-[25%] w-[3.3%] bg-[rgba(255,255,255,0.9)] top-[37.5%] right-0"></div>
+
+          <!-- Ball (explicit z-index) -->
+          <div id="ball"
+            class="absolute z-20 h-[5%] w-[3.3%] bg-[rgba(255,255,255,0.9)] rounded-[30%] left-[48.3%] top-[47.5%]"></div>
+
+          <!-- Start text -->
+          <p id="startPress"
+            class="absolute z-20 bottom-[5%] left-1/2 -translate-x-1/2 text-center
+            bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
+            Press Space To Start The Game
+          </p>
+
+          <!-- Audio -->
+          <audio id="paddleSound" src="/assets/paddle.wav"></audio>
+          <audio id="lossSound" src="/assets/loss.wav"></audio>
+          <audio id="wallSound" src="/assets/wall.wav"></audio>
         </div>
-
-        <!-- Net -->
-        <div class="absolute border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
-          h-[96%] top-[2%] left-[calc(50%-0.4vw)]"></div>
-
-        <!-- Scores -->
-        <span id="score1"
-          class="absolute top-[5%] left-[25%] text-[1.5vw] leading-none select-none">0</span>
-        <span id="score2"
-          class="absolute top-[5%] right-[25%] text-[1.5vw] leading-none select-none">0</span>
-
-        <!-- Paddles -->
-        <div id="paddle1"
-          class="absolute h-[25%] w-[3.3%] bg-[rgba(255,255,255,0.9)] top-[37.5%]"></div>
-        <div id="paddle2"
-          class="absolute h-[25%] w-[3.3%] bg-[rgba(255,255,255,0.9)] top-[37.5%] right-0"></div>
-
-        <!-- Ball -->
-        <div id="ball"
-          class="absolute h-[5%] w-[3.3%] bg-[rgba(255,255,255,0.9)] rounded-[30%] left-[48.3%] top-[47.5%]"></div>
-
-        <!-- Start text -->
-        <p id="startPress"
-          class="absolute bottom-[5%] left-1/2 -translate-x-1/2 text-center
-          bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
-          Press Space To Start The Game
-        </p>
       </div>
     </div>
   `;
@@ -105,30 +114,36 @@ export function GamePongRemote(): string {
 export function initRemoteGame(roomId: string) {
   const socket = getSocket();
 
-  socket?.send(JSON.stringify({
-    type: "game:join",
-    roomId,
-  }));
+  socket?.send(
+    JSON.stringify({
+      type: "game:join",
+      roomId,
+    })
+  );
 
   document.addEventListener("keydown", (e) => {
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
-      socket?.send(JSON.stringify({
-        type: "game:move",
-        direction: e.key,
-        action: "down",
-        roomId,
-      }));
+      socket?.send(
+        JSON.stringify({
+          type: "game:move",
+          direction: e.key,
+          action: "down",
+          roomId,
+        })
+      );
     }
   });
 
   document.addEventListener("keyup", (e) => {
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
-      socket?.send(JSON.stringify({
-        type: "game:move",
-        direction: e.key,
-        action: "up",
-        roomId,
-      }));
+      socket?.send(
+        JSON.stringify({
+          type: "game:move",
+          direction: e.key,
+          action: "up",
+          roomId,
+        })
+      );
     }
   });
 
