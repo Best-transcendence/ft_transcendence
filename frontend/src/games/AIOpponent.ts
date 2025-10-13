@@ -94,7 +94,7 @@ ${ TimerDisplay() }
 				Press Space To Start The Game
 				</p>
 
-				<p id="controlsHint"
+				<p id="keyboardHintAI"
 					class="absolute bottom-[15%] left-1/2 -translate-x-1/2 text-center
 					bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
 					You are the <span class="font-semibold text-white">RIGHT</span> paddle
