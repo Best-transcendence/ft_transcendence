@@ -17,6 +17,7 @@ export function initGameAIOpponent(): void {
   const score1 = $("score1");
   const score2 = $("score2");
   const startPress = $("startPress");
+  const keyboardHintAI = $("keyboardHintAI");
 
   const paddleSfx = $("paddleSound") as HTMLAudioElement;
   const wallSfx = $("wallSound") as HTMLAudioElement;
@@ -76,6 +77,7 @@ export function initGameAIOpponent(): void {
   function startGame() {
     running = true;
     startPress.classList.add("hidden");
+	keyboardHintAI.classList.add("hidden");
     resetBall();
     loop();
   }
