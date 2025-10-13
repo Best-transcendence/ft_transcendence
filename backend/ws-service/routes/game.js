@@ -1,3 +1,4 @@
+// backend/ws-service/game.js
 import { rooms } from './rooms.js';
 
 export function registerGameHandlers(wss, onlineUsers, app) {
@@ -6,6 +7,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     const room = rooms.get(roomId);
     if (!room) return;
 
+    // Initialize state if first time
     if (!room.state) {
       room.state = {
         p1Y: 37.5,
@@ -32,6 +34,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
 
     app.log.info(`🎮 Player joined room ${roomId}`);
 
+    // Start game when 2 players are in
     if (room.players.length === 2) {
       room.players.forEach(client => {
         client.send(JSON.stringify({ type: 'game:start', roomId }));
@@ -41,36 +44,28 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     }
   }
 
+  function handleGameMove(ws, data) {
+    const { roomId, direction, action } = data;
+    const room = rooms.get(roomId);
+    if (!room || !room.state) return;
 
-function handleGameMove(ws, data) {
-  const { roomId, direction, action } = data;
-  const room = rooms.get(roomId);
-  if (!room || !room.state) return;
+    const playerIndex = room.players.indexOf(ws);
+    if (playerIndex === -1) return;
 
-  const playerIndex = room.players.indexOf(ws);
-  if (playerIndex === -1) return;
+    const isDown = action === "down";
 
-  const isDown = action === "down";
-
-  if (playerIndex === 0) {
-    // Jugador 1 (izquierda) usa W/S
-    if (direction === "w") {
-      room.state.p1Up = isDown;
-    } else if (direction === "s") {
-      room.state.p1Down = isDown;
+    if (playerIndex === 0) {
+      // Player 1 (left) uses W/S
+      if (direction === "w") room.state.p1Up = isDown;
+      else if (direction === "s") room.state.p1Down = isDown;
+    } else if (playerIndex === 1) {
+      // Player 2 (right) uses ArrowUp/ArrowDown
+      if (direction === "ArrowUp") room.state.p2Up = isDown;
+      else if (direction === "ArrowDown") room.state.p2Down = isDown;
     }
-  } else if (playerIndex === 1) {
-    // Jugador 2 (derecha) usa ArrowUp/ArrowDown
-    if (direction === "ArrowUp") {
-      room.state.p2Up = isDown;
-    } else if (direction === "ArrowDown") {
-      room.state.p2Down = isDown;
-    }
+
+    app.log.info(`${action} ${direction} by player ${ws.user.id} in room ${roomId}`);
   }
-
-  app.log.info(` ${action} ${direction} by player ${ws.user.id} in room ${roomId}`);
-}
-
 
   function startGameLoop(roomId, room) {
     const FIELD = 100;
@@ -80,7 +75,7 @@ function handleGameMove(ws, data) {
     room.loopId = setInterval(() => {
       const state = room.state;
 
-      // Movimiento de paletas
+      // Paddle movement
       state.p1Vel = applyInput(state.p1Up, state.p1Down, state.p1Vel);
       state.p2Vel = applyInput(state.p2Up, state.p2Down, state.p2Vel);
 
@@ -88,16 +83,16 @@ function handleGameMove(ws, data) {
       state.p1Y = clamp(state.p1Y + state.p1Vel, 0, maxY);
       state.p2Y = clamp(state.p2Y + state.p2Vel, 0, maxY);
 
-      // Movimiento de pelota
+      // Ball movement
       state.ballX += state.ballVelX;
       state.ballY += state.ballVelY;
 
-      // Rebote en paredes
+      // Bounce on top/bottom
       if (state.ballY <= 0 || state.ballY >= FIELD - BALL_H) {
         state.ballVelY *= -1;
       }
 
-      // Colisión con paleta izquierda
+      // Left paddle collision
       if (
         state.ballX <= PADDLE_W &&
         state.ballY + BALL_H >= state.p1Y &&
@@ -107,7 +102,7 @@ function handleGameMove(ws, data) {
         state.ballVelX *= -1;
       }
 
-      // Colisión con paleta derecha
+      // Right paddle collision
       if (
         state.ballX + BALL_W >= FIELD - PADDLE_W &&
         state.ballY + BALL_H >= state.p2Y &&
@@ -117,7 +112,7 @@ function handleGameMove(ws, data) {
         state.ballVelX *= -1;
       }
 
-      // Puntuación
+      // Scoring
       const ballCenterX = state.ballX + BALL_W / 2;
       if (ballCenterX < 0) {
         state.s2++;
@@ -128,13 +123,13 @@ function handleGameMove(ws, data) {
       }
 
       broadcastGameState(room);
-    }, 60); // Actualización más rápida
+    }, 1000 / 60); // ~60fps
   }
 
   function applyInput(up, down, vel) {
     if (up) vel -= 0.5;
     if (down) vel += 0.5;
-    if (!up && !down) vel *= 0.9; // fricción
+    if (!up && !down) vel *= 0.9; // friction
     return clamp(vel, -2.5, 2.5);
   }
 
@@ -150,11 +145,22 @@ function handleGameMove(ws, data) {
   }
 
   function broadcastGameState(room) {
+    const state = room.state;
+    // Send normalized percentages (0–100)
+    const normalized = {
+      p1Y: state.p1Y,
+      p2Y: state.p2Y,
+      ballX: state.ballX,
+      ballY: state.ballY,
+      s1: state.s1,
+      s2: state.s2,
+    };
+
     room.players.forEach(client => {
       if (client.readyState === 1) {
         client.send(JSON.stringify({
           type: "game:update",
-          state: room.state,
+          state: normalized,
         }));
       }
     });

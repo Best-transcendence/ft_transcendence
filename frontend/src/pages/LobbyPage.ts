@@ -103,7 +103,7 @@ export async function initLobby() {
 
       case "room:start": {
         const room = msg.roomId;
-        window.location.hash = `pong2d?room=${encodeURIComponent(room)}`;
+        window.location.hash = `remote?room=${encodeURIComponent(room)}`;
         break;
       }
 
