@@ -126,9 +126,10 @@ export default async function authRoutes(fastify) {
   // NOTE: /me endpoint moved to user-service as it handles user profile data
 
   // POST /auth/signup - Register new user account
+  // Everything in schema is public information only, for documentation purposes (Swagger).
+  // We have to add it for each endpoint we create.
+  // POST /auth/signup - Register new user account
   fastify.post('/signup', {
-    // Everything in schema is public information only, for documentation purposes (Swagger).
-    // We have to add it for each endpoint we create.
     schema: {
       tags: ['Authentication'],
       summary: 'User Registration',
@@ -137,26 +138,10 @@ export default async function authRoutes(fastify) {
         type: 'object',
         required: ['name', 'email', 'password', 'confirmPassword'],
         properties: {
-          name: {
-            type: 'string',
-            minLength: 3,
-            description: 'Unique username for the account'
-          },
-          email: {
-            type: 'string',
-            format: 'email',
-            description: 'User email address (must be unique)'
-          },
-          password: {
-            type: 'string',
-            minLength: 1,
-            description: 'User password'
-          },
-          confirmPassword: {
-            type: 'string',
-            minLength: 1,
-            description: 'Password confirmation (must match password)'
-          }
+          name: { type: 'string', minLength: 1 },
+          email: { type: 'string', format: 'email' },
+          password: { type: 'string', minLength: 1 },
+          confirmPassword: { type: 'string', minLength: 1 }
         }
       },
       response: {
@@ -165,31 +150,7 @@ export default async function authRoutes(fastify) {
           type: 'object',
           properties: {
             id: { type: 'integer', example: 1 },
-            name: { type: 'string', example: 'johndoe' },
             email: { type: 'string', example: 'john@example.com' }
-          }
-        },
-        400: {
-          description: 'Bad request - validation error',
-          type: 'object',
-          properties: {
-            error: {
-              type: 'string',
-              examples: [
-                'All fields are required',
-                'Please enter a valid email address',
-                'Passwords do not match',
-                'User with this name already exists',
-                'User with this email already exists'
-              ]
-            }
-          }
-        },
-        500: {
-          description: 'Internal server error',
-          type: 'object',
-          properties: {
-            error: { type: 'string', example: 'Internal server error' }
           }
         }
       }
@@ -200,96 +161,155 @@ export default async function authRoutes(fastify) {
 
       const { name, email, password, confirmPassword } = request.body;
 
-      // Input validation - ensure all required fields are present
+      // === Input validation ===
       if (!name || !email || !password || !confirmPassword) {
         return reply.status(400).send({ error: 'All fields are required' });
       }
 
-      // Email format validation (basic)
+      // Normalize and validate lowercase only
+      const normalizedEmail = email.toLowerCase();
+	
+      // Normalize to avoid e.g.: É Á...
+      const nName  = name.normalize('NFC');
+      const nEmail = email.normalize('NFC');
+
+      if (nName !== nName.toLowerCase()) {
+        return reply.status(400).send({ error: 'Username cannot contain capital letters' });
+      }
+
+      if (nEmail !== nEmail.toLowerCase()) {
+        return reply.status(400).send({ error: 'Email cannot contain capital letters' });
+      }
+
+      // Space checks
+      if (/\s/.test(name)) {
+        return reply.status(400).send({ error: 'Username cannot contain spaces' });
+      }
+
+      if (/\s/.test(email)) {
+        return reply.status(400).send({ error: 'Email cannot contain spaces' });
+      }
+
+      // validation for email and username characters
+	  const allowedChars = /^[a-z0-9_.-]+$/;
+	  const allowedEmailChars = /^[a-z0-9_.@-]+$/;
+
       if (!email.includes('@') || !email.includes('.')) {
         return reply.status(400).send({ error: 'Please enter a valid email address' });
       }
 
-      // Password validation
-      if (password.length < 1) {
+      if (!allowedChars.test(name)) {
+        return reply.status(400).send({
+          error: 'Username cannot contain special characters - only letters, numbers, _, - and .'
+        });
+      }
+
+	  if (!allowedEmailChars.test(email)) {
+        return reply.status(400).send({
+          error: 'Email cannot contain special characters - only letters, numbers, _, -, @ and .'
+        });
+      }
+
+      if (normalizedEmail.length < 3 || password.length < 1) {
         return reply.status(400).send({ error: 'Password cannot be empty' });
       }
 
-      // Password confirmation validation
       if (password !== confirmPassword) {
         return reply.status(400).send({ error: 'Passwords do not match' });
       }
 
-      // Check for existing users to prevent duplicates
-      const existingEmail = await fastify.prisma.user.findUnique({ where: { email } });
+      const existingEmail = await fastify.prisma.user.findUnique({
+        where: { email: normalizedEmail } 
+      });
       if (existingEmail) {
         return reply.status(400).send({ error: 'User with this email already exists' });
       }
 
-      // TODO: Hash password with bcrypt before storing
-      // Create new user in database
+      // === Create user in auth-service ===
       const newUser = await fastify.prisma.user.create({
         data: {
-          email,
-          password // TODO: Should be hashed password
+          email: normalizedEmail,
+          password // TODO: hash before storing
         }
       });
 
-      // Generate correlation ID for tracking across services
+      // === Bootstrap profile in user-service with retry ===
       const correlationId = `auth-${newUser.id}-${Date.now()}`;
+      const axios = (await import('axios')).default;
+      const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
 
-      // Attempt to create user profile in user-service
-      try {
-        const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
-        const axios = (await import('axios')).default;
+      const maxRetries = 3;
+      let attempt = 0;
+      let success = false;
 
-        console.log(`[${correlationId}] Attempting to bootstrap user profile for authUserId: ${newUser.id}`);
+      while (attempt < maxRetries && !success) {
+        try {
+          attempt++;
+          console.log(
+            `[${correlationId}] Attempt ${attempt}/${maxRetries}: bootstrapping user profile for authUserId ${newUser.id}`
+          );
 
-        // TODO: decide what we want to do if the profile creation fails in user-service.
-        // Now we just continue with the signup success.
-        await axios.post(`${userServiceUrl}/users/bootstrap`, {
-          authUserId: newUser.id,
-          name: name, // gets passed to users microservice
-          email: newUser.email
-        }, {
-          timeout: 5000, // 5 second timeout
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Correlation-ID': correlationId
-          }
-        });
-
-        console.log(`[${correlationId}] Successfully created user profile for authUserId: ${newUser.id}`);
-      }
-      catch (profileError)
-      {
-        if (profileError.response?.status === 400) // fails signup if name taken
-        {
-	 		return reply.status(400).send(
+          await axios.post(
+            `${userServiceUrl}/users/bootstrap`,
             {
-              error: profileError.response.data.error || 'Username already taken'
-            });
-        }
-        // Log the error but don't fail the signup - user account is created
-        console.error(`[${correlationId}] Failed to bootstrap user profile for authUserId: ${newUser.id}:`, {
-          error: profileError.message,
-          status: profileError.response?.status,
-          data: profileError.response?.data
-        });
+              authUserId: newUser.id,
+              name,
+              email: newUser.email
+            },
+            {
+              timeout: 5000,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Correlation-ID': correlationId
+              }
+            }
+          );
 
-        // Continue with successful response - user account is created in auth-service
-        console.log(`[${correlationId}] Continuing with signup success despite profile creation failure`);
+          console.log(`[${correlationId}] Successfully created user profile`);
+          success = true;
+        } catch (profileError) {
+          const status = profileError.response?.status;
+          const msg = profileError.response?.data?.error || profileError.message;
+
+          console.error(
+            `[${correlationId}] Attempt ${attempt} failed (${status || 'no status'}): ${msg}`
+          );
+
+          // unrecoverable client-side error (e.g., username conflict)
+          if (status === 400) {
+            await fastify.prisma.user.delete({ where: { id: newUser.id } });
+            return reply
+              .status(400)
+              .send({ error: msg || 'Username already taken in user-service' });
+          }
+
+          // last retry failed → rollback and report error
+          if (attempt >= maxRetries) {
+            await fastify.prisma.user.delete({ where: { id: newUser.id } });
+            console.error(
+              `[${correlationId}] All ${maxRetries} attempts failed, rolled back user ${newUser.id}`
+            );
+            return reply.status(500).send({
+              error:
+                'Failed to create user profile after multiple attempts. Please try again later.'
+            });
+          }
+
+          // brief delay before next retry
+          await new Promise((r) => setTimeout(r, 200));
+        }
       }
 
-      // Return user data without password for security
-      return { id: newUser.id, email: newUser.email };
-    } catch (error) {
-      // Log the error for debugging
-      fastify.log.error('Signup error:', error);
+      // === Return success ===
+      if (success) {
+        return { id: newUser.id, email: newUser.email };
+      }
 
-      // Return generic error to client (don't expose internal details)
+    } catch (error) {
+      fastify.log.error('Signup error:', error);
       return reply.status(500).send({ error: 'Internal server error' });
     }
   });
+
 }
 
