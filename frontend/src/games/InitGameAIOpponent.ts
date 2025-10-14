@@ -111,41 +111,10 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		loop();
 	}
 
-<<<<<<< HEAD
-  function stopGame(fullReset = false) {
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    running = false;
-  
-    if (fullReset) {
-      s1 = 0;
-      s2 = 0;
-      score1.textContent = "0";
-      score2.textContent = "0";
-  
-      p1Y = 37.5;
-      p2Y = 37.5;
-      p1Vel = 0;
-      p2Vel = 0;
-      ballX = 50;
-      ballY = 50;
-      ballVelX = 0;
-      ballVelY = 0;
-  
-      paddle1.style.top = `${p1Y}%`;
-      paddle2.style.top = `${p2Y}%`;
-      ball.style.left = `${ballX}%`;
-      ball.style.top = `${ballY}%`;
-  
-      startPress.classList.remove("hidden");
-    }
-  }
-  
-=======
 	function stopGame() {
 		running = false;
 		if (animationFrameId) cancelAnimationFrame(animationFrameId);
 	}
->>>>>>> 5c42fe2ab4830b9c3a2f9a473068185a81e68f1e
 
 	function resetGame() {
 		stopGame();
@@ -318,10 +287,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 
 	// Expose reset function globally for restart button
 	(window as any).resetAIGame = resetGame;
-<<<<<<< HEAD
-  
-=======
->>>>>>> 5c42fe2ab4830b9c3a2f9a473068185a81e68f1e
 }
 
 
