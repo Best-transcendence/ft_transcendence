@@ -166,35 +166,32 @@ export default async function authRoutes(fastify) {
         return reply.status(400).send({ error: 'All fields are required' });
       }
 
-	// Normalize and validate lowercase only
-	const normalizedEmail = email.toLowerCase();
+      // Normalize and validate lowercase only
+      const normalizedEmail = email.toLowerCase();
 	
-	// Normalize to avoid e.g.: É Á...
-	const nName  = name.normalize('NFC');
-	const nEmail = email.normalize('NFC');
+      // Normalize to avoid e.g.: É Á...
+      const nName  = name.normalize('NFC');
+      const nEmail = email.normalize('NFC');
 
-	if (nName !== nName.toLowerCase()) {
-	return reply.status(400).send({ error: 'Username cannot contain capital letters' });
-	}
+      if (nName !== nName.toLowerCase()) {
+        return reply.status(400).send({ error: 'Username cannot contain capital letters' });
+      }
 
-	if (nEmail !== nEmail.toLowerCase()) {
-	return reply.status(400).send({ error: 'Email cannot contain capital letters' });
-	}
+      if (nEmail !== nEmail.toLowerCase()) {
+        return reply.status(400).send({ error: 'Email cannot contain capital letters' });
+      }
 
-	name = name.trim();
-	email = email.trim();
+      // Space checks
+      if (/\s/.test(name)) {
+        return reply.status(400).send({ error: 'Username cannot contain spaces' });
+      }
 
-	// Space checks
-	if (/\s/.test(name)) {
-	return reply.status(400).send({ error: 'Username cannot contain spaces' });
-	}
-
-	if (/\s/.test(email)) {
-	return reply.status(400).send({ error: 'Email cannot contain spaces' });
-	}
+      if (/\s/.test(email)) {
+        return reply.status(400).send({ error: 'Email cannot contain spaces' });
+      }
 
       // validation for email and username characters
-	  const allowedChars = /^[a-z0-9_.\-]+$/;
+	  const allowedChars = /^[a-z0-9_.-]+$/;
 	  const allowedEmailChars = /^[a-z0-9_.@-]+$/;
 
       if (!email.includes('@') || !email.includes('.')) {
