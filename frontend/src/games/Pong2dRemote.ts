@@ -46,7 +46,7 @@ export function GamePongRemote(): string {
     <!-- Game section -->
     <div class="flex justify-center w-screen overflow-hidden">
       <div class="relative"
-        style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 90vw; max-width: 1450px; aspect-ratio: 16/9;">
+		style="position: absolute; top: vh; left: 50%; transform: translateX(-50%); width: 90vw; max-width: 1450px; aspect-ratio: 16/9;">
 
         <!-- Arcade image anchor -->
         <img src="/assets/game_background.png"

@@ -14,6 +14,7 @@ export function triggerInvitePopup(inviteData: { from: { id: string; name?: stri
   const overlay = document.createElement("div");
   overlay.className = "fixed inset-0 bg-black/60 z-50 flex items-center justify-center";
 
+  // TODO this it their own id
   const fromName = inviteData.from.name ?? `Player ${inviteData.from.id}`;
 
   overlay.innerHTML = `
