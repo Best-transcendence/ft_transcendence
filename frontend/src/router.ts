@@ -8,7 +8,7 @@ import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
 import { GamePongTournament } from "./games/Tournament";
-import { GamePongAIOpponent, setupAIControls } from "./games/AIOpponent";
+import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
 import { initGameTournament } from "./games/InitGameTournament";
 import { initGameAIOpponent } from "./games/InitGameAIOpponent";
@@ -128,7 +128,7 @@ if (window.location.pathname.startsWith("/assets/"))
 		break;
 
 	case "AIopponent":
-		protectedPage(() => GamePongAIOpponent(), initGameAIOpponent, setupAIControls);
+		protectedPage(() => GamePongAIOpponent(), setupAIOpponent);
 		break;
 
 	case "profile":

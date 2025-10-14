@@ -12,9 +12,9 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	const aiEnabled = true; // left paddle is AI
 
 	const DIFFICULTY = {
-    easy:   { reactionDelay: 400, aimError: 12, maxSpeed: 1.6, followStrength: 0.08, ballSpeed: 0.8, gameTime: 90 },
-    medium: { reactionDelay: 250, aimError: 7,  maxSpeed: 2.0, followStrength: 0.12, ballSpeed: 1.0, gameTime: 60 },
-    hard:   { reactionDelay: 120, aimError: 3,  maxSpeed: 2.3, followStrength: 0.18, ballSpeed: 1.3, gameTime: 45 },
+    easy:   { reactionDelay: 400, aimError: 12, maxSpeed: 1.6, followStrength: 0.08, ballSpeed: 1.0, gameTime: 40 },
+    medium: { reactionDelay: 250, aimError: 7,  maxSpeed: 2.0, followStrength: 0.12, ballSpeed: 1.5, gameTime: 30 },
+    hard:   { reactionDelay: 120, aimError: 3,  maxSpeed: 2.3, followStrength: 0.18, ballSpeed: 2.5, gameTime: 20 },
   };
   
 
@@ -43,6 +43,9 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 
 	let running = false;
 	let animationFrameId = 0;
+	let lastTime = 0;
+	const targetFPS = 120;
+	const frameTime = 1000 / targetFPS;
 
 	let s1 = 0, s2 = 0;
 
@@ -106,9 +109,17 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 
 	function startGame() {
 		running = true;
+		lastTime = performance.now();
 		startPress.classList.add("hidden");
+		
+		// Hide keyboard hint when game starts
+		const keyboardHint = document.getElementById("keyboardHintAI");
+		if (keyboardHint) {
+			keyboardHint.classList.add("hidden");
+		}
+		
 		resetBall();
-		loop();
+		animationFrameId = requestAnimationFrame(loop);
 	}
 
 	function stopGame() {
@@ -118,6 +129,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 
 	function resetGame() {
 		stopGame();
+		lastTime = 0;
 		s1 = 0;
 		s2 = 0;
 		score1.textContent = "0";
@@ -134,11 +146,20 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		resetBall();
 	}
 
-	function loop() {
+	function loop(currentTime: number) {
 		if (!running) return;
-		updatePaddles();
-		updateBall();
-		animationFrameId = requestAnimationFrame(loop); //storeid
+		
+		// Use consistent timing to avoid browser differences
+		if (currentTime - lastTime >= frameTime) {
+			updatePaddles();
+			updateBall();
+			lastTime = currentTime;
+		}
+		
+		// Always update ball position for smooth movement
+		updateBallPosition();
+		
+		animationFrameId = requestAnimationFrame(loop);
 	}
 
 	function updatePaddles() {
@@ -229,7 +250,10 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 			//playSound(lossSfx);
 			resetBall();
 		}
+	}
 
+	function updateBallPosition() {
+		// Update ball visual position every frame for smooth movement
 		ball.style.left = ballX + "%";
 		ball.style.top = ballY + "%";
 	}
