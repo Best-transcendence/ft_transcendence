@@ -88,15 +88,15 @@ async function main() {
   const juan = await prisma.userProfile.findUnique({ where: { authUserId: 3 } });
   //const camille = await prisma.userProfile.findUnique({ where: { authUserId: 4 } });
 
-	// 
-	const users = await prisma.userProfile.findMany({ select: { id: true } });
-	for (const u of users) {
-	await prisma.stats.upsert({
-		where: { userId: u.id },
-		update: {},
-		create: { userId: u.id }, // defaults (0s)
-	});
-	}
+  // 
+  const users = await prisma.userProfile.findMany({ select: { id: true } });
+  for (const u of users) {
+    await prisma.stats.upsert({
+      where: { userId: u.id },
+      update: {},
+      create: { userId: u.id }, // defaults (0s)
+    });
+  }
 
   const sampleMatches =
 	[

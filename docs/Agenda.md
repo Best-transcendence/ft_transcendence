@@ -31,7 +31,7 @@
 | 0  | **Project Foundations** (Tournament system)      | —               | —                        | —                | ✅ Completed                                                                   |
 | 1  | **Backend framework (Node.js + Fastify)**        | 0               | 3                        | MAJOR            | ✅ DONE                                                                        |
 | 2  | **Database (SQLight + Prisma)**                  | 0               | —                        | Minor            | ✅ DONE                                                                        |
-| 3  | **Frontend framework (TS + Tailwind/R)**         | 0               | 1                        | Minor            | ⚙️ Framework applied to all colors; improved `output.css` structure            |
+| 3  | **Frontend framework (TS + Tailwind/R)**         | 0               | 1                        | Minor            | ✅ DONE                                                                        |
 | 4  | **Microservices architecture**                   | —               | 2                        | MAJOR            | ✅ DONE                                                                        |
 | 5  | **DevOps: log management**                       | 1               | 8, 10                    | MAJOR            | ⏳ Not started                                                                 |
 | 6  | **Standard User Management**                     | 1, 2            | 4, 7, 3                  | MAJOR            | 🔧 In progress — Friend button, online status, input validation, match history |

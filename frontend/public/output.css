@@ -1228,11 +1228,6 @@ video {
   border-style: none;
 }
 
-.border-\[\#161220\] {
-  --tw-border-opacity: 1;
-  border-color: rgb(22 18 32 / var(--tw-border-opacity, 1));
-}
-
 .border-\[rgba\(255\2c 255\2c 255\2c 0\.3\)\] {
   border-color: rgba(255,255,255,0.3);
 }
@@ -1240,6 +1235,11 @@ video {
 .border-gray-300 {
   --tw-border-opacity: 1;
   border-color: rgb(209 213 219 / var(--tw-border-opacity, 1));
+}
+
+.border-gray-600 {
+  --tw-border-opacity: 1;
+  border-color: rgb(75 85 99 / var(--tw-border-opacity, 1));
 }
 
 .border-white\/10 {
@@ -1337,8 +1337,9 @@ video {
   background-color: rgb(220 38 38 / var(--tw-bg-opacity, 1));
 }
 
-.bg-theme-button {
-  background-color: var(--color-button);
+.bg-slate-900 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1));
 }
 
 .bg-transparent {
@@ -1519,18 +1520,14 @@ video {
   color: rgb(168 156 198 / var(--tw-text-opacity, 1));
 }
 
-.text-\[\#e8e8e8\] {
-  --tw-text-opacity: 1;
-  color: rgb(232 232 232 / var(--tw-text-opacity, 1));
-}
-
-.text-\[var\(--color-accent-2\)\] {
-  color: var(--color-accent-2);
-}
-
 .text-black {
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity, 1));
+}
+
+.text-cyan-400 {
+  --tw-text-opacity: 1;
+  color: rgb(34 211 238 / var(--tw-text-opacity, 1));
 }
 
 .text-gray-200 {
@@ -1714,15 +1711,22 @@ will update automatically the other styles.
 */
 
 :root {
-  /* Default theme */
-  --color-bg-1: #0d0c3d;
-  --color-bg-2: #1d1f70;
-  --color-accent-1: #5b2ca8;
-  --color-accent-2: #2fd2f7;
-  --color-accent-3: #ffcc00;
+  /* Default theme - updated to match Tailwind colors */
+  --color-bg-1: #0f172a;
+  /* slate-900 */
+  --color-bg-2: #1e293b;
+  /* slate-800 */
+  --color-accent-1: #7c3aed;
+  /* violet-600 */
+  --color-accent-2: #22d3ee;
+  /* cyan-400 */
+  --color-accent-3: #fbbf24;
+  /* amber-400 */
   --color-text: #ffffff;
-  --color-button: #7037d3;
-  --color-button-hover: #8a56ea;
+  --color-button: #7c3aed;
+  /* violet-600 */
+  --color-button-hover: #8b5cf6;
+  /* violet-500 */
   --color-frame: #919bebc7;
   --game-area-background: #071a1d;
 }
@@ -1849,6 +1853,44 @@ body {
   font-family: var(--font-body);
 }
 
+/* Fix autofill styling for input fields */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #161220 inset !important;
+  -webkit-text-fill-color: white !important;
+  background-color: #161220 !important;
+}
+
+/* For Firefox autofill */
+
+input:-moz-autofill {
+  background-color: #161220 !important;
+  color: white !important;
+}
+
+.autofill\:bg-\[\#161220\]:-webkit-autofill {
+  --tw-bg-opacity: 1;
+  background-color: rgb(22 18 32 / var(--tw-bg-opacity, 1));
+}
+
+.autofill\:bg-\[\#161220\]:autofill {
+  --tw-bg-opacity: 1;
+  background-color: rgb(22 18 32 / var(--tw-bg-opacity, 1));
+}
+
+.autofill\:text-white:-webkit-autofill {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+.autofill\:text-white:autofill {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
 .hover\:bg-\[var\(--color-button-hover\)\]:hover {
   background-color: var(--color-button-hover);
 }
@@ -1868,6 +1910,11 @@ body {
   background-color: rgb(21 128 61 / var(--tw-bg-opacity, 1));
 }
 
+.hover\:bg-purple-500:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(168 85 247 / var(--tw-bg-opacity, 1));
+}
+
 .hover\:bg-purple-600:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(147 51 234 / var(--tw-bg-opacity, 1));
@@ -1881,10 +1928,6 @@ body {
 .hover\:bg-red-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(185 28 28 / var(--tw-bg-opacity, 1));
-}
-
-.hover\:bg-theme-button-hover:hover {
-  background-color: var(--color-button-hover);
 }
 
 .hover\:text-purple-700:hover {
@@ -1917,11 +1960,6 @@ body {
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
   --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
-}
-
-.focus\:ring-\[\#161220\]:focus {
-  --tw-ring-opacity: 1;
-  --tw-ring-color: rgb(22 18 32 / var(--tw-ring-opacity, 1));
 }
 
 .focus\:ring-purple-500:focus {
