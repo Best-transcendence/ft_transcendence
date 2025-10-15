@@ -29,8 +29,8 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	const aiEnabled = true; // left paddle is AI
 
 	const DIFFICULTY = {
-    easy:   { reactionDelay: 400, aimError: 12, maxSpeed: 1.6, followStrength: 0.08, ballSpeed: 1.0, gameTime: 40 },
-    medium: { reactionDelay: 250, aimError: 7,  maxSpeed: 2.0, followStrength: 0.12, ballSpeed: 1.5, gameTime: 30 },
+    easy:   { reactionDelay: 600, aimError: 15, maxSpeed: 1.6, followStrength: 0.08, ballSpeed: 1.0, gameTime: 40 },
+    medium: { reactionDelay: 200, aimError: 8,  maxSpeed: 2.0, followStrength: 0.15, ballSpeed: 1.5, gameTime: 30 },
     hard:   { reactionDelay: 120, aimError: 3,  maxSpeed: 2.3, followStrength: 0.18, ballSpeed: 2.5, gameTime: 20 },
   };
   
@@ -393,8 +393,27 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
       ballVelX = Math.random() > 0.5 ? baseSpeedX : -baseSpeedX;
     }
     
-    // Random vertical direction
-    ballVelY = Math.random() > 0.5 ? baseSpeedY : -baseSpeedY;
+    // Random vertical direction - how we serve after lost point
+    if (level === "hard" && lastScorer !== null) {
+      // in hard level we aim to hardest place to reach on player side
+      const paddleCenterY = p2Y + PADDLE_H / 2;
+      const targetY = paddleCenterY;
+      const deltaY = targetY - ballY;
+      const total = Math.abs(deltaY);
+      ballVelY = baseSpeedY * (deltaY / total); 
+    } else if (level === "medium" && lastScorer !== null) {
+      // In medium level we aim slightly toward center of paddles (to be easier to hit)
+      const playerCenter = p2Y + PADDLE_H / 2;
+      const aiCenter = p1Y + PADDLE_H / 2;
+      const targetY = (playerCenter + aiCenter) / 2;
+      const deltaY = targetY - ballY;
+      const total = Math.abs(deltaY) || 1; // prevent division by zero
+      ballVelY = baseSpeedY * 0.5 * (deltaY / total); // reduced slope
+    } else {
+      // Random vertical direction for regular levels
+      ballVelY = Math.random() > 0.5 ? baseSpeedY : -baseSpeedY;
+    }
+    
   }
   
   
