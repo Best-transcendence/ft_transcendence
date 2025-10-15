@@ -2,8 +2,25 @@ import { thisUser } from "../router";
 import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
 
+// Global variables for scores and game state
+let globalScoreAI = 0;
+let globalScorePlayer = 0;
+let globalAnimationFrameId: number | null = null;
+let globalGameRunning = false;
+let currentInstanceId = 0; // Track which instance is active
+
 // TODO more difficult algorithm 
-export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium"): void {
+export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium"): { destroy: () => void } {
+	// Create unique instance ID - this instance is now the active one
+	const myInstanceId = ++currentInstanceId;
+	console.log("=== NEW GAME INSTANCE CREATED ===", myInstanceId);
+	
+	// Reset global state at the start of a new game instance
+	globalScoreAI = 0;
+	globalScorePlayer = 0;
+	globalGameRunning = false;
+	globalAnimationFrameId = null;
+	
 	// --- AI config (left paddle) ---
 	// In FSM version, AI parameters are managed through difficulty settings.
 	// Each difficulty defines reaction delay, aiming accuracy, movement speed,
@@ -43,11 +60,13 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 
 	let running = false;
 	let animationFrameId = 0;
+	let aiIntervalId: NodeJS.Timeout | null = null;
 	let lastTime = 0;
 	const targetFPS = 120;
 	const frameTime = 1000 / targetFPS;
 
-	let s1 = 0, s2 = 0;
+	let lastScorer: "ai" | "player" | null = null;
+	let ballScored = false; // Flag to prevent multiple scoring events
 
 	let p1Y = 37.5, p2Y = 37.5; // matches initial CSS top-[37.5%]
 	let ballX = 50, ballY = 50;
@@ -59,29 +78,33 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	let p1Up = false, p1Down = false, p2Up = false, p2Down = false;
 
 	// --- AI FSM: periodic view (1Hz) ---
-	setInterval(() => {
+	aiIntervalId = setInterval(() => {
+		// Only run if this is still the active instance
+		if (myInstanceId !== currentInstanceId) return;
 		if (!aiEnabled || !running) return;
 		const snapshot = { x: ballX, y: ballY, vx: ballVelX, vy: ballVelY };
 		updateAI(snapshot);
 	}, 1000);
 	// --- END AI FSM ---
 
-	window.addEventListener("game:timeup", () => {
+	function onTimeUp() {
 		stopGame();
 		const overlay = document.getElementById("timeUpOverlay");
 		const winnerText = document.getElementById("winnerText");
 		if (overlay) {
 			// Determine winner based on final scores
-			if (s1 > s2) {
+			if (globalScoreAI > globalScorePlayer) {
 				winnerText!.textContent = "AI won 🤖";
-			} else if (s2 > s1) {
+			} else if (globalScorePlayer > globalScoreAI) {
 				winnerText!.textContent = "You won 🥇";
 			} else {
 				winnerText!.textContent = "It's a tie! 🤝";
 			}
 			overlay.classList.remove("hidden");
 		}
-	});
+	}
+
+	window.addEventListener("game:timeup", onTimeUp);
 
 	const overlayExit = document.getElementById("overlayExit");
 	overlayExit?.addEventListener("click", () => {
@@ -109,6 +132,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 
 	function startGame() {
 		running = true;
+		globalGameRunning = true;
 		lastTime = performance.now();
 		startPress.classList.add("hidden");
 		
@@ -120,18 +144,39 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		
 		resetBall();
 		animationFrameId = requestAnimationFrame(loop);
+		globalAnimationFrameId = animationFrameId;
 	}
 
 	function stopGame() {
+		console.log("=== STOPPING GAME ===");
+		console.log("Running before stop:", running);
+		console.log("Animation frame ID:", animationFrameId);
+		
 		running = false;
-		if (animationFrameId) cancelAnimationFrame(animationFrameId);
+		globalGameRunning = false;
+		if (animationFrameId) {
+			console.log("Cancelling animation frame:", animationFrameId);
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = 0;
+		}
+		if (globalAnimationFrameId) {
+			console.log("Cancelling global animation frame:", globalAnimationFrameId);
+			cancelAnimationFrame(globalAnimationFrameId);
+			globalAnimationFrameId = null;
+		}
+		
+		console.log("Running after stop:", running);
+		console.log("=== GAME STOPPED ===");
 	}
 
 	function resetGame() {
+		console.log("=== RESET GAME CALLED ===");
 		stopGame();
 		lastTime = 0;
-		s1 = 0;
-		s2 = 0;
+		globalScoreAI = 0;
+		globalScorePlayer = 0;
+		lastScorer = null;
+		ballScored = false;
 		score1.textContent = "0";
 		score2.textContent = "0";
 		p1Y = 37.5;
@@ -144,25 +189,49 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		p2Vel = 0;
 		startPress.classList.remove("hidden");
 		resetBall();
+		console.log("=== RESET GAME COMPLETE ===");
 	}
 
 	function loop(currentTime: number) {
-		if (!running) return;
+		// Check if this instance is still the active one - CRITICAL!
+		if (myInstanceId !== currentInstanceId) {
+			console.log("Game loop stopped - old instance", myInstanceId, "current:", currentInstanceId);
+			return;
+		}
+		
+		// Check if this instance should be destroyed - MUST BE FIRST
+		if ((window as any).aiGameDestroyed === true || !running || !globalGameRunning) {
+			console.log("Game loop stopped - destroyed:", (window as any).aiGameDestroyed, "running:", running, "globalGameRunning:", globalGameRunning);
+			return;
+		}
 		
 		// Use consistent timing to avoid browser differences
 		if (currentTime - lastTime >= frameTime) {
 			updatePaddles();
 			updateBall();
+			checkScoring(); // Check scoring after ball position update
 			lastTime = currentTime;
 		}
 		
 		// Always update ball position for smooth movement
 		updateBallPosition();
 		
+		// Check again before scheduling next frame
+		if (myInstanceId !== currentInstanceId || (window as any).aiGameDestroyed === true || !running || !globalGameRunning) {
+			console.log("Game loop stopped before next frame");
+			return;
+		}
+		
 		animationFrameId = requestAnimationFrame(loop);
 	}
 
 	function updatePaddles() {
+		// Check if this is still the active instance
+		if (myInstanceId !== currentInstanceId) return;
+		
+		// Check if game is running
+		if (!globalGameRunning) return;
+		
 		p2Vel = applyInput(p2Up, p2Down, p2Vel);
 
 		// TODO more difficult AI movements
@@ -200,6 +269,12 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	}
 
 	function updateBall() {
+		// Check if this is still the active instance
+		if (myInstanceId !== currentInstanceId) return;
+		
+		// Check if game is running
+		if (!globalGameRunning) return;
+		
 		ballX += ballVelX;
 		ballY += ballVelY;
 
@@ -237,19 +312,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 			//playSound(paddleSfx);
 		}
 
-		// FIX: symmetric scoring using the ball center
-		const ballCenterX = ballX + BALL_W / 2;
-		if (ballCenterX < 0) {
-			s2++;
-			score2.textContent = s2.toString();
-			//playSound(lossSfx);
-			resetBall();
-		} else if (ballCenterX > FIELD) {
-			s1++;
-			score1.textContent = s1.toString();
-			//playSound(lossSfx);
-			resetBall();
-		}
 	}
 
 	function updateBallPosition() {
@@ -258,14 +320,80 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		ball.style.top = ballY + "%";
 	}
 
+	function checkScoring() {
+		// Check if this is still the active instance - CRITICAL!
+		if (myInstanceId !== currentInstanceId) {
+			return;
+		}
+		
+		// Check if this instance should be destroyed
+		if ((window as any).aiGameDestroyed === true) return;
+		
+		// Check if game is running
+		if (!globalGameRunning) return;
+		
+		// Only check scoring if ball hasn't already scored this round
+		if (ballScored) {
+			console.log("Ball already scored, skipping check");
+			return;
+		}
+
+	// Scoring: ball goes out of bounds
+	// Left side - ball exits left, AI (left paddle) missed, so PLAYER scores
+	if (ballX + BALL_W < 0) {
+		console.log("=== PLAYER SCORES (AI missed) === Instance:", myInstanceId);
+		console.log("ballX:", ballX, "ballX + BALL_W:", ballX + BALL_W);
+		console.log("Current scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
+		console.log("Game running:", running);
+		
+		ballScored = true; // Prevent multiple scoring
+		globalScorePlayer++; // Player scores because AI missed
+		score2.textContent = globalScorePlayer.toString();
+		lastScorer = "player";
+		console.log("New scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
+		console.log("=== END PLAYER SCORES ===");
+		//playSound(lossSfx);
+		resetBall();
+	} 
+	// Right side - ball exits right, Player (right paddle) missed, so AI scores
+	else if (ballX > FIELD) {
+		console.log("=== AI SCORES (Player missed) === Instance:", myInstanceId);
+		console.log("ballX:", ballX, "FIELD:", FIELD);
+		console.log("Current scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
+		console.log("Game running:", running);
+		
+		ballScored = true; // Prevent multiple scoring
+		globalScoreAI++; // AI scores because Player missed
+		score1.textContent = globalScoreAI.toString();
+		lastScorer = "ai";
+		console.log("New scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
+		console.log("=== END AI SCORES ===");
+		//playSound(lossSfx);
+		resetBall();
+	}
+	}
+
   function resetBall() {
     ballX = 50 - BALL_W / 2;
     ballY = 50 - BALL_H / 2;
+    ballScored = false; // Reset scoring flag for new ball
   
     const baseSpeedX = aiLevel.ballSpeed;       // speed depends on difficulty
     const baseSpeedY = aiLevel.ballSpeed * 0.7; // slightly lower vertical speed
   
-    ballVelX = Math.random() > 0.5 ? baseSpeedX : -baseSpeedX;
+    // Fair ball direction: alternate based on who scored last
+    if (lastScorer === "ai") {
+      // AI scored (player missed), so ball goes toward AI (left) - AI serves
+      ballVelX = -baseSpeedX;
+    } else if (lastScorer === "player") {
+      // Player scored (AI missed), so ball goes toward player (right) - Player serves
+      ballVelX = baseSpeedX;
+    } else {
+      // First serve - random direction
+      ballVelX = Math.random() > 0.5 ? baseSpeedX : -baseSpeedX;
+    }
+    
+    // Random vertical direction
     ballVelY = Math.random() > 0.5 ? baseSpeedY : -baseSpeedY;
   }
   
@@ -309,8 +437,55 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		return Math.max(min, Math.min(max, val));
 	}
 
-	// Expose reset function globally for restart button
-	(window as any).resetAIGame = resetGame;
+	// Return destroy function for singleton pattern
+	function destroy() {
+		console.log("=== DESTROYING GAME INSTANCE ===", myInstanceId);
+		console.log("Current active instance:", currentInstanceId);
+		console.log("Running before destroy:", running);
+		console.log("Animation frame ID before destroy:", animationFrameId);
+		console.log("AI interval ID before destroy:", aiIntervalId);
+		
+		// IMMEDIATELY set all stop flags to halt any running loops
+		(window as any).aiGameDestroyed = true;
+		running = false;
+		globalGameRunning = false;
+		if (animationFrameId) {
+			console.log("Cancelling animation frame:", animationFrameId);
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = 0;
+		}
+		if (globalAnimationFrameId) {
+			console.log("Cancelling global animation frame:", globalAnimationFrameId);
+			cancelAnimationFrame(globalAnimationFrameId);
+			globalAnimationFrameId = null;
+		}
+		
+		// Clear AI interval
+		if (aiIntervalId) {
+			console.log("Clearing AI interval:", aiIntervalId);
+			clearInterval(aiIntervalId);
+			aiIntervalId = null;
+		}
+		
+		// Clear all event listeners
+		window.removeEventListener("game:timeup", onTimeUp);
+		
+		// Reset all variables
+		lastTime = 0;
+		globalScoreAI = 0;
+		globalScorePlayer = 0;
+		lastScorer = null;
+		ballScored = false;
+		
+		// Reset scores in DOM
+		score1.textContent = "0";
+		score2.textContent = "0";
+		
+		console.log("Running after destroy:", running);
+		console.log("=== GAME INSTANCE DESTROYED ===");
+	}
+
+	return { destroy };
 }
 
 

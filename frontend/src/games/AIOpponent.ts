@@ -3,7 +3,7 @@ import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { TimerDisplay, startTimer, resetTimer } from "../components/Timer";
-import { initGameAIOpponent } from "./InitGameAIOpponent";
+import { createAIGame, destroyAIGame, isGameRunning } from "./AIGameController";
 
 export function GamePongAIOpponent(): string {
   return `
@@ -195,8 +195,11 @@ export function setupAIOpponent() {
 
 	// Difficulty selection handlers
 	function selectDifficulty(level: "easy" | "medium" | "hard") {
-		console.log("Difficulty selected:", level);
+		console.log("=== DIFFICULTY SELECTED ===", level);
 		currentDifficulty = level;
+		
+		// Destroy any existing game first
+		destroyAIGame();
 		
 		// Hide difficulty overlay
 		if (difficultyOverlay) {
@@ -216,9 +219,10 @@ export function setupAIOpponent() {
 		const duration = difficultyTimes[level];
 		resetTimer(duration);
 		
-		// Initialize game with selected difficulty
-		initGameAIOpponent(level);
+		// Create new game instance using singleton
+		createAIGame(level);
 		gameInitialized = true;
+		console.log("=== NEW GAME STARTED ===");
 	}
 
 	// Event listeners for difficulty buttons
@@ -233,7 +237,10 @@ export function setupAIOpponent() {
 
 	// Play again handler
 	playAgain?.addEventListener("click", () => {
-		console.log("Play again clicked");
+		console.log("=== PLAY AGAIN CLICKED ===");
+		
+		// Destroy any existing game
+		destroyAIGame();
 		
 		// Hide time up overlay
 		if (timeUpOverlay) {
@@ -242,6 +249,7 @@ export function setupAIOpponent() {
 		
 		// Reset game state
 		gameInitialized = false;
+		console.log("Game state reset, gameInitialized:", gameInitialized);
 		
 		// Reset scores and positions
 		const score1 = document.getElementById("score1");
@@ -250,8 +258,15 @@ export function setupAIOpponent() {
 		const paddle1 = document.getElementById("paddle1");
 		const paddle2 = document.getElementById("paddle2");
 		
-		if (score1) score1.textContent = "0";
-		if (score2) score2.textContent = "0";
+		console.log("Resetting visual elements");
+		if (score1) {
+			console.log("Resetting score1 from", score1.textContent, "to 0");
+			score1.textContent = "0";
+		}
+		if (score2) {
+			console.log("Resetting score2 from", score2.textContent, "to 0");
+			score2.textContent = "0";
+		}
 		if (ball) {
 			ball.style.left = "48.3%";
 			ball.style.top = "47.5%";
@@ -269,6 +284,8 @@ export function setupAIOpponent() {
 		if (keyboardHint) {
 			keyboardHint.classList.add("hidden");
 		}
+		
+		console.log("=== PLAY AGAIN COMPLETE ===");
 	});
 
 	// Exit handler
