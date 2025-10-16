@@ -8,7 +8,7 @@ import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
 import { GamePongTournament } from "./games/Tournament";
-import { GamePongAIOpponent } from "./games/AIOpponent";
+import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
 import { LobbyPageTournament } from "./pages/LobbyPageTournament";
 import { initGameTournament } from "./games/InitGameTournament";
@@ -145,25 +145,29 @@ export function router() {
       protectedPage(() => GamePongTournament(), initGameTournament);
       break;
 
-    case "AIopponent":
-      protectedPage(() => GamePongAIOpponent(), initGameAIOpponent);
-      break;
+	case "tournament":
+		protectedPage(() => GamePongTournament(), initGameTournament);
+		break;
 
-    case "profile":
-      protectedPage(() => ProfilePage(), triggerPopup);
-      break;
+	case "AIopponent":
+		protectedPage(() => GamePongAIOpponent(), setupAIOpponent);
+		break;
 
-    case "friends":
-      protectedPage(() => FriendsPage(), triggerPopup, friendRequest);
-      break;
+	case "profile":
+		protectedPage(() => ProfilePage(), triggerPopup);
+		break;
 
-    case "dashboard":
-      protectedPage(() => DashboardPage());
-      break;
+	case "friends":
+		protectedPage(() => FriendsPage(), triggerPopup, friendRequest);
+		break;
+	
+	case "dashboard":
+		protectedPage(() => DashboardPage());
+		break;
 
-    case "history":
-      protectedPage(() => HistoryPage(), matchesEvents);
-      break;
+	case "history":
+		protectedPage(() => HistoryPage(), matchesEvents);
+		break;
 
     default:
       app.innerHTML = NotFoundPage();
