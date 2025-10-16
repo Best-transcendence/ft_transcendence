@@ -3,14 +3,18 @@ import { PrismaClient } from '@prisma/client';
 
 // Plugin to integrate Prisma ORM with Fastify
 export default fp(async (fastify, _opts) => {
-  // Create new Prisma client instance
   const prisma = new PrismaClient();
-    
-  // Connect to the database
-  await prisma.$connect();
+
+  try {
+    // Connect to the database
+    await prisma.$connect();
+    fastify.log.info('✅ Prisma connected successfully');
+  } catch (err) {
+    fastify.log.error(`❌ Failed to connect to database: ${err.message}`);
+    throw err;
+  }
 
   // Decorate Fastify instance with Prisma client
-  // This makes it available as fastify.prisma in all routes
   fastify.decorate('prisma', prisma);
 
   // Clean up database connection when server shuts down
