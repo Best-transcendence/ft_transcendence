@@ -56,8 +56,11 @@ pids/
 coverage/
 .nyc_output/
 
-# Docker
-.dockerignore
+# Docker volumes and data
+docker-data/
+
+# Vite build artifacts
+.vite/
 
 # Temporary folders
 tmp/
@@ -91,6 +94,7 @@ backend/npm-debug.log*
 frontend/node_modules/
 frontend/dist/
 frontend/next-env.d.ts
+frontend/.vite
 
 /generated/prisma
 

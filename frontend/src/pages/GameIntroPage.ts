@@ -30,18 +30,18 @@ export function GameIntroPage() {
         <!-- Feature cards -->
         <div class="flex gap-6 flex-wrap justify-center">
           <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center cursor-pointer hover:bg-purple-700"
-     			onclick="window.location.hash='pong2d'">
- 			<h2 class="font-bold text-[var(--color-accent-2)] mb-2">👾 Player vs Player</h2>
+     			onclick="window.location.hash='lobby'">
+ 			<h2 class="font-bold text-cyan-400 mb-2">👾 Player vs Player</h2>
   			<p class="text-white text-sm">Classic 1v1 arcade action. Challenge a friend and see who's the best.</p>
 		</div>
           <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center cursor-pointer hover:bg-purple-700"
-		       	onclick="window.location.hash='tournament'">
-            <h2 class="font-bold text-[var(--color-accent-2)] mb-2">🏆 Tournament Mode</h2>
+		       	onclick="window.location.hash='lobbytournament'">
+            <h2 class="font-bold text-cyan-400 mb-2">🏆 Tournament Mode</h2>
             <p class="text-white text-sm">A series of matches leading to a champion. Add your friends or guests to compete in an arcade battle.</p>
           </div>
           <div class="rounded-xl shadow-[0_0_30px_10px_#7037d3] p-6 w-64 text-center cursor-pointer hover:bg-purple-700"
 		  		 onclick="window.location.hash='AIopponent'">
-            <h2 class="font-bold text-[var(--color-accent-2)] mb-2">🤖 AI Opponent Mode</h2>
+            <h2 class="font-bold text-cyan-400 mb-2">🤖 AI Opponent Mode</h2>
             <p class="text-white text-sm">This mode is for practicing or battling solo against the computer.</p>
           </div>
         </div>

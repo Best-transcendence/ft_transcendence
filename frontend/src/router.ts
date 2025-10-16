@@ -1,26 +1,29 @@
 //Services:
 import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
-
+import { GamePongRemote, initRemoteGame } from "./games/Pong2dRemote";
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
 import { GamePongTournament } from "./games/Tournament";
-import { GamePongAIOpponent } from "./games/AIOpponent";
+import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
+import { LobbyPageTournament } from "./pages/LobbyPageTournament";
+import { initGameTournament } from "./games/InitGameTournament";
+import { initGameAIOpponent } from "./games/InitGameAIOpponent";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
+import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 //Components:
 import { sideBar } from "./components/SideBar";
-import { logOutBtn } from "./components/LogOutBtn"
-import { triggerPopup } from "./components/Popups"
-import { friendRequest } from "./components/FriendRequestDiv"
-
+import { logOutBtn } from "./components/LogOutBtn";
+import { triggerPopup } from "./components/Popups";
+import { friendRequest } from "./components/FriendRequestDiv";
 
 // Centralizes user extraction into a variable
 export let thisUser: any = undefined;
@@ -56,26 +59,25 @@ async function fetchUser() {
 }; */
 
 //tmp async function to render visual edit without having to relog
-export async function protectedPage(renderer: () => string, ...postRender: (() => void)[])
-{
-	const app = document.getElementById("app")!;
+export async function protectedPage(
+  renderer: () => string,
+  ...postRender: (() => void)[]
+) {
+  const app = document.getElementById("app")!;
 
-	await fetchUser();
-	if (thisUser != undefined)
-	{
-		app.innerHTML = renderer();
+  await fetchUser();
+  if (thisUser != undefined) {
+    app.innerHTML = renderer();
 
-		sideBar();
-		logOutBtn();
+    sideBar();
+    logOutBtn();
 
-		postRender?.forEach(fn => fn()); // specific page functions for a given page
-	}
-	else
-	{
-		console.error("Failed to load user");
-		window.location.hash = "login";
-	}
-};
+    postRender?.forEach((fn) => fn()); // specific page functions for a given page
+  } else {
+    console.error("Failed to load user");
+    window.location.hash = "login";
+  }
+}
 
 //_______ Info
 /*
@@ -84,7 +86,14 @@ with the # for now just to see if everything works.
 */
 export function router() {
   const app = document.getElementById("app")!;
-  const page = window.location.hash.replace("#", "") || "login";
+
+  const rawHash = window.location.hash.slice(1);
+  const [route, query] = rawHash.split("?"); // to get the route and after the ? to get the query
+
+  const page = route || "login";
+
+  // TODO store in the gameinit if it's needed
+  const params = new URLSearchParams(query || "");
 
   if (window.location.pathname.startsWith("/assets/"))
     //lets us open assets on web
@@ -105,6 +114,13 @@ export function router() {
       );
       break;
 
+	case "lobbytournament":
+      protectedPage(
+        () => LobbyPageTournament(),
+      );
+      break;
+
+
     case "intro":
       protectedPage(() => GameIntroPage());
       break;
@@ -112,13 +128,29 @@ export function router() {
     case "pong2d":
       protectedPage(() => GamePong2D(), initGame);
       break;
+    case "remote":
+      const roomId = query ? new URLSearchParams(query).get("room") : null;
+      localStorage.setItem("roomId", roomId); // Keep the room ID.
+      if (!roomId) {
+        app.innerHTML = NotFoundPage();
+        return;
+      }
+      protectedPage(
+        () => GamePongRemote(),
+        () => initRemoteGame(roomId)
+      );
+      break;
+
+    case "tournament":
+      protectedPage(() => GamePongTournament(), initGameTournament);
+      break;
 
 	case "tournament":
-		protectedPage(() => GamePongTournament(), initGame);
+		protectedPage(() => GamePongTournament(), initGameTournament);
 		break;
 
 	case "AIopponent":
-		protectedPage(() => GamePongAIOpponent(), initGame);
+		protectedPage(() => GamePongAIOpponent(), setupAIOpponent);
 		break;
 
 	case "profile":
@@ -127,6 +159,10 @@ export function router() {
 
 	case "friends":
 		protectedPage(() => FriendsPage(), triggerPopup, friendRequest);
+		break;
+	
+	case "dashboard":
+		protectedPage(() => DashboardPage());
 		break;
 
 	case "history":

@@ -19,6 +19,19 @@ nvm alias default 22.12.0
 
 # Usage
 
+# Device compatibility
+
+Run and connect to the network from your phone
+```bash
+npm run dev -- --host 0.0.0.0 --port 4000
+```
+Or connect to the link from localtunnel
+
+```bash
+npx localtunnel --port 4000
+curl https://loca.lt/mytunnelpassword
+```
+
 ## ⚙️ Setup & Run (Local Dev)
 
 ### 1. Install dependencies
@@ -175,5 +188,3 @@ case "intro":
   protectedPage(() => GameIntroPage());
   break;
 ```
-
-It’s easy to maintain and expand later.

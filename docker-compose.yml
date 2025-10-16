@@ -1,7 +1,186 @@
-docker-compose up --build
-
 services:
-  db: { ... , profiles: ["dev","prod"] }
-  backend: { ... , profiles: ["dev"] }
-  frontend: { ... , profiles: ["dev"] }
-  proxy: { ... , profiles: ["dev","prod"] }
+  # =============================================================================
+  # BACKEND SERVICES
+  # =============================================================================
+
+  # User Service
+  user-service:
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    container_name: user_service
+    env_file:
+      - .env
+    environment:
+      - USER_SERVICE_PORT=${USER_SERVICE_PORT}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - USER_DATABASE_URL=${USER_DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=${NODE_ENV}
+      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+    ports:
+      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
+    volumes:
+      - user_data:/app/data
+    networks:
+      - ft_transcendence_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${USER_SERVICE_PORT}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    container_name: auth_service
+    env_file:
+      - .env
+    environment:
+      - AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - AUTH_DATABASE_URL=${AUTH_DATABASE_URL}
+      - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=${NODE_ENV}
+      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+    ports:
+      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
+    volumes:
+      - auth_data:/app/data
+    depends_on:
+      user-service:
+        condition: service_healthy
+    networks:
+      - ft_transcendence_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${AUTH_SERVICE_PORT}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Gateway Service
+  gateway-service:
+    build:
+      context: ./backend/gateway
+      dockerfile: Dockerfile
+    container_name: gateway_service
+    env_file:
+      - .env
+    environment:
+      - GATEWAY_PORT=${GATEWAY_PORT}
+      - GATEWAY_URL=${GATEWAY_URL}
+      - AUTH_SERVICE_URL=http://auth_service:${AUTH_SERVICE_PORT}
+      - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
+      - WS_SERVICE_URL=http://ws_service:${WS_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=${NODE_ENV}
+      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    networks:
+      - ft_transcendence_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${GATEWAY_PORT}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # WebSocket Service
+  ws-service:
+    build:
+      context: ./backend/ws-service
+      dockerfile: Dockerfile
+    container_name: ws_service
+    env_file:
+      - .env
+    environment:
+      - WS_PORT=${WS_PORT}
+      - WS_SERVICE_URL=${WS_SERVICE_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - GATEWAY_URL=http://gateway_service:${GATEWAY_PORT}
+      - AUTH_SERVICE_URL=http://auth_service:${AUTH_SERVICE_PORT}
+      - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=${NODE_ENV}
+      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+    ports:
+      - "${WS_PORT}:${WS_PORT}"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      gateway-service:
+        condition: service_healthy
+    networks:
+      - ft_transcendence_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${WS_PORT}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # =============================================================================
+  # FRONTEND SERVICE
+  # =============================================================================
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend_service
+    env_file:
+      - .env
+    environment:
+      - FRONTEND_PORT=${FRONTEND_PORT}
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    depends_on:
+      gateway-service:
+        condition: service_healthy
+      ws-service:
+        condition: service_healthy
+    networks:
+      - ft_transcendence_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${FRONTEND_PORT}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+
+networks:
+  ft_transcendence_network:
+    driver: bridge
+    name: ft_transcendence_network
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+
+volumes:
+  user_data:
+    driver: local
+  auth_data:
+    driver: local

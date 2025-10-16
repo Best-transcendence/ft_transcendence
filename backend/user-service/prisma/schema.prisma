@@ -33,6 +33,9 @@ model UserProfile {
   // Match history relationships
   player1Matches Match[] @relation("Player1Matches")
   player2Matches Match[] @relation("Player2Matches")
+
+  // including Stats model
+  stats     Stats?
 }
 
   // Match table model
@@ -49,4 +52,21 @@ model UserProfile {
   // Connections with players
   player1     UserProfile? @relation("Player1Matches", fields: [player1Id], references: [id])
   player2     UserProfile? @relation("Player2Matches", fields: [player2Id], references: [id])
+}
+
+	//stats dahsboard module
+model Stats {
+  userId            Int         @id
+  user              UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)   // TODO: do we need to have optiont for deleting profile? if the user is deleted delet this row automatically?
+
+  gamesPlayed       Int         @default(0)
+  wins              Int         @default(0)
+  losses            Int         @default(0)
+  draws             Int         @default(0)
+
+  pointsFor         Int         @default(0)   // total points scored
+  pointsAgainst     Int         @default(0)   // total points conceded
+  highestScore      Int         @default(0)
+
+  updatedAt         DateTime    @updatedAt
 }
