@@ -9,8 +9,26 @@ import fastifySwaggerUI from '@fastify/swagger-ui';
 // Adding Env.
 dotenv.config();
 
-// Create Fastify server instance with logging
-const app = Fastify({ logger: true });
+// Create Fastify server instance with structured JSON logging for ELK
+const app = Fastify({
+  logger: {
+    level: 'info',
+    serializers: {
+      req: (req) => ({
+        method: req.method,
+        url: req.url,
+        hostname: req.hostname,
+        remoteAddress: req.ip
+      }),
+      res: (res) => ({
+        statusCode: res.statusCode
+      })
+    }
+  },
+  // Add request ID for tracing
+  requestIdHeader: 'x-request-id',
+  requestIdLogLabel: 'requestId'
+});
 
 // Register CORS plugin
 await app.register(fastifyCors, {
