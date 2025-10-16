@@ -24,8 +24,27 @@
 - Juan - Frontend
 - Tina - Infrastructure/DevOps
 
-
 # Development Roadmap
+
+| #  | Workstream                                       | Must come after | Can run in parallel with | Type / Priority  | Status / Notes                                                                 |
+| -- | ------------------------------------------------ | --------------- | ------------------------ | ---------------- | ------------------------------------------------------------------------------ |
+| 0  | **Project Foundations** (Tournament system)      | —               | —                        | —                | ✅ Completed                                                                   |
+| 1  | **Backend framework (Node.js + Fastify)**        | 0               | 3                        | MAJOR            | ✅ DONE                                                                        |
+| 2  | **Database (SQLight + Prisma)**                  | 0               | —                        | Minor            | ✅ DONE                                                                        |
+| 3  | **Frontend framework (TS + Tailwind/R)**         | 0               | 1                        | Minor            | ✅ DONE                                                                        |
+| 4  | **Microservices architecture**                   | —               | 2                        | MAJOR            | ✅ DONE                                                                        |
+| 5  | **DevOps: log management**                       | 1               | 8, 10                    | MAJOR            | ⏳ Not started                                                                 |
+| 6  | **Standard User Management**                     | 1, 2            | 4, 7, 3                  | MAJOR            | 🔧 In progress — Friend button, online status, input validation, match history |
+| 7  | **WAF + Vault (secrets mgmt)**                   | 5               | 8, 9, 10                 | MAJOR            | 🧍 Assigned: Camille — Not started                                             |
+| 8  | **Auth: JWT + 2FA**                              | 2               | 5, 10                    | MAJOR            | 🧍 Assigned: Camille — Not started                                             |
+| 9  | **SSR integration patterns (confirm)**           | 1, 3            | 5, 10                    | Minor            | 🧍 Assigned: Tina — Not started                                                |
+| 10 | **Responsive (all devices)**                     | 3               | 6, 7, 8, 9               | Minor            | 🧍 Assigned: Tina — Not started                                                |
+| 11 | **Accessibility features**                       | 3               | 6, 7, 8, 9, 10           | Minor            | ⏳ Not started                                                                 |
+| 12 | **AI opponent**                                  | 1, 2, 8         | 13                       | MAJOR            | 🔧 In progress — Yulia improving complexity                                    |
+| 13 | **User & game stats dashboards**                 | 2, 5, 8, 9      | 12                       | Minor            | 🧍 Assigned: Tina — In progress                                                |
+| 14 | **Expanded browser compatibility**               | 3, 12, 13       | —                        | Minor            | 🧪 Testing close to evaluation                                                 |
+| 15 | **Remote players** *(Test: network reliability)* | —               | —                        | MAJOR            | 🧪 Test for disconnections, lag scenarios                                      |
+
 
 | #  | Workstream                         | Must come after | Can run in parallel with |
 |----|------------------------------------|-----------------|--------------------------|
@@ -45,6 +64,22 @@
 | 13 | User & game stats dashboards       | 2,5,8,9         | 12                       | - Minor
 | 14 | Expanded browser compatibility     | 3,12,13         | —                        | - Minor
 
+0. Project Foundations - Tournament system
+1. Backend framework (Node.js+Fastify) - DONE
+2. Database (SQLight + Prisma) - DONE
+3. Frontend framework (TS+Tailwind/R) - Framework applied to all colors, better structured output.css
+4. Microservices architecture - DONE
+5. DevOps: log management - not started 
+6. Standard User Management - friend button, online status of friends, add validation for empty input and others in profile edit, match history
+7. WAF + Vault (secrets mgmt) - not started, Camille
+8. Auth: JWT + 2FA - not started, Camille
+9. SSR integration patterns (confirm) - not started, Tina
+10. Responsive (all devices) - not started, Tina
+11. Accessibility features - not started
+12. AI opponent - Yulia need to make it more complex
+13. User & game stats dashboards - in progress by Tina
+14. Expanded browser compatibility - test close to evaluation
+15. Remote players - TEST: Consider network issues, such as unexpected disconnections or lag
 
 # Supplementary Roadmap
 

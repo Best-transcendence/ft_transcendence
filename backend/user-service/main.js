@@ -5,7 +5,6 @@ import userRoutes from './routes/users.js';
 import fastifyJwt from '@fastify/jwt';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
-// TODO: check if we can use fastify-cors or have to get rid of it. Check how it works.
 import fastifyCors from '@fastify/cors';
 
 // Load environment variables from local .env file
