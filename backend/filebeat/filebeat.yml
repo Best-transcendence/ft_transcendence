@@ -1,0 +1,103 @@
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+      hints.default_config:
+        type: container
+        paths:
+          - /var/lib/docker/containers/${data.docker.container.id}/*.log
+        processors:
+          - add_docker_metadata:
+              host: "unix:///var/run/docker.sock"
+          - add_kubernetes_metadata: ~
+
+# Only collect logs from our application containers
+filebeat.autodiscover.providers:
+  - type: docker
+    hints.enabled: true
+    hints.default_config:
+      type: container
+      paths:
+        - /var/lib/docker/containers/${data.docker.container.id}/*.log
+      processors:
+        - add_docker_metadata:
+            host: "unix:///var/run/docker.sock"
+    templates:
+      - condition:
+          contains:
+            docker.container.name: "user_service"
+        config:
+          - type: container
+            paths:
+              - /var/lib/docker/containers/${data.docker.container.id}/*.log
+            processors:
+              - add_docker_metadata:
+                  host: "unix:///var/run/docker.sock"
+              - add_fields:
+                  fields:
+                    service: "user-service"
+      - condition:
+          contains:
+            docker.container.name: "auth_service"
+        config:
+          - type: container
+            paths:
+              - /var/lib/docker/containers/${data.docker.container.id}/*.log
+            processors:
+              - add_docker_metadata:
+                  host: "unix:///var/run/docker.sock"
+              - add_fields:
+                  fields:
+                    service: "auth-service"
+      - condition:
+          contains:
+            docker.container.name: "gateway_service"
+        config:
+          - type: container
+            paths:
+              - /var/lib/docker/containers/${data.docker.container.id}/*.log
+            processors:
+              - add_docker_metadata:
+                  host: "unix:///var/run/docker.sock"
+              - add_fields:
+                  fields:
+                    service: "gateway-service"
+      - condition:
+          contains:
+            docker.container.name: "ws_service"
+        config:
+          - type: container
+            paths:
+              - /var/lib/docker/containers/${data.docker.container.id}/*.log
+            processors:
+              - add_docker_metadata:
+                  host: "unix:///var/run/docker.sock"
+              - add_fields:
+                  fields:
+                    service: "ws-service"
+      - condition:
+          contains:
+            docker.container.name: "frontend_service"
+        config:
+          - type: container
+            paths:
+              - /var/lib/docker/containers/${data.docker.container.id}/*.log
+            processors:
+              - add_docker_metadata:
+                  host: "unix:///var/run/docker.sock"
+              - add_fields:
+                  fields:
+                    service: "frontend-service"
+
+# Output to Logstash
+output.logstash:
+  hosts: ["logstash:5044"]
+
+# Logging configuration
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644

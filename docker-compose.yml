@@ -170,6 +170,95 @@ services:
       start_period: 40s
 
   # =============================================================================
+  # ELK STACK SERVICES
+  # =============================================================================
+
+  # Elasticsearch - Log storage and indexing
+  elasticsearch:
+    image: elasticsearch:7.17.9
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      # TODO: Enable security for production: xpack.security.enabled=true
+      # TODO: Add authentication for production security
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - ft_transcendence_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Logstash - Log processing and transformation
+  logstash:
+    image: logstash:7.17.9
+    container_name: logstash
+    # TODO: Add authentication for production security
+    ports:
+      - "${LOGSTASH_PORT:-5044}:5044"
+    volumes:
+      - ./backend/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - logstash_data:/usr/share/logstash/data
+    networks:
+      - ft_transcendence_network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Filebeat - Log collection from Docker containers
+  filebeat:
+    image: elastic/filebeat:7.17.9
+    container_name: filebeat
+    user: root
+    volumes:
+      - ./backend/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - ft_transcendence_network
+    depends_on:
+      logstash:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Kibana - Log visualization and dashboards
+  kibana:
+    image: kibana:7.17.9
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      # TODO: Add authentication for production security
+    ports:
+      - "${KIBANA_PORT:-5601}:5601"
+    networks:
+      - ft_transcendence_network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # =============================================================================
   # FRONTEND SERVICE
   # =============================================================================
 
