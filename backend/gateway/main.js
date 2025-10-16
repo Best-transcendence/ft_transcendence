@@ -9,19 +9,25 @@ import fastifyCors from '@fastify/cors';
 // Load environment variables from centralized .env file
 dotenv.config();
 
-// Create Fastify server instance with logging
+// Create Fastify server instance with structured JSON logging for ELK
 const app = Fastify({
   logger: {
     level: 'info',
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname'
-      }
+    serializers: {
+      req: (req) => ({
+        method: req.method,
+        url: req.url,
+        hostname: req.hostname,
+        remoteAddress: req.ip
+      }),
+      res: (res) => ({
+        statusCode: res.statusCode
+      })
     }
   },
+  // Add request ID for tracing
+  requestIdHeader: 'x-request-id',
+  requestIdLogLabel: 'requestId'
 });
 
 // Register CORS plugin
