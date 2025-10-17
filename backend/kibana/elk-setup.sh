@@ -8,15 +8,20 @@ ILM_POLICY_FILE="/usr/share/kibana/elk-setup/ilm-policy.json"
 
 echo "⏳ Waiting for Elasticsearch to be available..."
 
+# Wait until Elasticsearch is ready and responding to authenticated requests
+echo "  ... waiting for Elasticsearch to be ready..."
+sleep 30  # Give Elasticsearch time to fully initialize
+
 # Wait until Elasticsearch is ready
 until curl -s -u "elastic:${ELASTIC_PASSWORD}" "${ES_URL}" >/dev/null; do
   echo "  ... still waiting for Elasticsearch"
-  sleep 5
+  sleep 10
 done
 
 echo "✅ Elasticsearch is up!"
 
 # Check cluster health (optional)
+echo "  ... checking cluster health..."
 curl -u "elastic:${ELASTIC_PASSWORD}" "${ES_URL}/_cluster/health?pretty"
 
 # Optional: apply ILM policy if exists
