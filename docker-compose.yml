@@ -167,6 +167,31 @@ services:
       start_period: 40s
 
 # =============================================================================
+  # PROXY SERVICE
+ # =============================================================================
+  waf:
+    build:
+      context: ./waf
+      dockerfile: Dockerfile
+    container_name: waf_service
+    ports:
+      - "${PROXY_PORT}:80"
+    volumes:
+      - ./waf/nginx.conf:/etc/nginx/nginx.conf:ro #read-only when mounted
+      - ./waf/modsecurity.conf:/etc/nginx/modsec/modsecurity.conf:ro
+    depends_on:
+      gateway-service
+    networks:
+      - ft_transcendence_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${PROXY_PORT}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# =============================================================================
 # NETWORKS
 # =============================================================================
 
