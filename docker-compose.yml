@@ -179,10 +179,9 @@ services:
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      # TODO: Enable security for production: xpack.security.enabled=true
-      # TODO: Add authentication for production security
     ports:
       - "${ELASTICSEARCH_PORT:-9200}:9200"
     volumes:
@@ -191,7 +190,7 @@ services:
       - ft_transcendence_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test: ["CMD-SHELL", "curl -u elastic:${ELASTIC_PASSWORD:-changeme} -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -201,7 +200,11 @@ services:
   logstash:
     image: logstash:7.17.9
     container_name: logstash
-    # TODO: Add authentication for production security
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - XPACK_MONITORING_ENABLED=false
+      - ELASTICSEARCH_USER=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-changeme}
     ports:
       - "${LOGSTASH_PORT:-5044}:5044"
     volumes:
@@ -225,6 +228,8 @@ services:
     image: elastic/filebeat:7.17.9
     container_name: filebeat
     user: root
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
     volumes:
       - ./backend/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -242,7 +247,12 @@ services:
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      # TODO: Add authentication for production security
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - xpack.encryptedSavedObjects.encryptionKey=changemechangemechangemechangeme
+      - xpack.security.encryptionKey=changemechangemechangemechangeme
+      - xpack.reporting.encryptionKey=changemechangemechangemechangeme
+      - ELASTICSEARCH_SSL_VERIFICATIONMODE=none
     ports:
       - "${KIBANA_PORT:-5601}:5601"
     networks:
@@ -250,13 +260,21 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+    volumes:
+      # Mount folder with setup-script and dashboard-export
+      - ./backend/kibana:/usr/share/kibana/elk-setup
+      # (this folder will contain elk-setup.sh, dashboard-import-with-id.ndjson, ilm-policy.json)
+    command: >
+      sh -c "bin/kibana &
+             bash /usr/share/kibana/elk-setup/elk-setup.sh"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      test: ["CMD-SHELL", "curl -u elastic:${ELASTIC_PASSWORD:-changeme} -f http://localhost:5601/api/status || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
+
 
   # =============================================================================
   # FRONTEND SERVICE
