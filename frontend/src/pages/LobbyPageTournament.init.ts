@@ -1,3 +1,5 @@
+import { thisUser } from "../router";
+
 import {
   Player,
   Bracket,
@@ -5,6 +7,31 @@ import {
   createFourPlayerTournament,
   reportMatchResult,
 } from "../tournament/engine";
+
+function myName(): string {
+  // fallbacks if needed
+  return (thisUser?.name ?? "").trim();
+}
+
+function myPlayer(): Player {
+  const name = myName() || "Me";
+  return { id: "me", name }; // stable id for the local user
+}
+
+/** Ensure "me" is first in players[], remove any duplicate of me */
+function ensureMeFirst() {
+  const me = myPlayer();
+  // remove any existing entry whose name equals my name (case-insensitive)
+  const filtered = players.filter(p => p.name.toLowerCase() !== me.name.toLowerCase());
+  players = [me, ...filtered];
+}
+
+/** Sort chips to render me first visually */
+function sortForRender(arr: Player[]): Player[] {
+  const me = myPlayer();
+  const rest = arr.filter(p => p.name.toLowerCase() !== me.name.toLowerCase());
+  return [me, ...rest];
+}
 
 let plannedPairs: [Player, Player][] | null = null; // for 4p preview (randomized semis)
 
@@ -49,17 +76,26 @@ function updateCounters() {
   byId<HTMLButtonElement>("btn-add-guest").disabled = players.length >= max;
 }
 
-
 function addPlayer(name: string) {
   const max = currentMax();
   if (players.length >= max) return;
+
   const trimmed = name.trim();
   if (!trimmed) return;
+
+  // block adding myself by name
+  if (trimmed.toLowerCase() === myName().toLowerCase()) return;
+
+  // prevent duplicates by name
   if (players.some(p => p.name.toLowerCase() === trimmed.toLowerCase())) return;
 
   const id = `u_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
   players.push({ id, name: trimmed });
-  plannedPairs = null; // force redraw for 4p if capacity reached again
+
+  // always re-enforce me at index 0
+  ensureMeFirst();
+
+  plannedPairs = null; // recalc 4p preview if needed
   updateCounters();
   renderMatchmakerPreview();
 }
@@ -151,18 +187,18 @@ function renderMatchmakerPreview() {
   participantsCard.appendChild(participantsTitle);
 
   // chips instead of comma list
-  const chips = document.createElement("div");
-  chips.className = "flex flex-wrap gap-2";
-  if (players.length) {
-    players.forEach((pl) => {
-      const chip = document.createElement("span");
-      chip.className =
-        "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
-        "bg-violet-500/15 text-violet-100 border border-violet-400/20";
-      chip.textContent = pl.name;
-      chips.appendChild(chip);
-    });
-  } else {
+const chips = document.createElement("div");
+chips.className = "flex flex-wrap gap-2";
+if (players.length) {
+  sortForRender(players).forEach((pl, idx) => {
+    const chip = document.createElement("span");
+    chip.className =
+      "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
+      "bg-violet-500/15 text-violet-100 border border-violet-400/20";
+    chip.textContent = pl.name;
+    chips.appendChild(chip);
+  });
+} else {
     const none = document.createElement("div");
     none.className = "text-base text-gray-100";
     none.textContent = "No participants yet.";
@@ -185,20 +221,28 @@ function renderMatchmakerPreview() {
   grid.className = "grid gap-4 w-full md:grid-cols-3";
   host.appendChild(grid);
 
-  if (max === 2) {
-  const [a, b] = players.slice(0, 2);
+if (max === 2) {
+  const [a, b] = players.slice(0, 2); // a is you
   grid.appendChild(makeRoundCard("Round 1", a.name, b.name));
   grid.appendChild(makeRoundCard("Round 2", a.name, b.name));
-  grid.appendChild(makeRoundCard("Final Round", a.name, b.name));
+  grid.appendChild(makeRoundCard("Final Round", a.name, b.name, true));
 } else {
-  if (!plannedPairs) {
-    const pool = shuffle(players.slice(0, 4));
-    plannedPairs = [
-      [pool[0], pool[1]],
-      [pool[2], pool[3]],
-    ];
-  }
-  const [s1a, s1b] = plannedPairs[0];
+
+if (!plannedPairs) {
+  const me = myPlayer();
+  const rest = players
+    .filter(p => p.name.toLowerCase() !== me.name.toLowerCase())
+    .slice(0, 3); // the other three
+
+  // shuffle the remaining 3
+  const bag = shuffle(rest);
+
+  // me is always first in semifinal 1; opponent is random from bag[0]
+  const semi1: [Player, Player] = [me, bag[0]];
+  const semi2: [Player, Player] = [bag[1], bag[2]];
+
+  plannedPairs = [semi1, semi2];
+} const [s1a, s1b] = plannedPairs[0];
   const [s2a, s2b] = plannedPairs[1];
 
   grid.appendChild(makeRoundCard("Round 1", s1a.name, s1b.name));
@@ -229,33 +273,40 @@ function startTournament() {
   const max = currentMax();
   if (players.length !== max) return;
 
+  ensureMeFirst();
+
   if (max === 2) {
     const pool = players.slice(0, 2) as [Player, Player];
     bracket = createTwoPlayerTournament(pool);
   } else {
-    // Use the plannedPairs order for the semis
     if (!plannedPairs) {
-      const pool = shuffle(players.slice(0, 4));
-      plannedPairs = [
-        [pool[0], pool[1]],
-        [pool[2], pool[3]],
-      ];
+      // build as above to ensure you’re in semi1
+      const me = myPlayer();
+      const rest = players
+        .filter(p => p.name.toLowerCase() !== me.name.toLowerCase())
+        .slice(0, 3);
+      const bag = shuffle(rest);
+      plannedPairs = [[me, bag[0]], [bag[1], bag[2]]];
     }
     const p = plannedPairs!;
-    // Flatten into the expected ordering [a,b,c,d]
     const ordered: [Player, Player, Player, Player] = [p[0][0], p[0][1], p[1][0], p[1][1]];
     bracket = createFourPlayerTournament(ordered);
   }
 }
 
 
+
 function resetPageState() {
+  // start clean but immediately seed "me" as Player 1
   players = [];
   guestCount = 1;
   bracket = null;
-  plannedPairs = null; // clear any previous draw
+  plannedPairs = null;
+
+  ensureMeFirst();
+
   byId<HTMLDivElement>("matchgenerator").innerHTML = "";
-  renderMatchmakerPreview(); // show empty state
+  renderMatchmakerPreview();
   updateCounters();
 }
 
@@ -263,7 +314,7 @@ function resetPageState() {
 function setMode(newMode: "2" | "4") {
   if (mode === newMode) return;
   mode = newMode;
-  resetPageState(); // clears players & plannedPairs
+  resetPageState(); // this will re-add me as Player 1
 }
 
 /** Public initializer — call this after you inject LobbyPageTournament() HTML into the DOM */
@@ -278,7 +329,6 @@ export function initLobbyPageTournament() {
   const startBtn = byId<HTMLButtonElement>("btn-start");
   const mode2 = byId<HTMLInputElement>("mode-2");
   const mode4 = byId<HTMLInputElement>("mode-4");
-
   addFriendBtn.onclick = () => {
     addPlayer(friendInput.value);
     friendInput.value = "";
@@ -295,6 +345,8 @@ export function initLobbyPageTournament() {
   mode4.onchange = () => { if (mode4.checked) setMode("4"); };
 
   startBtn.onclick = () => startTournamentAndGo();
+
+  ensureMeFirst();
 
   // first render
   resetPageState();
