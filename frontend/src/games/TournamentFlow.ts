@@ -222,25 +222,40 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
   const players = ensureMeFirst(seed.players);
 
   if (seed.mode === "2") {
-    bracket = createTwoPlayerTournament(players.slice(0, 2) as [Player, Player]);
+  bracket = createTwoPlayerTournament(players.slice(0, 2) as [Player, Player]);
+} else {
+  // 4P — build from pairs if valid, else fallback to first 4 players
+  const idsOk = (pairs: [string, string][]) => {
+    const map = new Map(players.map(p => [p.id, p]));
+    return pairs.every(([a, b]) => map.has(a) && map.has(b));
+  };
+
+  if (seed.pairs && seed.pairs.length === 2 && idsOk(seed.pairs)) {
+    const map = new Map(players.map(p => [p.id, p]));
+    const [pA1, pA2] = seed.pairs[0];
+    const [pB1, pB2] = seed.pairs[1];
+    const s1: [Player, Player] = [map.get(pA1)!, map.get(pA2)!];
+    const s2: [Player, Player] = [map.get(pB1)!, map.get(pB2)!];
+    const ordered: [Player, Player, Player, Player] = [s1[0], s1[1], s2[0], s2[1]];
+    bracket = createFourPlayerTournament(ordered);
   } else {
-    if (seed.pairs && seed.pairs.length === 2) {
-      const map = new Map(players.map(p => [p.id, p]));
-      const s1 = [map.get(seed.pairs[0][0])!, map.get(seed.pairs[0][1])!];
-      const s2 = [map.get(seed.pairs[1][0])!, map.get(seed.pairs[1][1])!];
-      const ordered: [Player, Player, Player, Player] = [s1[0], s1[1], s2[0], s2[1]];
-      bracket = createFourPlayerTournament(ordered);
-    } else {
-      bracket = createFourPlayerTournament(players.slice(0, 4) as [Player, Player, Player, Player]);
-    }
+    // fallback: deterministic semis from first 4 (you’re first due to ensureMeFirst)
+    const p = players.slice(0, 4) as [Player, Player, Player, Player];
+    bracket = createFourPlayerTournament(p);
   }
+}
 
   currentMatch = nextMatch(bracket!);
-  if (currentMatch) {
-    const startLabel = seed.mode === "2" ? labelFor2pBo3(0) : labelFor(currentMatch, seed.mode);
-    showOverlay(currentMatch.playerA.name, currentMatch.playerB.name, startLabel);
-    attachSpaceToStart(onSpaceStart);
-  }
+  if (!currentMatch) {
+  const r1 = bracket!.rounds.find(r => r.round === 1);
+  currentMatch = r1?.matches?.[0] ?? null;
+}
+
+if (currentMatch) {
+  const startLabel = seed.mode === "2" ? labelFor2pBo3(0) : labelFor(currentMatch, seed.mode);
+  showOverlay(currentMatch.playerA.name, currentMatch.playerB.name, startLabel);
+  attachSpaceToStart(onSpaceStart);
+}
 
   // Game -> Flow: report a winner name
   (window as any).reportTournamentGameResult = (winnerName: string) => {
