@@ -16,3 +16,21 @@
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
+
+<div id="app" class="mx-auto max-w-3xl p-6 space-y-4">
+  <div class="flex items-center justify-between gap-3">
+    <h1 class="text-2xl font-semibold">Tournament</h1>
+    <div class="flex items-center gap-2">
+      <select id="mode" class="rounded-xl border px-3 py-2">
+        <option value="2p">2 Players (Bo3)</option>
+        <option value="4p">4 Players (Semis → Final)</option>
+      </select>
+      <button id="resetBtn" class="rounded-xl border px-3 py-2 hover:bg-gray-50">Reset</button>
+    </div>
+  </div>
+
+  <div id="champion" class="hidden rounded-2xl bg-emerald-50 border border-emerald-200 p-4"></div>
+  <div id="rounds" class="space-y-6"></div>
+</div>
+
+<script type="module" src="/src/main.ts"></script>

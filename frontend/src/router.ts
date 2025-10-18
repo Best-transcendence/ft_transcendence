@@ -145,10 +145,6 @@ export function router() {
       protectedPage(() => GamePongTournament(), initGameTournament);
       break;
 
-	case "tournament":
-		protectedPage(() => GamePongTournament(), initGameTournament);
-		break;
-
 	case "AIopponent":
 		protectedPage(() => GamePongAIOpponent(), setupAIOpponent);
 		break;
