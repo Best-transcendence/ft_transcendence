@@ -35,26 +35,97 @@ export function initGameTournament(): void {
 
   let p1Up = false, p1Down = false, p2Up = false, p2Down = false;
 
-window.addEventListener("game:timeup", () => {
+// avoid stacking multiple keyboard listeners if init is called again
+let __keysBound = false;
+
+// utility: completely stop the loop
+function stopGame() {
+  running = false;
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = 0;
+  }
+}
+
+// reset ONLY positions & velocities (no scores)
+function resetObjects() {
+  p1Y = 37.5; p2Y = 37.5;
+  p1Vel = 0;  p2Vel = 0;
+  paddle1.style.top = p1Y + "%";
+  paddle2.style.top = p2Y + "%";
+
+  // place ball in center, no motion until we serve
+  ballX = 50 - BALL_W / 2;
+  ballY = 50 - BALL_H / 2;
+  ballVelX = 0; ballVelY = 0;
+  ball.style.left = ballX + "%";
+  ball.style.top  = ballY + "%";
+}
+
+// reset EVERYTHING for a new round (scores + objects)
+function prepareNewRound() {
   stopGame();
 
-  // ⬇️ Tell TournamentFlow who’s ahead so it can advance to Round 2 / Final / Champion
-  const timeUp = (window as any).tournamentTimeUp as undefined | ((l: number, r: number) => void);
+  // scores back to 0
+  s1 = 0; s2 = 0;
+  score1.textContent = "0";
+  score2.textContent = "0";
+
+  resetObjects();
+
+  // show start hint (optional; overlay will hide it right away anyway)
+  startPress.classList.remove("hidden");
+}
+
+// serve the ball with fresh random direction
+function serveBall() {
+  const baseSpeedX = 1.2;
+  const baseSpeedY = 0.8;
+  ballVelX = Math.random() > 0.5 ? baseSpeedX : -baseSpeedX;
+  ballVelY = Math.random() > 0.5 ? baseSpeedY : -baseSpeedY;
+}
+
+function startGame() {
+  running = true;
+  startPress.classList.add("hidden");
+  // if for any reason the ball is stationary, (re)serve
+  if (ballVelX === 0 && ballVelY === 0) serveBall();
+  loop();
+}
+
+// public API the Tournament overlay calls EVERY round
+(window as any).startTournamentRound = () => {
+  prepareNewRound();    // full reset
+  startTimer(5);        // 5-sec round
+  serveBall();          // fresh serve
+  startGame();          // begin loop
+};
+
+
+window.addEventListener("game:timeup", () => {
+  stopGame();
+  const timeUp = (window as any).tournamentTimeUp;
   if (typeof timeUp === "function") {
-    timeUp(s1, s2); // pass left & right scores
+    timeUp(s1, s2); // tell TournamentFlow who is ahead
   }
 });
+
 	const overlayExit = document.getElementById("overlayExit");
 	overlayExit?.addEventListener("click", () => {
 		window.location.hash = "intro";
 	});
 
+  if (!__keysBound) {
+  __keysBound = true;
+
   document.addEventListener("keydown", (e) => {
-	if (e.code === "Space" && !running) {
-		// TODO setup to 90
-		startTimer(5);
-		startGame();
-	}
+    if (e.code === "Space" && !running) {
+      // This path is still fine if you also want Space to start from inside the canvas
+      // (Overlay already uses startTournamentRound, so this is mostly a fallback.)
+      startTimer(5);
+      serveBall();
+      startGame();
+    }
     if (e.key === "w") p1Up = true;
     if (e.key === "s") p1Down = true;
     if (e.key === "ArrowUp") p2Up = true;
@@ -67,17 +138,7 @@ window.addEventListener("game:timeup", () => {
     if (e.key === "ArrowUp") p2Up = false;
     if (e.key === "ArrowDown") p2Down = false;
   });
-
-  function startGame() {
-    running = true;
-    startPress.classList.add("hidden");
-    resetBall();
-    loop();
-  }
-
-    function stopGame() {
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-  }
+}
 
   function loop() {
     if (!running) return;

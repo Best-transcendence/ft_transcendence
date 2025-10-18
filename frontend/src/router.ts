@@ -149,8 +149,9 @@ export function router() {
 		() => GamePongTournament(),
 		() => {
 		initGameTournament();
-		bootTournamentFlow({ onSpaceStart: () => {
-		}});
+		bootTournamentFlow({
+		onSpaceStart: () => (window as any).startTournamentRound?.(),
+		});
 		}
 	);
 	break;

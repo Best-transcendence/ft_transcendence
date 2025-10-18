@@ -67,13 +67,13 @@ function mountOverlay() {
         <!-- Left plate -->
         <div class="w-1/2 pr-8 flex flex-col items-start">
           <div class="text-xl font-bold text-violet-400 break-words" id="name-left"></div>
-          <div class="mt-2 text-xs text-gray-300">Controls: W • A • S • D</div>
+          <div class="mt-2 text-xs text-gray-300">Controls: W • S</div>
         </div>
 
         <!-- Right plate -->
         <div class="w-1/2 pl-8 flex flex-col items-end">
           <div class="text-xl font-bold text-violet-400 text-right break-words" id="name-right"></div>
-          <div class="mt-2 text-xs text-gray-300 text-right">Controls: ↑ • ↓ • ← • →</div>
+          <div class="mt-2 text-xs text-gray-300 text-right">Controls: ↑ • ↓</div>
         </div>
       </div>
 
