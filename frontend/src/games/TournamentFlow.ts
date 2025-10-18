@@ -11,6 +11,7 @@ import {
 // at top near other module-level vars
 let onSpaceStartRef: (() => void) | undefined;
 let spaceHandler: ((e: KeyboardEvent) => void) | null = null;
+let inTieBreaker = false;
 
 function detachSpaceHandler() {
   if (spaceHandler) {
@@ -56,6 +57,9 @@ export function teardownTournamentFlow() {
   bracket = null;
   currentMatch = null;
   currentLeftName = currentRightName = "";
+
+  
+  inTieBreaker = false;
 }
 
 type SeedPayload = {
@@ -290,6 +294,8 @@ function acceptGameResult(winnerName: string) {
 export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void } = {}) {
   teardownTournamentFlow(); // start fresh every time  
 
+   inTieBreaker = false;  
+
   const seed = loadSeed();
   if (!seed) return;
 
@@ -345,15 +351,26 @@ if (currentMatch) {
     acceptGameResult(winnerName);
   };
 
-  // Game -> Flow: “time’s up” with scores; we pick the winner and advance
+
   (window as any).tournamentTimeUp = (leftScore: number, rightScore: number) => {
-    if (leftScore === rightScore) {
-      // On tie: show tie-breaker overlay and wait for SPACE; game should treat next point as OT
+  const L = Number(leftScore ?? 0);
+  const R = Number(rightScore ?? 0);
+
+  if (L === R) {
+    if (!inTieBreaker) {
+      inTieBreaker = true;
       showOverlay(currentLeftName, currentRightName, "Tie-breaker");
-      attachSpaceToStart();
-      return;
+      attachSpaceToStart();   // Space #1 hides overlay; Space #2 starts round (your game handler)
+    } else {
+      // already in tie-breaker and still tied at time up -> quick sudden-death restart (no extra overlay)
+      (window as any).beginTournamentRound?.();
     }
-    const winner = leftScore > rightScore ? currentLeftName : currentRightName;
-    acceptGameResult(winner);
-  };
+    return;
+  }
+
+  // we have a winner → clear tie-breaker and advance
+  inTieBreaker = false;
+  const winner = L > R ? currentLeftName : currentRightName;
+  acceptGameResult(winner);
+};
 }

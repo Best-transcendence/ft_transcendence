@@ -2,6 +2,9 @@ import { thisUser } from "../router";
 import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
 
+// top-level (module scope)
+let _timeupHandler: ((e: Event) => void) | null = null;
+
 export function initGameTournament(): void {
   const $ = (id: string) => document.getElementById(id)!;
 
@@ -110,19 +113,24 @@ function startGame() {
   animationFrameId = requestAnimationFrame(loop);
 }
 
-window.addEventListener("game:timeup", () => {
+// remove any previous handler (prevents duplicates across tournaments)
+if (_timeupHandler) {
+  window.removeEventListener("game:timeup", _timeupHandler);
+  _timeupHandler = null;
+}
+
+// single up-to-date handler that reads DOM scores
+_timeupHandler = () => {
   stopGame();
 
-  // Read what's actually shown on screen
-  const l = Number(score1.textContent ?? 0);
-  const r = Number(score2.textContent ?? 0);
+  const l = Number(score1?.textContent ?? 0);
+  const r = Number(score2?.textContent ?? 0);
 
   const timeUp = (window as any).tournamentTimeUp;
-  if (typeof timeUp === "function") {
-    timeUp(l, r); // pass DOM scores, not possibly-reset locals
-  }
-});
+  if (typeof timeUp === "function") timeUp(l, r);
+};
 
+window.addEventListener("game:timeup", _timeupHandler);
 
 	const overlayExit = document.getElementById("overlayExit");
 	overlayExit?.addEventListener("click", () => {
