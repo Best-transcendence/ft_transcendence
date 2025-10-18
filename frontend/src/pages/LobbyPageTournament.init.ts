@@ -78,16 +78,73 @@ function startTournamentAndGo() {
   // Go to the game page
   window.location.hash = "#tournament";
 }
+
+// helper: violet "glow chip" for names (and for "?")
+function createNameChip(label: string) {
+  const chip = document.createElement("span");
+  chip.className =
+    "inline-flex items-center rounded-lg px-3 py-1 " +
+    "font-semibold text-violet-100 " +                      // bold text
+    "bg-violet-500/15 border border-violet-400/30 " +      // light purple bg
+    "shadow-[0_0_12px_2px_#7037d355]";                      // glow behind
+  chip.textContent = label;
+  return chip;
+}
+
+// Helper: stacked layout for names + VS
+function createStackedVsBlock(top: string, bottom: string, bold = false) {
+  const wrap = document.createElement("div");
+  wrap.className = "flex flex-col items-center justify-center";
+
+  const topName = document.createElement("div");
+  topName.textContent = top;
+  topName.className = bold
+    ? "text-violet-300 font-bold text-lg"
+    : "text-violet-300 text-lg";
+
+  const vs = document.createElement("div");
+  vs.textContent = "vs";
+  vs.className = "text-gray-400 my-1";
+
+  const bottomName = document.createElement("div");
+  bottomName.textContent = bottom;
+  bottomName.className = bold
+    ? "text-violet-300 font-bold text-lg"
+    : "text-violet-300 text-lg";
+
+  wrap.append(topName, vs, bottomName);
+  return wrap;
+}
+
+// Round Card Builder
+function makeRoundCard(title: string, top: string, bottom: string, isFinal = false) {
+  const card = document.createElement("div");
+  card.className =
+    "rounded-2xl border border-violet-400/25 p-6 bg-[#271d35] " +
+    "shadow-[0_0_30px_10px_#7037d333] min-h-[140px] flex flex-col justify-between";
+
+  const head = document.createElement("div");
+  head.className = "text-base text-gray-200 mb-3 font-medium";
+  head.textContent = title;
+
+  // final round gets bold glowing names
+  const namesBlock = createStackedVsBlock(top, bottom, isFinal);
+
+  card.append(head, namesBlock);
+  return card;
+}
+
+
 function renderMatchmakerPreview() {
   const host = byId<HTMLDivElement>("matchgenerator");
   host.innerHTML = "";
 
   const max = currentMax();
 
-  // --- PARTICIPANTS BOX (always visible) ---
+  // participants boy
   const participantsCard = document.createElement("div");
   participantsCard.className =
-    "rounded-xl border border-white/10 p-4 mb-3 bg-white/5";
+    "rounded-2xl border border-violet-400/20 p-4 mb-4 bg-[#271d35] shadow-[0_0_24px_4px_#7037d333]";
   host.appendChild(participantsCard);
 
   const participantsTitle = document.createElement("div");
@@ -95,84 +152,79 @@ function renderMatchmakerPreview() {
   participantsTitle.textContent = "Participants";
   participantsCard.appendChild(participantsTitle);
 
-  const participantsList = document.createElement("div");
-  participantsList.className = "text-base text-gray-100"; // bigger font
-  participantsList.textContent = players.length
-    ? players.map((pl) => pl.name).join(", ")
-    : "No participants yet.";
-  participantsCard.appendChild(participantsList);
+  // chips instead of comma list
+  const chips = document.createElement("div");
+  chips.className = "flex flex-wrap gap-2";
+  if (players.length) {
+    players.forEach((pl) => {
+      const chip = document.createElement("span");
+      chip.className =
+        "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
+        "bg-violet-500/15 text-violet-100 border border-violet-400/20";
+      chip.textContent = pl.name;
+      chips.appendChild(chip);
+    });
+  } else {
+    const none = document.createElement("div");
+    none.className = "text-base text-gray-100";
+    none.textContent = "No participants yet.";
+    chips.appendChild(none);
+  }
+  participantsCard.appendChild(chips);
 
-  // HINT ON THE NEXT LINE
+  // hint on its own line
   const hint = document.createElement("div");
-  hint.className = "text-xs text-gray-400 mt-2";
+  hint.className = "text-xs text-gray-400 mt-3";
   hint.textContent =
     "You’ll see your matchups once you reach the required players and press Matchmaking!";
   participantsCard.appendChild(hint);
 
-  // If not enough players, stop here.
+  // if not enough players, stop here
   if (players.length < max) return;
 
-  // --- MATCHUP PREVIEW (3 boxes side-by-side) ---
+  // matchup preview cards
   const grid = document.createElement("div");
-  grid.className = "grid gap-3 md:grid-cols-3";
+  grid.className = "grid gap-4 w-full md:grid-cols-3";
   host.appendChild(grid);
 
-  // Helper to make a round card
-  const makeRoundCard = (title: string, body: string) => {
-    const card = document.createElement("div");
-    card.className =
-      "rounded-xl border border-white/10 p-4 bg-white/5 flex flex-col";
-    const head = document.createElement("div");
-    head.className = "text-sm text-gray-300 mb-2";
-    head.textContent = title;
-    const content = document.createElement("div");
-    content.className = "text-sm text-gray-100";
-    content.textContent = body;
-    card.append(head, content);
-    return card;
-  };
-
   if (max === 2) {
-    // two players → show three boxes: Round 1, Round 2, Final Round
-    const [a, b] = players.slice(0, 2);
-    grid.appendChild(makeRoundCard("Round 1", `${a.name} vs ${b.name}`));
-    grid.appendChild(makeRoundCard("Round 2", `${a.name} vs ${b.name}`));
-    grid.appendChild(makeRoundCard("Final Round", `${a.name} vs ${b.name}`));
-  } else {
-    // four players → randomize and show semis + unknown final
-    if (!plannedPairs) {
-      const pool = shuffle(players.slice(0, 4));
-      plannedPairs = [
-        [pool[0], pool[1]],
-        [pool[2], pool[3]],
-      ];
-    }
-    const [s1a, s1b] = plannedPairs[0];
-    const [s2a, s2b] = plannedPairs[1];
+  const [a, b] = players.slice(0, 2);
+  grid.appendChild(makeRoundCard("Round 1", a.name, b.name));
+  grid.appendChild(makeRoundCard("Round 2", a.name, b.name));
+  grid.appendChild(makeRoundCard("Final Round", a.name, b.name));
+} else {
+  if (!plannedPairs) {
+    const pool = shuffle(players.slice(0, 4));
+    plannedPairs = [
+      [pool[0], pool[1]],
+      [pool[2], pool[3]],
+    ];
+  }
+  const [s1a, s1b] = plannedPairs[0];
+  const [s2a, s2b] = plannedPairs[1];
 
-    grid.appendChild(
-      makeRoundCard("Round 1", `${s1a.name} vs ${s1b.name}`)
-    );
-    grid.appendChild(
-      makeRoundCard("Round 2", `${s2a.name} vs ${s2b.name}`)
-    );
-    grid.appendChild(makeRoundCard("Final Round", `? vs ?`));
+  grid.appendChild(makeRoundCard("Round 1", s1a.name, s1b.name));
+  grid.appendChild(makeRoundCard("Round 2", s2a.name, s2b.name));
+  grid.appendChild(makeRoundCard("Final Round", "?", "?"));  // glow chips for ?
 
-    // A small explanatory line under the grid
+    // explanatory line under the grid (unchanged text)
     const note = document.createElement("div");
-    note.className = "text-xs text-gray-400";
-    note.textContent =
-      "Winners of Round 1 and Round 2 will be selected in the Final!";
+    note.className = "text-xs text-gray-300 mt-1";
+    note.textContent = "Winners of Round 1 and Round 2 will be selected in the Final!";
     host.appendChild(note);
   }
 
-  // CTA
+  // --- CTA: bottom-right, Tailwind purple ---
+  const ctaWrap = document.createElement("div");
+  ctaWrap.className = "mt-4 w-full flex justify-end";
   const cta = document.createElement("button");
   cta.className =
-    "mt-3 px-4 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white";
-  cta.textContent = "Let’s start!";
+    "px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white " +
+    "border border-violet-400/30 shadow-[0_0_16px_2px_#7037d355]";
+  cta.textContent = "Let’s start 🕹️";
   cta.onclick = () => startTournamentAndGo();
-  host.appendChild(cta);
+  ctaWrap.appendChild(cta);
+  host.appendChild(ctaWrap);
 }
 
 function startTournament() {
