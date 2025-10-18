@@ -6,8 +6,19 @@ import {
   reportMatchResult,
 } from "../tournament/engine";
 
+let plannedPairs: [Player, Player][] | null = null; // for 4p preview (randomized semis)
+
 function currentMax(): 2 | 4 {
   return (mode === "2" ? 2 : 4);
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 type Mode = "2" | "4";
@@ -22,6 +33,8 @@ function byId<T extends HTMLElement>(id: string) {
   if (!el) throw new Error(`#${id} not found`);
   return el as T;
 }
+
+
 
 function updateCounters() {
   const max = currentMax();
@@ -39,135 +52,169 @@ function updateCounters() {
 
 function addPlayer(name: string) {
   const max = currentMax();
-  if (players.length >= max) return; // hard cap
-
+  if (players.length >= max) return;
   const trimmed = name.trim();
   if (!trimmed) return;
-
-  // optional: prevent duplicates by name
   if (players.some(p => p.name.toLowerCase() === trimmed.toLowerCase())) return;
 
   const id = `u_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
   players.push({ id, name: trimmed });
+  plannedPairs = null; // force redraw for 4p if capacity reached again
   updateCounters();
-  renderWaitingList();
+  renderMatchmakerPreview();
 }
 
-function renderWaitingList() {
+function startTournamentAndGo() {
+  startTournament();
+
+  // Persist the setup so Tournament.ts can read it
+  const payload = {
+    mode,
+    players,
+    pairs: plannedPairs?.map(([a,b]) => [a.id, b.id]) ?? null, // null for 2p
+  };
+  localStorage.setItem("tournamentSeed", JSON.stringify(payload));
+
+  // Go to the game page
+  window.location.hash = "#tournament";
+}
+function renderMatchmakerPreview() {
   const host = byId<HTMLDivElement>("matchgenerator");
-  if (bracket) return; // once tournament started, don't show waiting list here
   host.innerHTML = "";
-  const p = document.createElement("div");
-  p.className = "text-gray-300 text-sm";
-  p.textContent = players.length
-    ? `Participants: ${players.map(pl => pl.name).join(", ")}`
+
+  const max = currentMax();
+
+  // --- PARTICIPANTS BOX (always visible) ---
+  const participantsCard = document.createElement("div");
+  participantsCard.className =
+    "rounded-xl border border-white/10 p-4 mb-3 bg-white/5";
+  host.appendChild(participantsCard);
+
+  const participantsTitle = document.createElement("div");
+  participantsTitle.className = "text-sm text-gray-300 mb-2";
+  participantsTitle.textContent = "Participants";
+  participantsCard.appendChild(participantsTitle);
+
+  const participantsList = document.createElement("div");
+  participantsList.className = "text-base text-gray-100"; // bigger font
+  participantsList.textContent = players.length
+    ? players.map((pl) => pl.name).join(", ")
     : "No participants yet.";
-  host.appendChild(p);
+  participantsCard.appendChild(participantsList);
+
+  // HINT ON THE NEXT LINE
+  const hint = document.createElement("div");
+  hint.className = "text-xs text-gray-400 mt-2";
+  hint.textContent =
+    "You’ll see your matchups once you reach the required players and press Matchmaking!";
+  participantsCard.appendChild(hint);
+
+  // If not enough players, stop here.
+  if (players.length < max) return;
+
+  // --- MATCHUP PREVIEW (3 boxes side-by-side) ---
+  const grid = document.createElement("div");
+  grid.className = "grid gap-3 md:grid-cols-3";
+  host.appendChild(grid);
+
+  // Helper to make a round card
+  const makeRoundCard = (title: string, body: string) => {
+    const card = document.createElement("div");
+    card.className =
+      "rounded-xl border border-white/10 p-4 bg-white/5 flex flex-col";
+    const head = document.createElement("div");
+    head.className = "text-sm text-gray-300 mb-2";
+    head.textContent = title;
+    const content = document.createElement("div");
+    content.className = "text-sm text-gray-100";
+    content.textContent = body;
+    card.append(head, content);
+    return card;
+  };
+
+  if (max === 2) {
+    // two players → show three boxes: Round 1, Round 2, Final Round
+    const [a, b] = players.slice(0, 2);
+    grid.appendChild(makeRoundCard("Round 1", `${a.name} vs ${b.name}`));
+    grid.appendChild(makeRoundCard("Round 2", `${a.name} vs ${b.name}`));
+    grid.appendChild(makeRoundCard("Final Round", `${a.name} vs ${b.name}`));
+  } else {
+    // four players → randomize and show semis + unknown final
+    if (!plannedPairs) {
+      const pool = shuffle(players.slice(0, 4));
+      plannedPairs = [
+        [pool[0], pool[1]],
+        [pool[2], pool[3]],
+      ];
+    }
+    const [s1a, s1b] = plannedPairs[0];
+    const [s2a, s2b] = plannedPairs[1];
+
+    grid.appendChild(
+      makeRoundCard("Round 1", `${s1a.name} vs ${s1b.name}`)
+    );
+    grid.appendChild(
+      makeRoundCard("Round 2", `${s2a.name} vs ${s2b.name}`)
+    );
+    grid.appendChild(makeRoundCard("Final Round", `? vs ?`));
+
+    // A small explanatory line under the grid
+    const note = document.createElement("div");
+    note.className = "text-xs text-gray-400";
+    note.textContent =
+      "Winners of Round 1 and Round 2 will be selected in the Final!";
+    host.appendChild(note);
+  }
+
+  // CTA
+  const cta = document.createElement("button");
+  cta.className =
+    "mt-3 px-4 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white";
+  cta.textContent = "Let’s start!";
+  cta.onclick = () => startTournamentAndGo();
+  host.appendChild(cta);
 }
 
 function startTournament() {
   const max = currentMax();
-  if (players.length !== max) return; // don’t start early or overfilled
+  if (players.length !== max) return;
 
-  const pool = players.slice(0, max) as any;
-  bracket = (max === 2)
-    ? createTwoPlayerTournament(pool as [Player, Player])
-    : createFourPlayerTournament(pool as [Player, Player, Player, Player]);
-
-  renderBracket();
-  updateCounters(); // re-check buttons after bracket appears
-}
-
-function renderBracket() {
-  if (!bracket) return;
-  const host = byId<HTMLDivElement>("matchgenerator");
-  host.innerHTML = "";
-
-  // champion banner
-  if (bracket.championId) {
-    const champ = bracket.players.find(p => p.id === bracket!.championId)?.name ?? "Unknown";
-    const banner = document.createElement("div");
-    banner.className = "rounded-xl border border-emerald-300/30 bg-emerald-600/10 text-emerald-200 px-3 py-2 mb-3";
-    banner.textContent = `Champion: ${champ}`;
-    host.appendChild(banner);
+  if (max === 2) {
+    const pool = players.slice(0, 2) as [Player, Player];
+    bracket = createTwoPlayerTournament(pool);
+  } else {
+    // Use the plannedPairs order for the semis
+    if (!plannedPairs) {
+      const pool = shuffle(players.slice(0, 4));
+      plannedPairs = [
+        [pool[0], pool[1]],
+        [pool[2], pool[3]],
+      ];
+    }
+    const p = plannedPairs!;
+    // Flatten into the expected ordering [a,b,c,d]
+    const ordered: [Player, Player, Player, Player] = [p[0][0], p[0][1], p[1][0], p[1][1]];
+    bracket = createFourPlayerTournament(ordered);
   }
-
-  bracket.rounds.forEach((r) => {
-    const title = document.createElement("div");
-    title.className = "text-sm text-gray-300 mt-2 mb-1";
-    title.textContent = `Round ${r.round}`;
-    host.appendChild(title);
-
-    const grid = document.createElement("div");
-    grid.className = "grid gap-2 md:grid-cols-2";
-    host.appendChild(grid);
-
-    r.matches.forEach((m) => {
-      const card = document.createElement("div");
-      card.className = "rounded-xl border border-white/10 p-3 space-y-2";
-
-      const meta = document.createElement("div");
-      meta.className = "text-xs text-gray-400";
-      const need = Math.floor(m.bestOf / 2) + 1;
-      meta.textContent = `Match ${m.index + 1} · Bo${m.bestOf} (need ${need})`;
-      card.appendChild(meta);
-
-      const row = (label: string, wins: number, winnerId: string) => {
-        const wrap = document.createElement("div");
-        wrap.className = "flex items-center gap-2";
-
-        const badge = document.createElement("span");
-        badge.className = "inline-flex items-center rounded-lg border border-white/10 px-2 py-1 text-sm text-gray-100";
-        badge.textContent = label;
-
-        const winsEl = document.createElement("span");
-        winsEl.className = "text-xs text-gray-400";
-        winsEl.textContent = `wins: ${wins}`;
-
-        const btn = document.createElement("button");
-        btn.className = "px-2 py-1 rounded-lg border border-white/10 hover:border-violet-400 text-xs text-gray-200 disabled:opacity-40";
-        btn.textContent = "+ win";
-        btn.disabled = Boolean(m.winnerId);
-        btn.onclick = () => {
-          if (!bracket) return;
-          reportMatchResult(bracket, m.id, winnerId);
-          renderBracket();
-        };
-
-        wrap.append(badge, winsEl, btn);
-        return wrap;
-      };
-
-      card.appendChild(row(m.playerA.name, m.winsA, m.playerA.id));
-      card.appendChild(row(m.playerB.name, m.winsB, m.playerB.id));
-
-      const status = document.createElement("div");
-      status.className = "text-xs text-gray-300";
-      status.textContent = m.winnerId
-        ? `Winner: ${m.winnerId === m.playerA.id ? m.playerA.name : m.playerB.name}`
-        : "Awaiting result…";
-      card.appendChild(status);
-
-      grid.appendChild(card);
-    });
-  });
 }
+
 
 function resetPageState() {
   players = [];
   guestCount = 1;
   bracket = null;
-  byId<HTMLDivElement>("matchgenerator").innerHTML = ""; // clear right panel
-  renderWaitingList();
+  plannedPairs = null; // clear any previous draw
+  byId<HTMLDivElement>("matchgenerator").innerHTML = "";
+  renderMatchmakerPreview(); // show empty state
   updateCounters();
 }
+
 
 function setMode(newMode: "2" | "4") {
   if (mode === newMode) return;
   mode = newMode;
-  resetPageState(); // <— removes ALL added players as requested
+  resetPageState(); // clears players & plannedPairs
 }
-
 
 /** Public initializer — call this after you inject LobbyPageTournament() HTML into the DOM */
 export function initLobbyPageTournament() {
@@ -197,7 +244,7 @@ export function initLobbyPageTournament() {
   mode2.onchange = () => { if (mode2.checked) setMode("2"); };
   mode4.onchange = () => { if (mode4.checked) setMode("4"); };
 
-  startBtn.onclick = () => startTournament();
+  startBtn.onclick = () => startTournamentAndGo();
 
   // first render
   resetPageState();

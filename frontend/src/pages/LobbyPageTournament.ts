@@ -94,7 +94,6 @@ export function LobbyPageTournament() {
         <div class="md:col-span-3 rounded-xl border border-white/10 p-4">
           <div class="text-sm text-gray-300 mb-2">Match Generator</div>
           <div id="matchgenerator" class="flex flex-wrap gap-2 min-h-[42px]"></div>
- 			<div class="text-xs text-gray-400 mt-2">You’ll see your matchups once you press Matchmaking! </div>
         </div>
         </div>
       </div>
