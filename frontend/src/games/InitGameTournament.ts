@@ -35,14 +35,15 @@ export function initGameTournament(): void {
 
   let p1Up = false, p1Down = false, p2Up = false, p2Down = false;
 
-  window.addEventListener("game:timeup", () => {
-    stopGame();
-	  const overlay = document.getElementById("timeUpOverlay");
-  	if (overlay) {
-    	overlay.classList.remove("hidden");
-  	}
-  });
+window.addEventListener("game:timeup", () => {
+  stopGame();
 
+  // ⬇️ Tell TournamentFlow who’s ahead so it can advance to Round 2 / Final / Champion
+  const timeUp = (window as any).tournamentTimeUp as undefined | ((l: number, r: number) => void);
+  if (typeof timeUp === "function") {
+    timeUp(s1, s2); // pass left & right scores
+  }
+});
 	const overlayExit = document.getElementById("overlayExit");
 	overlayExit?.addEventListener("click", () => {
 		window.location.hash = "intro";

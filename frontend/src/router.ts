@@ -19,6 +19,7 @@ import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { bootTournamentFlow } from "./games/TournamentFlow";
 
 
 //Components:
@@ -123,7 +124,6 @@ export function router() {
 	);
 	break;
 
-
     case "intro":
       protectedPage(() => GameIntroPage());
       break;
@@ -144,9 +144,16 @@ export function router() {
       );
       break;
 
-    case "tournament":
-      protectedPage(() => GamePongTournament(), initGameTournament);
-      break;
+	case "tournament":
+	protectedPage(
+		() => GamePongTournament(),
+		() => {
+		initGameTournament();
+		bootTournamentFlow({ onSpaceStart: () => {
+		}});
+		}
+	);
+	break;
 
 	case "AIopponent":
 		protectedPage(() => GamePongAIOpponent(), setupAIOpponent);
