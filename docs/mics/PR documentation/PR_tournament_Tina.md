@@ -9,3 +9,5 @@ index.html
 main.ts
 
 TournamentFlow.ts
+
+router logic
