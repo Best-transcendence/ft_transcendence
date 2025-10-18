@@ -55,7 +55,7 @@ function stopGame() {
 
 (window as any).beginTournamentRound = () => {
   // only start the actual round (no further resets)
-  startTimer(5);
+  startTimer(15);
   serveBall();
   startGame();
 };
@@ -112,11 +112,17 @@ function startGame() {
 
 window.addEventListener("game:timeup", () => {
   stopGame();
+
+  // Read what's actually shown on screen
+  const l = Number(score1.textContent ?? 0);
+  const r = Number(score2.textContent ?? 0);
+
   const timeUp = (window as any).tournamentTimeUp;
   if (typeof timeUp === "function") {
-    timeUp(s1, s2); // tell TournamentFlow who is ahead
+    timeUp(l, r); // pass DOM scores, not possibly-reset locals
   }
 });
+
 
 	const overlayExit = document.getElementById("overlayExit");
 	overlayExit?.addEventListener("click", () => {
