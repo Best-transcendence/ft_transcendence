@@ -92,7 +92,7 @@ export function GamePongTournament(): string {
 					<p id="startPress"
 					class="absolute bottom-[5%] left-1/2 -translate-x-1/2 text-center
 					bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
-					Press Space To Start The Game
+					Press Space When You Are Ready
 					</p>
 	
 	<!-- Audio -->

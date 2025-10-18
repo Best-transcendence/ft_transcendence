@@ -233,7 +233,7 @@ if (players.length) {
   const hint = document.createElement("div");
   hint.className = "text-xs text-gray-400 mt-3";
   hint.textContent =
-    "You’ll see your matchups once you reach the required players and press Matchmaking!";
+    "You will see your matchups once you reach the required players and press Matchmaking!";
   participantsCard.appendChild(hint);
 
   // if not enough players, stop here

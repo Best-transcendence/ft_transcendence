@@ -46,6 +46,19 @@ function stopGame() {
     animationFrameId = 0;
   }
 }
+(window as any).stopTournamentGame = stopGame;
+
+(window as any).layoutTournamentRound = () => {
+  // reset field & scores, show the "Press Space" text
+  prepareNewRound();        // <- you already wrote this: stopGame + resetScores + resetObjects + show startPress
+};
+
+(window as any).beginTournamentRound = () => {
+  // only start the actual round (no further resets)
+  startTimer(5);
+  serveBall();
+  startGame();
+};
 
 // reset ONLY positions & velocities (no scores)
 function resetObjects() {
@@ -84,21 +97,18 @@ function serveBall() {
 }
 
 function startGame() {
+  if (running) return;                 // don’t start twice
   running = true;
   startPress.classList.add("hidden");
-  // if for any reason the ball is stationary, (re)serve
+
+  if (animationFrameId) {              // kill any old loop handle
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = 0;
+  }
   if (ballVelX === 0 && ballVelY === 0) serveBall();
-  loop();
+
+  animationFrameId = requestAnimationFrame(loop);
 }
-
-// public API the Tournament overlay calls EVERY round
-(window as any).startTournamentRound = () => {
-  prepareNewRound();    // full reset
-  startTimer(5);        // 5-sec round
-  serveBall();          // fresh serve
-  startGame();          // begin loop
-};
-
 
 window.addEventListener("game:timeup", () => {
   stopGame();
@@ -116,13 +126,12 @@ window.addEventListener("game:timeup", () => {
   if (!__keysBound) {
 	__keysBound = true;
 	document.addEventListener("keydown", (e) => {
-	if (e.code === "Space" && !running) {
-		// if the tournament overlay is visible, let it handle Space
-		const ov = document.getElementById("tournament-overlay");
-		if (ov && !ov.classList.contains("hidden")) return;
+  if (e.code === "Space" && !running) {
+    const ov = document.getElementById("tournament-overlay");
+    if (ov && !ov.classList.contains("hidden")) return; // Space 1 handled by overlay
 
-		// single entry point that resets scores + positions every time
-		(window as any).startTournamentRound?.();
+    // Space 2 (overlay is gone) -> start the round
+    (window as any).beginTournamentRound?.();
   }
   if (e.key === "w") p1Up = true;
   if (e.key === "s") p1Down = true;

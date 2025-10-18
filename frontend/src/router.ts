@@ -150,7 +150,7 @@ export function router() {
 		() => {
 		initGameTournament();
 		bootTournamentFlow({
-		onSpaceStart: () => (window as any).startTournamentRound?.(),
+		onSpaceStart: () => (window as any).beginTournamentRound?.(),
 		});
 		}
 	);
