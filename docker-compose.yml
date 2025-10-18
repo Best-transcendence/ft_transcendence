@@ -177,15 +177,17 @@ services:
     ports:
       - "${PROXY_PORT}:80"
     volumes:
-      - ./waf/nginx.conf:/etc/nginx/nginx.conf:ro #read-only when mounted
-      - ./waf/modsecurity.conf:/etc/nginx/modsec/modsecurity.conf:ro
+      - ./waf/crs/:/etc/nginx/modsec/crs/:rw
+      - ./waf/modsecurity.conf:/etc/nginx/modsec/modsecurity.conf:rw
+      - ./waf/exception-rules.conf:/etc/nginx/modsec/exception-rules.conf:rw
     depends_on:
-      gateway-service
+      - gateway-service
+      - ws-service
     networks:
       - ft_transcendence_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${PROXY_PORT}/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -1,10 +1,7 @@
-FROM nginx:stable-alpine
+FROM owasp/modsecurity:nginx
 
-# Install ModSecurity
-RUN apk add --no-cache nginx-mod-security curl
-
-# Create directories for configs
-RUN mkdir -p /etc/nginx/modsec/crs
+# Working directory
+WORKDIR /etc/nginx
 
 # Copy configfiles
 COPY nginx.conf /etc/nginx/nginx.conf
