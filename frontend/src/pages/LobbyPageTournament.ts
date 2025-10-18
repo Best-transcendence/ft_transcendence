@@ -46,10 +46,16 @@ export function LobbyPageTournament() {
 				</button>
 			</div>
 
-			<div class="mt-3">
+			<div class="flex items-center gap-2 mt-2">
+				<input
+				id="guest-name"
+				type="text"
+				placeholder="Guest username"
+				class="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+				/>
 				<button
 				id="btn-add-guest"
-				class="w-full px-3 py-2 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white"
+				class="shrink-0 px-4 py-2 rounded-lg border border-white/10 hover:border-violet-400 text-gray-200"
 				>
 				Add Guest
 				</button>
