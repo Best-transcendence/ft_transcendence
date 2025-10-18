@@ -1,4 +1,5 @@
 export const rooms = new Map(); // roomId -> { players: [...], state, loopId }
+const queue = []; //Queu created to wait players for Quick Game
 
 export function makeRoomId(a, b) {
   const [x, y] = [Number(a), Number(b)].sort((m, n) => m - n);
@@ -74,6 +75,28 @@ export function registerRoomHandlers(wss, onlineUsers, app) {
       } catch (err) {
         app.log.error({ err }, 'Failed to notify invite declined');
       }
+    }
+  }
+
+  function handleMarchmakingJoin(ws) {
+    if (queue.find(p => p.user.id === ws.user.id)) return;
+
+    queue.push(ws);
+    ws.send(JSON.stringify({ type: "matchmaking: searching" }));
+    app.log.info(`User ${ws.user.id} joined matchmaking queue`);
+
+    if (queue.lenght >= 2){
+      const p1 = queue.shift();
+      const p2 = queue.shift();
+
+      const roomId = makeRoomId(p1.user.id, p2.user.id);
+      rooms.set(roomId, {players: [p1, p2], state:null, loopId:null });
+
+      [p1, p2].forEach(client =>
+        client.send(JSON.stringify({
+          
+        }))
+      )
     }
   }
 
