@@ -181,7 +181,6 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=true
       - xpack.license.self_generated.type=basic
-      - xpack.security.authc.anonymous.roles=remote_monitoring_collector
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:

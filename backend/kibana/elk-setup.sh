@@ -5,22 +5,21 @@ ES_URL="http://elasticsearch:9200"
 KIBANA_URL="http://localhost:5601"
 DASHBOARD_FILE="/usr/share/kibana/elk-setup/dashboard-import.ndjson"
 ILM_POLICY_FILE="/usr/share/kibana/elk-setup/ilm-policy.json"
+DATA_VIEW_ID="logs-data-view"
+DATA_VIEW_TITLE="logs-*"
 
 echo "⏳ Waiting for Elasticsearch to be available..."
 
-# Wait until Elasticsearch is ready and responding to authenticated requests
-echo "  ... waiting for Elasticsearch to be ready..."
-sleep 30  # Give Elasticsearch time to fully initialize
-
 # Wait until Elasticsearch is ready
+echo "  ... waiting for Elasticsearch to be ready..."
+sleep 30
+
 until curl -s -u "elastic:${ELASTIC_PASSWORD}" "${ES_URL}" >/dev/null; do
   echo "  ... still waiting for Elasticsearch"
   sleep 10
 done
 
 echo "✅ Elasticsearch is up!"
-
-# Check cluster health (optional)
 echo "  ... checking cluster health..."
 curl -u "elastic:${ELASTIC_PASSWORD}" "${ES_URL}/_cluster/health?pretty"
 
@@ -40,6 +39,20 @@ until curl -s -u "elastic:${ELASTIC_PASSWORD}" "${KIBANA_URL}/api/status" | grep
 done
 
 echo "✅ Kibana is up!"
+
+# Create data view (index pattern) if it doesn't exist
+echo "🧭 Creating data view '${DATA_VIEW_TITLE}'..."
+curl -u "elastic:${ELASTIC_PASSWORD}" \
+  -X POST "${KIBANA_URL}/api/data_views/data_view" \
+  -H "kbn-xsrf: true" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"data_view\": {
+      \"id\": \"${DATA_VIEW_ID}\",
+      \"title\": \"${DATA_VIEW_TITLE}\",
+      \"timeFieldName\": \"@timestamp\"
+    }
+  }" || echo "⚠️ Data view may already exist — skipping."
 
 # Import dashboard if file exists
 if [ -f "$DASHBOARD_FILE" ]; then
