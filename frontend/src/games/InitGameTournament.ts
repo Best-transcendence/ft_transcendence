@@ -62,18 +62,16 @@ function resetObjects() {
   ball.style.top  = ballY + "%";
 }
 
-// reset EVERYTHING for a new round (scores + objects)
-function prepareNewRound() {
-  stopGame();
-
-  // scores back to 0
+function resetScores() {
   s1 = 0; s2 = 0;
   score1.textContent = "0";
   score2.textContent = "0";
+}
 
-  resetObjects();
-
-  // show start hint (optional; overlay will hide it right away anyway)
+function prepareNewRound() {
+  stopGame();
+  resetScores();     // scores 
+  resetObjects();    // paddles/ball
   startPress.classList.remove("hidden");
 }
 
@@ -116,21 +114,21 @@ window.addEventListener("game:timeup", () => {
 	});
 
   if (!__keysBound) {
-  __keysBound = true;
+	__keysBound = true;
+	document.addEventListener("keydown", (e) => {
+	if (e.code === "Space" && !running) {
+		// if the tournament overlay is visible, let it handle Space
+		const ov = document.getElementById("tournament-overlay");
+		if (ov && !ov.classList.contains("hidden")) return;
 
-  document.addEventListener("keydown", (e) => {
-    if (e.code === "Space" && !running) {
-      // This path is still fine if you also want Space to start from inside the canvas
-      // (Overlay already uses startTournamentRound, so this is mostly a fallback.)
-      startTimer(5);
-      serveBall();
-      startGame();
-    }
-    if (e.key === "w") p1Up = true;
-    if (e.key === "s") p1Down = true;
-    if (e.key === "ArrowUp") p2Up = true;
-    if (e.key === "ArrowDown") p2Down = true;
-  });
+		// single entry point that resets scores + positions every time
+		(window as any).startTournamentRound?.();
+  }
+  if (e.key === "w") p1Up = true;
+  if (e.key === "s") p1Down = true;
+  if (e.key === "ArrowUp") p2Up = true;
+  if (e.key === "ArrowDown") p2Down = true;
+});
 
   document.addEventListener("keyup", (e) => {
     if (e.key === "w") p1Up = false;
@@ -242,4 +240,7 @@ window.addEventListener("game:timeup", () => {
   function clamp(val: number, min: number, max: number): number {
     return Math.max(min, Math.min(max, val));
   }
+
+  // start clean (scores 0–0, centered)
+	prepareNewRound();
 }
