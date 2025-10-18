@@ -92,48 +92,46 @@ function createNameChip(label: string) {
 }
 
 // Helper: stacked layout for names + VS
-function createStackedVsBlock(top: string, bottom: string, bold = false) {
+function createStackedVsBlock(top: string, bottom: string, highlight = false) {
   const wrap = document.createElement("div");
-  wrap.className = "flex flex-col items-center justify-center";
+  wrap.className = "flex flex-col items-center justify-center -mt-2";
+
+  const baseColor = "text-violet-500"; // button purple
+  const highlightGlow = highlight
+    ? "drop-shadow-[0_0_6px_#9f7aea]"
+    : ""; // stronger glow only for Final
 
   const topName = document.createElement("div");
   topName.textContent = top;
-  topName.className = bold
-    ? "text-violet-300 font-bold text-lg"
-    : "text-violet-300 text-lg";
+  topName.className = `font-bold text-lg ${baseColor} ${highlightGlow}`;
 
   const vs = document.createElement("div");
   vs.textContent = "vs";
-  vs.className = "text-gray-400 my-1";
+  vs.className = "text-gray-400 my-1 text-sm";
 
   const bottomName = document.createElement("div");
   bottomName.textContent = bottom;
-  bottomName.className = bold
-    ? "text-violet-300 font-bold text-lg"
-    : "text-violet-300 text-lg";
+  bottomName.className = `font-bold text-lg ${baseColor} ${highlightGlow}`;
 
   wrap.append(topName, vs, bottomName);
   return wrap;
 }
 
 // Round Card Builder
-function makeRoundCard(title: string, top: string, bottom: string, isFinal = false) {
+function makeRoundCard(title: string, top: string, bottom: string, highlight = false) {
   const card = document.createElement("div");
   card.className =
-    "rounded-2xl border border-violet-400/25 p-6 bg-[#271d35] " +
-    "shadow-[0_0_30px_10px_#7037d333] min-h-[140px] flex flex-col justify-between";
+    "rounded-2xl border border-violet-400/25 p-4 bg-[#271d35] " +
+    "shadow-[0_0_30px_10px_#7037d333] flex flex-col justify-start min-h-[130px]";
 
   const head = document.createElement("div");
-  head.className = "text-base text-gray-200 mb-3 font-medium";
+  head.className = "text-base text-gray-200 mb-3 font-semibold";
   head.textContent = title;
 
-  // final round gets bold glowing names
-  const namesBlock = createStackedVsBlock(top, bottom, isFinal);
-
-  card.append(head, namesBlock);
+  const names = createStackedVsBlock(top, bottom, highlight);
+  card.append(head, names);
   return card;
 }
-
 
 function renderMatchmakerPreview() {
   const host = byId<HTMLDivElement>("matchgenerator");
