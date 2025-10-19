@@ -1,4 +1,3 @@
-// src/tournament/ui.ts
 import { Bracket, Match, Player } from "./engine";
 
 export function render(bracket: Bracket, onWin: (matchId: string, winnerId: string) => void) {
