@@ -1,4 +1,3 @@
-import { thisUser } from "../router";
 import { Player } from "./engine";
 import {
   Mode,
