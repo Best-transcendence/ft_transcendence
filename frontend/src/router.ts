@@ -2,25 +2,24 @@
 import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
 import { GamePongRemote, initRemoteGame } from "./games/Pong2dRemote";
+
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
-import { GamePongTournament } from "./games/Tournament";
-import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
-import { LobbyPageTournament } from "./pages/LobbyPageTournament";
-import { initLobbyPageTournament } from "./pages/LobbyPageTournament.init";
+import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
+import { GamePongTournament } from "./games/Tournament";
+import { LobbyPageTournament } from "./pages/TournamentLobby";
+import { initLobbyPageTournament } from "./tournament/InitTournamentLobby";
 import { initGameTournament } from "./games/InitGameTournament";
-import { initGameAIOpponent } from "./games/InitGameAIOpponent";
+import { bootTournamentFlow } from "./games/TournamentFlow";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { bootTournamentFlow } from "./games/TournamentFlow";
-
 
 //Components:
 import { sideBar } from "./components/SideBar";
@@ -117,13 +116,6 @@ export function router() {
       );
       break;
 
-	case "lobbytournament":
-	protectedPage(
-		() => LobbyPageTournament(),
-		() => initLobbyPageTournament()
-	);
-	break;
-
     case "intro":
       protectedPage(() => GameIntroPage());
       break;
@@ -131,6 +123,7 @@ export function router() {
     case "pong2d":
       protectedPage(() => GamePong2D(), initGame);
       break;
+
     case "remote":
       const roomId = query ? new URLSearchParams(query).get("room") : null;
       localStorage.setItem("roomId", roomId); // Keep the room ID.
@@ -143,6 +136,13 @@ export function router() {
         () => initRemoteGame(roomId)
       );
       break;
+
+	case "lobbytournament":
+	protectedPage(
+		() => LobbyPageTournament(),
+		() => initLobbyPageTournament()
+	);
+	break;
 
 	case "tournament":
 	protectedPage(

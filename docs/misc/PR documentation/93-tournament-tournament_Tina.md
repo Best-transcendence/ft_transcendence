@@ -1,13 +1,9 @@
-tournament folder
+InitTournamentLobby.ts
 
-LobbyPageTournament.init.ts
-
-LobbyPageTournament.ts
-
-index.html
-
-main.ts
+TournamentLobby.ts
 
 TournamentFlow.ts
+
+engine.ts
 
 router logic
