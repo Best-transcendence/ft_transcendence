@@ -58,6 +58,8 @@ function stopGame() {
 
 (window as any).beginTournamentRound = () => {
   // only start the actual round (no further resets)
+// Do nothing if a round is already running, space protection
+  if (running) return;
   startTimer(15);
   serveBall();
   startGame();
