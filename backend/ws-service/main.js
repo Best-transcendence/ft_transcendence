@@ -1,13 +1,14 @@
 import Fastify from 'fastify';
 import { WebSocketServer } from 'ws';
-import dotenv from 'dotenv';
+// import dotenv from 'dotenv';
+import './env.js';
 import { registerWebsocketHandlers } from './routes/websocket.js';
 import fastifyCors from '@fastify/cors';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 
 // Adding Env.
-dotenv.config();
+// dotenv.config();
 
 // Create Fastify server instance with logging
 const app = Fastify({ logger: true });
@@ -99,7 +100,7 @@ const start = async () => {
 
     // Start Fastify server (this handles HTTP requests)
     await app.listen({ port: port, host: '0.0.0.0' });
-    
+
     const wsServiceUrl = `ws://${host}:${port}`;
     const httpServiceUrl = `http://${host}:${port}`;
     console.log(`🔌 WS Service running at ${wsServiceUrl}`);

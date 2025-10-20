@@ -10,6 +10,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
+#Put some variables in the backend.
+ARG VITE_BACKEND_URL
+ARG VITE_WS_URL
+
 # Install curl for external healthchecks (used by docker-compose)
 RUN apk add --no-cache curl
 
