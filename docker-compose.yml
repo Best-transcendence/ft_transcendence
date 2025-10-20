@@ -175,23 +175,14 @@ services:
       dockerfile: Dockerfile
     container_name: waf_service
     ports:
-      - "${PROXY_PORT}:80"
-    volumes:
-      - ./waf/crs/:/etc/nginx/modsec/crs/:rw
-      - ./waf/modsecurity.conf:/etc/nginx/modsec/modsecurity.conf:rw
-      - ./waf/exception-rules.conf:/etc/nginx/modsec/exception-rules.conf:rw
+      - "HTTP_PORT:HTTP_PORT"
+      - "HTTPS_PORT:HTTPS_PORT"
     depends_on:
       - gateway-service
       - ws-service
     networks:
       - ft_transcendence_network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
 # =============================================================================
 # NETWORKS

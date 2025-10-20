@@ -28,23 +28,34 @@
 
 ## Setup Instructions
 
-1. **Build the Docker image**
+1. **Generate self-signed certs on your local machine**
+```bash
+mkdir -p waf/certs
+openssl req -x509 -nodes -days 365 \
+  -newkey rsa:2048 \
+  -keyout waf/certs/server.key \
+  -out waf/certs/server.crt \
+  -subj "/CN=localhost"
+```
+
+
+2. **Build the Docker image**
 
 ```bash
 docker build -t waf-service .
 ```
 
-1. **Run the container**
+3. **Run the container**
 
 ```bash
 docker run -p 80:80 --name waf-service waf-service
 ```
 
-1. **Verify WAF logs**
+4. **Verify WAF logs**
 - Audit logs are stored inside the container at `/var/log/modsec_audit.log`.
 - Logs are in **DetectionOnly mode** by default (no blocking).
 
-1. **Switch to blocking mode (final)**
+5. **Switch to blocking mode (final)**
 - For the time being and while still developing, ModSecurity is running on `DetectionOnly` → it won’t block any user/request, but will simply log it
 - For production, we’ll change it in `modsecurity.conf`:
 

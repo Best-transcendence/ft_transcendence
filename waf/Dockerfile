@@ -1,20 +1,14 @@
-FROM owasp/modsecurity:nginx
+FROM nginx:1.22-alpine
 
-# Working directory
-WORKDIR /etc/nginx
+# Copy nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy configfiles
-COPY buffer.conf /etc/nginx/conf.d/buffer.conf
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY modsecurity.conf /etc/nginx/modsec/modsecurity.conf
-COPY crs/ /etc/nginx/modsec/crs/
-COPY exception-rules.conf /etc/nginx/modsec/exception-rules.conf
+# Copy SSL certs - see README how to do it on your machine
+COPY certs/ /etc/nginx/certs/
 
-HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=5 \
-    CMD curl -f http://gateway-service:3003/health || exit 1
+# Expose both HTTP and HTTPS ports
+EXPOSE 80 443
 
-# Expose port 80
-EXPOSE 80
-
-# Start Nginx
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
+
