@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
-import dotenv from 'dotenv';
+// import dotenv from 'dotenv';
+import './env.js';
 import prismaPlugin from './plugins/prisma.js';
 import userRoutes from './routes/users.js';
 import fastifyJwt from '@fastify/jwt';
@@ -8,7 +9,7 @@ import fastifySwaggerUI from '@fastify/swagger-ui';
 import fastifyCors from '@fastify/cors';
 
 // Load environment variables from local .env file
-dotenv.config();
+// dotenv.config();
 
 // Create Fastify server instance with logging
 const app = Fastify({ logger: true });
