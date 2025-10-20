@@ -5,7 +5,7 @@ import { GamePongRemote, initRemoteGame } from "./games/Pong2dRemote";
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
-import { GameIntroPage } from "./pages/GameIntroPage";
+import { GameIntroPage, initQuickGameCardLogic } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
 import { GamePongTournament } from "./games/Tournament";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
@@ -18,7 +18,7 @@ import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
-
+import { LoadingPage, initLoadingPage } from "./pages/LoadingPage";
 //Components:
 import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn";
@@ -114,15 +114,15 @@ export function router() {
       );
       break;
 
-	case "lobbytournament":
-      protectedPage(
-        () => LobbyPageTournament(),
-      );
+    case "lobbytournament":
+      protectedPage(() => LobbyPageTournament());
       break;
 
-
     case "intro":
-      protectedPage(() => GameIntroPage());
+      protectedPage(
+        () => GameIntroPage(),
+        () => initQuickGameCardLogic() //Attach button logic after rendering
+      );
       break;
 
     case "pong2d":
@@ -140,34 +140,40 @@ export function router() {
         () => initRemoteGame(roomId)
       );
       break;
+    case "loading":
+      protectedPage(
+        () => LoadingPage(),
+        () => initLoadingPage()
+      );
+      break;
 
     case "tournament":
       protectedPage(() => GamePongTournament(), initGameTournament);
       break;
 
-	case "tournament":
-		protectedPage(() => GamePongTournament(), initGameTournament);
-		break;
+    case "tournament":
+      protectedPage(() => GamePongTournament(), initGameTournament);
+      break;
 
-	case "AIopponent":
-		protectedPage(() => GamePongAIOpponent(), setupAIOpponent);
-		break;
+    case "AIopponent":
+      protectedPage(() => GamePongAIOpponent(), setupAIOpponent);
+      break;
 
-	case "profile":
-		protectedPage(() => ProfilePage(), triggerPopup);
-		break;
+    case "profile":
+      protectedPage(() => ProfilePage(), triggerPopup);
+      break;
 
-	case "friends":
-		protectedPage(() => FriendsPage(), triggerPopup, friendRequest);
-		break;
-	
-	case "dashboard":
-		protectedPage(() => DashboardPage());
-		break;
+    case "friends":
+      protectedPage(() => FriendsPage(), triggerPopup, friendRequest);
+      break;
 
-	case "history":
-		protectedPage(() => HistoryPage(), matchesEvents);
-		break;
+    case "dashboard":
+      protectedPage(() => DashboardPage());
+      break;
+
+    case "history":
+      protectedPage(() => HistoryPage(), matchesEvents);
+      break;
 
     default:
       app.innerHTML = NotFoundPage();
