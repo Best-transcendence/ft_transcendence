@@ -6,6 +6,8 @@
 all:
 	@echo "📦 Installing gateway dependencies..."
 	npm install
+	@echo "Installing .env dependences"
+	npm install dotenv dotenv-expand
 	@echo "✅ Gateway service setup complete!"
 	@echo "🚀 Starting gateway development server..."
 	npm run dev
