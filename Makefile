@@ -45,12 +45,12 @@ help:
 # Build all images
 build:
 	@echo "🔨 Building all Docker images..."
-	docker-compose build
+	docker compose build
 
 # Start all services
 up:
 	@echo "🚀 Starting all services..."
-	docker-compose up -d
+	docker compose up -d
 	@echo "✅ All services started!"
 	@echo "📋 Services available at:"
 	@echo "  Frontend:  http://localhost:3000"
@@ -62,12 +62,12 @@ up:
 # Stop all services
 down:
 	@echo "🛑 Stopping all services..."
-	docker-compose down
+	docker compose down
 
 # Follow logs
 logs:
 	@echo "📋 Following logs from all services (Ctrl+C to stop)..."
-	docker-compose logs -f
+	docker compose logs -f
 
 # Restart all services
 restart: down up
@@ -75,32 +75,32 @@ restart: down up
 # Clean up everything
 clean:
 	@echo "🧹 Cleaning up all Docker resources..."
-	docker-compose down -v --rmi all
+	docker compose down -v --rmi all
 	docker system prune -f
 	@echo "✅ Cleanup complete!"
 
 # Show status
 status:
 	@echo "📊 Service Status:"
-	@docker-compose ps
+	@docker compose ps
 
 # Individual service commands
 up-user:
 	@echo "🚀 Starting user-service..."
-	docker-compose up -d user-service
+	docker compose up -d user-service
 
 up-auth:
 	@echo "🚀 Starting auth-service..."
-	docker-compose up -d auth-service
+	docker compose up -d auth-service
 
 up-gateway:
 	@echo "🚀 Starting gateway-service..."
-	docker-compose up -d gateway-service
+	docker compose up -d gateway-service
 
 up-ws:
 	@echo "🚀 Starting ws-service..."
-	docker-compose up -d ws-service
+	docker compose up -d ws-service
 
 up-frontend:
 	@echo "🚀 Starting frontend..."
-	docker-compose up -d frontend
+	docker compose up -d frontend
