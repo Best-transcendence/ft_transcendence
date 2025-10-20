@@ -72,7 +72,12 @@ export function registerWebsocketHandlers(wss, app) {
           case 'game:join':
             gameHandlers.handleGameJoin(ws, { ...data, roomId: String(data.roomId) });
             break;
-
+          case "matchmaking:join":
+            roomHandlers.handleMatchmakingJoin(ws);
+            break;
+          case "matchmaking:leave":
+            roomHandlers.handleMatchmakingLeave(ws);
+            break;
           case 'game:move':
             gameHandlers.handleGameMove(ws, {
               ...data,

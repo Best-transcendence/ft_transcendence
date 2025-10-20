@@ -1,6 +1,3 @@
-// components/cards/QuickGameCard.ts
-import { sendWSMessage } from "../../services/ws";
-
 export function QuickGameCard(): string {
   return `
     <div id="quick-start-card"
@@ -31,14 +28,5 @@ export function QuickGameCard(): string {
         Start Now
       </button>
     </div>
-    <script>
-      document.querySelector("#quick-start-btn").addEventListener("click", () => {
-        const btn = document.querySelector("#quick-start-btn");
-        btn.innerText = "Searching...";
-        btn.disabled = true;
-        sendWSMessage("matchmaking:join", {}); // Join the queu
-      });
-    </script>
   `;
 }
-

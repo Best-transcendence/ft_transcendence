@@ -78,31 +78,48 @@ export function registerRoomHandlers(wss, onlineUsers, app) {
     }
   }
 
-  function handleMarchmakingJoin(ws) {
+  function handleMatchmakingJoin(ws) {
     if (queue.find(p => p.user.id === ws.user.id)) return;
 
     queue.push(ws);
-    ws.send(JSON.stringify({ type: "matchmaking: searching" }));
+    ws.send(JSON.stringify({ type: "matchmaking:searching" })); // fixed
     app.log.info(`User ${ws.user.id} joined matchmaking queue`);
 
-    if (queue.lenght >= 2){
+    if (queue.length >= 2) { // fixed
       const p1 = queue.shift();
       const p2 = queue.shift();
 
       const roomId = makeRoomId(p1.user.id, p2.user.id);
-      rooms.set(roomId, {players: [p1, p2], state:null, loopId:null });
+      rooms.set(roomId, { players: [p1, p2], state: null, loopId: null });
 
-      [p1, p2].forEach(client =>
+      [p1, p2].forEach(client => {
         client.send(JSON.stringify({
-          
-        }))
-      )
+          type: "room:start",
+          roomId,
+          players: [p1.user.id, p2.user.id],
+        }));
+        app.log.info(`Sent room:start to user ${client.user.id}`);
+      });
+
+      app.log.info(`Quick Game room created: ${roomId} (${p1.user.id} vs ${p2.user.id})`);
     }
   }
+
+  function handleMatchmakingLeave(ws) {
+    const idx = queue.findIndex(p => p.user.id === ws.user.id);
+    if (idx !== -1) {
+      queue.splice(idx, 1);
+      ws.send(JSON.stringify({ type: "matchmaking:cancelled" }));
+      app.log.info(`User ${ws.user.id} left matchmaking queue`);
+    }
+  }
+
 
   return {
     handleInvite,
     handleInviteAccepted,
     handleInviteDeclined,
+    handleMatchmakingJoin, // New handler.
+    handleMatchmakingLeave, // leave the queue
   };
 }

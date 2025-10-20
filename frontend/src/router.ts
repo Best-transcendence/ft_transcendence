@@ -14,7 +14,7 @@ import { GamePongRemote, initRemoteGame } from "./games/Pong2dRemote";
 // Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
-import { GameIntroPage } from "./pages/GameIntroPage";
+import { GameIntroPage, initQuickGameCardLogic } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
 import { initGame } from "./games/InitGame";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
@@ -29,6 +29,7 @@ import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { LoadingPage, initLoadingPage } from "./pages/LoadingPage";
 
 // UI component imports for consistent interface elements
 import { sideBar } from "./components/SideBar";
@@ -147,8 +148,18 @@ export function router() {
       );
       break;
 
+    case "lobbytournament":
+      protectedPage(
+        () => LobbyPageTournament(),
+        () => initLobbyPageTournament()  // Initialize tournament lobby
+      );
+      break;
+
     case "intro":
-      protectedPage(() => GameIntroPage());  // Game introduction page
+      protectedPage(
+        () => GameIntroPage(),
+        () => initQuickGameCardLogic() //Attach button logic after rendering
+      );
       break;
 
     case "pong2d":
@@ -170,10 +181,10 @@ export function router() {
       break;
 
     // Tournament system routes
-    case "lobbytournament":
+    case "loading":
       protectedPage(
-        () => LobbyPageTournament(),
-        () => initLobbyPageTournament()  // Initialize tournament lobby
+        () => LoadingPage(),
+        () => initLoadingPage()
       );
       break;
 
