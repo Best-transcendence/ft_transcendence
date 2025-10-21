@@ -5,7 +5,7 @@ import { GamePongRemote, initRemoteGame } from "./games/Pong2dRemote";
 //Pages:
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
-import { GameIntroPage, initQuickGameCardLogic } from "./pages/GameIntroPage";
+import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
 import { GamePongTournament } from "./games/Tournament";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
@@ -119,10 +119,7 @@ export function router() {
       break;
 
     case "intro":
-      protectedPage(
-        () => GameIntroPage(),
-        () => initQuickGameCardLogic() //Attach button logic after rendering
-      );
+      protectedPage(() => GameIntroPage());
       break;
 
     case "pong2d":
@@ -145,10 +142,6 @@ export function router() {
         () => LoadingPage(),
         () => initLoadingPage()
       );
-      break;
-
-    case "tournament":
-      protectedPage(() => GamePongTournament(), initGameTournament);
       break;
 
     case "tournament":
