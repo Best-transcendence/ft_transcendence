@@ -1,9 +1,9 @@
 import { getSocket } from "../services/ws";
-import { startTimer } from "../components/Timer";
 import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { addTheme } from "../components/Theme";
+import { TimerDisplay, resetTimer } from "../components/Timer";
 
 export function GamePongRemote(): string {
   const socket = getSocket();
@@ -17,8 +17,37 @@ export function GamePongRemote(): string {
         break;
 
       case "game:start":
-        startTimer(5);
+        // reset timer UI to match server duration
+        resetTimer(msg.duration || 90);
         document.getElementById("startPress")?.remove();
+        break;
+
+      case "game:timer":
+        // authoritative countdown from server
+        const timerEl = document.getElementById("timer");
+        if (timerEl) {
+          const minutes = Math.floor(msg.remaining / 60);
+          const seconds = msg.remaining % 60;
+          timerEl.textContent = `${minutes}:${seconds
+            .toString()
+            .padStart(2, "0")}`;
+        }
+        break;
+
+      case "game:timeup":
+        const overlay = document.getElementById("timeUpOverlay");
+        if (overlay) {
+          overlay.classList.remove("hidden");
+          const textEl = overlay.querySelector("p");
+          if (textEl) {
+            textEl.textContent =
+              msg.winner === "draw"
+                ? "It's a draw 🤝"
+                : msg.winner === "p1"
+                  ? "Player 1 wins 🥇"
+                  : "Player 2 wins 🥇";
+          }
+        }
         break;
 
       case "game:update":
@@ -43,17 +72,19 @@ export function GamePongRemote(): string {
       ${LogOutBtnDisplay()}
     </div>
 
+          <!-- Timer -->
+          ${TimerDisplay()}
     <!-- Game section -->
     <div class="flex justify-center w-screen overflow-hidden">
       <div class="relative"
-		style="position: absolute; top: vh; left: 50%; transform: translateX(-50%); width: 90vw; max-width: 1450px; aspect-ratio: 16/9;">
+        style="position: absolute; top: vh; left: 50%; transform: translateX(-50%); width: 90vw; max-width: 1450px; aspect-ratio: 16/9;">
 
         <!-- Arcade image anchor -->
         <img src="/assets/game_background.png"
           class="absolute inset-0 w-full h-full object-contain"
           alt="Arcade machine" />
 
-        <!-- Game window (make positioning context explicit + ensure z-index above bg) -->
+        <!-- Game window -->
         <div class="absolute z-10 backdrop-blur-sm relative"
           style="top: 6.1%; left: 24.1%; width: 51%; height: 59.2%;
           background: var(--game-area-background);
@@ -66,7 +97,7 @@ export function GamePongRemote(): string {
             style="border-radius: inherit; background: inherit;">
             <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
               <h2 class="text-2xl font-bold text-white">Time’s up!</h2>
-              <p class="text-lg text-gray-200 mt-2 mb-6">You won 🥇</p>
+              <p class="text-lg text-gray-200 mt-2 mb-6">Result</p>
               <button id="overlayExit"
                 class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
                 Back to Arcade Clash
@@ -84,13 +115,13 @@ export function GamePongRemote(): string {
           <span id="score2"
             class="absolute z-20 top-[5%] right-[25%] text-[1.5vw] leading-none select-none">0</span>
 
-          <!-- Paddles (explicit z-index + anchors) -->
+          <!-- Paddles -->
           <div id="paddle1"
             class="absolute z-20 h-[25%] w-[3.3%] bg-[rgba(255,255,255,0.9)] top-[37.5%] left-0"></div>
           <div id="paddle2"
             class="absolute z-20 h-[25%] w-[3.3%] bg-[rgba(255,255,255,0.9)] top-[37.5%] right-0"></div>
 
-          <!-- Ball (explicit z-index) -->
+          <!-- Ball -->
           <div id="ball"
             class="absolute z-20 h-[5%] w-[3.3%] bg-[rgba(255,255,255,0.9)] rounded-[30%] left-[48.3%] top-[47.5%]"></div>
 
@@ -114,22 +145,12 @@ export function GamePongRemote(): string {
 export function initRemoteGame(roomId: string) {
   const socket = getSocket();
 
-  socket?.send(
-    JSON.stringify({
-      type: "game:join",
-      roomId,
-    })
-  );
+  socket?.send(JSON.stringify({ type: "game:join", roomId }));
 
   document.addEventListener("keydown", (e) => {
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
       socket?.send(
-        JSON.stringify({
-          type: "game:move",
-          direction: e.key,
-          action: "down",
-          roomId,
-        })
+        JSON.stringify({ type: "game:move", direction: e.key, action: "down", roomId })
       );
     }
   });
@@ -137,12 +158,7 @@ export function initRemoteGame(roomId: string) {
   document.addEventListener("keyup", (e) => {
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
       socket?.send(
-        JSON.stringify({
-          type: "game:move",
-          direction: e.key,
-          action: "up",
-          roomId,
-        })
+        JSON.stringify({ type: "game:move", direction: e.key, action: "up", roomId })
       );
     }
   });
@@ -169,6 +185,6 @@ function updateGameState(state: any) {
 }
 
 function showGameOver(winner: string) {
-  alert(` Game Over! Winner: ${winner}`);
+  alert(`Game Over! Winner: ${winner}`);
   window.location.hash = "intro";
 }

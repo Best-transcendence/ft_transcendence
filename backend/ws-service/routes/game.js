@@ -36,14 +36,19 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     // Start game when 2 players are in the room
     if (room.players.length === 2) {
       room.players.forEach(client => {
-        client.send(JSON.stringify({ type: 'game:start', roomId }));
+        client.send(JSON.stringify({ type: 'game:start', roomId, duration: 30 }));
       });
 
       resetBall(room.state);
 
       // Wait 1 second before starting the game loop to allow frontend to load
+      if (room.loopId) clearInterval(room.loopId);
+      if (room.timerId) clearInterval(room.timerId);
+      room.loopId = null;
+      room.timerId = null;
       setTimeout(() => {
         startGameLoop(roomId, room);
+        startGameTimer(roomId, room, 30); // ______new timer
       }, 1000);
     }
   }
@@ -169,6 +174,50 @@ export function registerGameHandlers(wss, onlineUsers, app) {
       }
     });
   }
+
+function startGameTimer(roomId, room, duration) {
+  const endTime = Date.now() + duration * 1000;
+
+  room.timerId = setInterval(() => {
+    const now = Date.now();
+    let remaining = Math.ceil((endTime - now) / 1000);
+
+    if (remaining < 0) remaining = 0;
+
+    // Broadcast authoritative timer
+    room.players.forEach(client => {
+      if (client.readyState === 1) {
+        client.send(JSON.stringify({
+          type: "game:timer",
+          remaining
+        }));
+      }
+    });
+
+    if (remaining <= 0) {
+      clearInterval(room.timerId);
+      clearInterval(room.loopId);
+      room.timerId = null;
+      room.loopId = null;
+
+      // Decide winner
+      let winner = "draw";
+      if (room.state.s1 > room.state.s2) winner = "p1";
+      else if (room.state.s2 > room.state.s1) winner = "p2";
+
+      room.players.forEach(client => {
+        if (client.readyState === 1) {
+          client.send(JSON.stringify({
+            type: "game:timeup",
+            winner,
+            scores: { s1: room.state.s1, s2: room.state.s2 }
+          }));
+        }
+      });
+    }
+  }, 1000);
+}
+
 
   return {
     handleGameJoin,
