@@ -2,9 +2,8 @@ import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { addTheme } from "../components/Theme";
-import { QuickGameCard } from "../components/cards/QuickGameCard";
 import { ModeCards } from "../components/cards/ModeCards";
-import { autoConnect, sendWSMessage } from "../services/ws";
+import { autoConnect } from "../services/ws";
 
 // Adapted function now that data extraction has been centralized
 export function GameIntroPage(): string {
@@ -24,21 +23,9 @@ export function GameIntroPage(): string {
     </p>
 
     <div class="flex gap-6 flex-wrap justify-center">
-      ${QuickGameCard()}
       ${ModeCards()}
     </div>
   `;
-}
-
-export function initQuickGameCardLogic() {
-  const btn = document.getElementById("quick-start-btn");
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
-    console.log("🔥 Quick Game button clicked — sending matchmaking:join");
-    sendWSMessage("matchmaking:join", {});
-    window.location.hash = "loading"; // Go to loading page
-  });
 }
 
 function handleWSMessage(msg: any) {

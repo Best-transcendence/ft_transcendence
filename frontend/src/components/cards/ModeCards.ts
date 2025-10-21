@@ -3,6 +3,8 @@ import { createCard } from './CardCreator';
 import { AICard } from './AICard'
 import { PvPCard } from './PvPCard'
 import { TournamentCard } from './Tournament'
+import { LobbyPCard } from './LobbyCard'
+
 // import { AICard } from './AICard'
 
 
@@ -12,6 +14,7 @@ export function ModeCards() {
       ${PvPCard}
       ${TournamentCard}
       ${AICard}
+      ${LobbyPCard}
     </div>
   `;
 }
