@@ -75,7 +75,8 @@ export function LobbyPageTournament() {
               <input
                 id="guest-name"
                 type="text"
-                placeholder="Guest username"
+                placeholder="Guest username (letters only, max 12)"
+                maxlength="12"
                 class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
               <button

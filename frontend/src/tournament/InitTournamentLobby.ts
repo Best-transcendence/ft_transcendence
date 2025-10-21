@@ -558,6 +558,17 @@ export function initLobbyPageTournament() {
       return;
     }
     
+    // Validate username: only letters, max 12 characters
+    if (!/^[A-Za-z]+$/.test(name)) {
+      showErrorMessage("Username must contain only letters");
+      return;
+    }
+    
+    if (name.length > 12) {
+      showErrorMessage("Username must be 12 characters or less");
+      return;
+    }
+    
     addPlayer(name);
     guestInput.value = "";
   });
