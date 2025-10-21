@@ -50,40 +50,71 @@ export function LobbyPageTournament() {
         <div class="md:col-span-2 space-y-4">
           <!-- Player addition interface -->
           <div class="rounded-xl border border-white/10 p-4">
-            <div class="text-sm text-gray-300 mb-2">Add Player</div>
+            <div class="text-sm text-gray-300 mb-3">Add Player</div>
 
-			<!-- Friend player addition -->
-			<div class="flex items-center gap-2">
-				<input
-				id="friend-name"
-				type="text"
-				placeholder="Friend username"
-				class="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-				/>
-				<button
-				id="btn-add-friend"
-				class="shrink-0 px-4 py-2 rounded-lg border border-white/10 hover:border-violet-400 text-gray-200"
-				>
-				Add Friend
-				</button>
-			</div>
+            <!-- Two buttons to toggle between guest and friend -->
+            <div class="flex gap-2 mb-3">
+              <button
+                type="button"
+                id="btn-toggle-guest"
+                class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-600 text-white border border-violet-400"
+              >
+                Add Guest
+              </button>
+              <button
+                type="button"
+                id="btn-toggle-friend"
+                class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-transparent text-gray-300 border border-white/10 hover:border-violet-400"
+              >
+                Add Friend
+              </button>
+            </div>
 
-			<!-- Guest player addition -->
-			<div class="flex items-center gap-2 mt-2">
-				<input
-				id="guest-name"
-				type="text"
-				placeholder="Guest username"
-				class="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-				/>
-				<button
-				id="btn-add-guest"
-				class="shrink-0 px-4 py-2 rounded-lg border border-white/10 hover:border-violet-400 text-gray-200"
-				>
-				Add Guest
-				</button>
-			</div>
-			</div>
+            <!-- Guest player input (visible by default) -->
+            <div id="guest-inputs" class="space-y-2">
+              <input
+                id="guest-name"
+                type="text"
+                placeholder="Guest username"
+                class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+              <button
+                type="button"
+                id="btn-add-guest"
+                class="w-full px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium"
+              >
+                Add Guest Player
+              </button>
+            </div>
+
+            <!-- Friend (existing user) inputs (hidden by default) -->
+            <div id="friend-inputs" class="space-y-2 hidden">
+              <input
+                id="friend-email"
+                type="email"
+                placeholder="Friend's email"
+                autocomplete="off"
+                class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+              <input
+                id="friend-password"
+                type="password"
+                placeholder="Friend's password"
+                autocomplete="off"
+                class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+              <button
+                type="button"
+                id="btn-add-friend"
+                class="w-full px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium cursor-pointer"
+              >
+                Verify & Add Friend
+              </button>
+            </div>
+
+            <!-- Error message display -->
+            <div id="player-error" class="text-red-400 text-sm mt-2 hidden"></div>
+          </div>
 
           <!-- Tournament size selection rules -->
           <div class="rounded-xl border border-white/10 p-4">

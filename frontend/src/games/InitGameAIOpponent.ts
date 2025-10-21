@@ -143,7 +143,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	// --- GAME STATE VARIABLES ---
 	let running = false; // Whether the game is currently running
 	let animationFrameId = 0; // ID of current animation frame
-	let aiIntervalId: NodeJS.Timeout | null = null; // AI update interval timer
+	let aiIntervalId: number | null = null; // AI update interval timer
 	let lastTime = 0; // Last frame time for consistent timing
 	const targetFPS = 120; // Target frames per second
 	const frameTime = 1000 / targetFPS; // Time per frame in milliseconds

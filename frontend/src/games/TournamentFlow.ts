@@ -63,7 +63,7 @@ function attachSpaceToStart(onSpaceStart?: () => void) {
  */
 type SeedPayload = {
   mode: "2" | "4";                    // Tournament mode: 2-player or 4-player
-  players: Player[];                  // List of participating players
+  players: Player[];                  // List of participating players (with auth data)
   pairs: [string, string][] | null;   // Player pairings for 4-player tournaments
 };
 

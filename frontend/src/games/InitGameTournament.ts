@@ -47,6 +47,7 @@ export function initGameTournament(): void {
 
   // Score tracking
   let s1 = 0, s2 = 0;                  // Player 1 and Player 2 scores
+  let lastServe: "left" | "right" | null = null; // Which side served last (for alternating serves)
 
   // Position and velocity state
   let p1Y = 37.5, p2Y = 37.5;          // Paddle Y positions (matches CSS top-[37.5%])
@@ -127,6 +128,7 @@ function resetObjects() {
  */
 function resetScores() {
   s1 = 0; s2 = 0;
+  lastServe = null; // Reset serve alternation for new round
   score1.textContent = "0";
   score2.textContent = "0";
 }
@@ -144,13 +146,22 @@ function prepareNewRound() {
 
 /**
  * Serves the ball with a random direction
- * Sets initial velocity with random horizontal and vertical components
+ * Sets initial velocity with consistent speed regardless of angle
+ * Alternates serve direction each time for fairness
  */
 function serveBall() {
-  const baseSpeedX = 1.2;              // Base horizontal speed
-  const baseSpeedY = 0.8;              // Base vertical speed
-  ballVelX = Math.random() > 0.5 ? baseSpeedX : -baseSpeedX;  // Random left/right
-  ballVelY = Math.random() > 0.5 ? baseSpeedY : -baseSpeedY;  // Random up/down
+  const speed = 1.5;  // Consistent total speed
+  
+  // Random angle between -45 and 45 degrees (in radians)
+  const angleVariation = (Math.random() - 0.5) * Math.PI / 2;  // ±45°
+  
+  // Alternate serve direction for fairness
+  const direction = lastServe === "left" ? 1 : lastServe === "right" ? -1 : (Math.random() > 0.5 ? 1 : -1);
+  lastServe = direction === 1 ? "right" : "left";
+  
+  // Calculate velocity components for consistent speed
+  ballVelX = direction * speed * Math.cos(angleVariation);
+  ballVelY = speed * Math.sin(angleVariation);
 }
 
 /**
@@ -336,13 +347,13 @@ overlayExit?.addEventListener("click", () => {
     // Scoring detection using ball center for symmetric scoring
     const ballCenterX = ballX + BALL_W / 2;
     if (ballCenterX < 0) {
-      // Ball went past left side - Player 2 scores
+      // Ball went past left side - Player 2 (right) scores
       s2++;
       score2.textContent = s2.toString();
       //playSound(lossSfx);                    // TODO: Implement sound effects
       resetBall();
     } else if (ballCenterX > FIELD) {
-      // Ball went past right side - Player 1 scores
+      // Ball went past right side - Player 1 (left) scores
       s1++;
       score1.textContent = s1.toString();
       //playSound(lossSfx);                    // TODO: Implement sound effects
@@ -355,19 +366,28 @@ overlayExit?.addEventListener("click", () => {
   }
 
   /**
-   * Resets ball to center and serves with random direction
+   * Resets ball to center and serves with alternating direction
    * Called after a point is scored
+   * Alternates serve side each time for maximum fairness
    */
   function resetBall() {
     // Center the ball in the field
     ballX = 50 - BALL_W / 2;
     ballY = 50 - BALL_H / 2;
     
-    // Serve with random direction (same speed as initial serve)
-    const baseSpeedX = 1.2;
-    const baseSpeedY = 0.8;
-    ballVelX = Math.random() > 0.5 ? baseSpeedX : -baseSpeedX;
-    ballVelY = Math.random() > 0.5 ? baseSpeedY : -baseSpeedY;
+    // Serve with consistent speed and alternating direction
+    const speed = 1.5;  // Consistent total speed
+    
+    // Random angle between -45 and 45 degrees (in radians)
+    const angleVariation = (Math.random() - 0.5) * Math.PI / 2;  // ±45°
+    
+    // Alternate serve direction for fairness
+    const direction = lastServe === "left" ? 1 : lastServe === "right" ? -1 : (Math.random() > 0.5 ? 1 : -1);
+    lastServe = direction === 1 ? "right" : "left";
+    
+    // Calculate velocity components for consistent speed
+    ballVelX = direction * speed * Math.cos(angleVariation);
+    ballVelY = speed * Math.sin(angleVariation);
   }
 
   // TODO: Fix playSound function or remove from everywhere

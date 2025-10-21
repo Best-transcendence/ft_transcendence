@@ -8,7 +8,8 @@ import {
   sortForRender,
   byId,
   currentMax,
-} from "./utils"; 
+} from "./utils";
+import { verifyUserForTournament } from "../services/api"; 
 
 /**
  * Tournament Lobby Initialization and Management
@@ -61,14 +62,95 @@ function updateCounters() {
   byId<HTMLSpanElement>("max").textContent = String(max);
 
   const startBtn = byId<HTMLButtonElement>("btn-start");
-  startBtn.disabled = players.length !== max;
-
+  const isFull = players.length >= max;
+  
+  // Enable Matchmaking button only when we have enough players
+  // "Let's start" button only appears after Matchmaking is clicked (in renderMatchmakerPreview)
+  startBtn.disabled = !isFull;
+  
   // Disable add buttons if we're at capacity
-  byId<HTMLButtonElement>("btn-add-friend").disabled = players.length >= max;
-  byId<HTMLButtonElement>("btn-add-guest").disabled = players.length >= max;
+  byId<HTMLButtonElement>("btn-add-guest").disabled = isFull;
+  byId<HTMLButtonElement>("btn-add-friend").disabled = isFull;
+  
+  // Disable toggle buttons if we're at capacity
+  byId<HTMLButtonElement>("btn-toggle-guest").disabled = isFull;
+  byId<HTMLButtonElement>("btn-toggle-friend").disabled = isFull;
+  
+  // Disable input fields if we're at capacity
+  byId<HTMLInputElement>("guest-name").disabled = isFull;
+  byId<HTMLInputElement>("friend-email").disabled = isFull;
+  byId<HTMLInputElement>("friend-password").disabled = isFull;
 }
 
 // Player management functions
+
+/**
+ * Shows error message to user
+ * @param message - Error message to display
+ */
+function showErrorMessage(message: string) {
+  const errorDiv = byId<HTMLDivElement>("player-error");
+  errorDiv.textContent = message;
+  errorDiv.classList.remove("hidden");
+  
+  // Hide error after 5 seconds
+  setTimeout(() => {
+    errorDiv.classList.add("hidden");
+  }, 5000);
+}
+
+/**
+ * Adds an authenticated user to the tournament
+ * @param email - User email
+ * @param password - User password
+ */
+async function addAuthenticatedPlayer(email: string, password: string) {
+  const max = currentMax(mode);
+  if (players.length >= max) return;
+
+  try {
+    // Verify user credentials
+    const userData = await verifyUserForTournament(email, password);
+    
+    // Prevent adding current user
+    if (userData.id === myPlayer().id) {
+      showErrorMessage("You cannot add yourself to the tournament");
+      return;
+    }
+
+    // Prevent duplicate authenticated users by authUserId
+    if (players.some(p => p.authUserId === userData.id)) {
+      showErrorMessage("This user is already in the tournament");
+      return;
+    }
+
+    // Create authenticated player object
+    const player: Player = {
+      id: `auth_${userData.id}`,
+      name: userData.name,
+      isAuthenticated: true,
+      authUserId: userData.id
+    };
+
+    players.push(player);
+    players = ensureMeFirst(players);
+    plannedPairs = null;
+    updateCounters();
+    renderMatchmakerPreview();
+    
+    // Clear form
+    byId<HTMLInputElement>("friend-email").value = "";
+    byId<HTMLInputElement>("friend-password").value = "";
+    
+  } catch (error) {
+    console.error("Authentication failed:", error);
+    if (error instanceof Error) {
+      showErrorMessage(error.message);
+    } else {
+      showErrorMessage("Authentication failed. Please try again.");
+    }
+  }
+}
 
 /**
  * Adds a new player to the tournament
@@ -89,8 +171,8 @@ function addPlayer(name: string) {
   if (players.some(p => p.name.toLowerCase() === trimmed.toLowerCase())) return;
 
   // Generate unique player ID and add to tournament
-  const id = `u_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
-  players.push({ id, name: trimmed });
+  const id = `guest_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  players.push({ id, name: trimmed, isAuthenticated: false });
 
   // Ensure current user is always first in the list
   players = ensureMeFirst(players);
@@ -123,7 +205,12 @@ function startTournamentAndGo() {
   // Create tournament seed payload
   const payload = {
     mode,
-    players,
+    players: players.map(p => ({
+      id: p.id,
+      name: p.name,
+      isAuthenticated: p.isAuthenticated,
+      authUserId: p.authUserId
+    })),
     pairs: plannedPairs?.map(([a, b]) => [a.id, b.id]) ?? null,
   };
   
@@ -217,10 +304,20 @@ function renderMatchmakerPreview() {
   if (players.length) {
     sortForRender(players).forEach(pl => {
       const chip = document.createElement("span");
-      chip.className =
-        "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
-        "bg-violet-500/15 text-violet-100 border border-violet-400/20";
-      chip.textContent = pl.name;
+      
+      // Different styling for authenticated vs guest users
+      if (pl.isAuthenticated) {
+        chip.className =
+          "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
+          "bg-emerald-500/15 text-emerald-100 border border-emerald-400/20";
+        chip.innerHTML = `${pl.name} <span class="ml-1">✓</span>`;
+      } else {
+        chip.className =
+          "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
+          "bg-violet-500/15 text-violet-100 border border-violet-400/20";
+        chip.textContent = pl.name;
+      }
+      
       chips.appendChild(chip);
     });
   } else {
@@ -284,17 +381,19 @@ function renderMatchmakerPreview() {
     host.appendChild(note);
   }
 
-  // Call-to-action button
-  const ctaWrap = document.createElement("div");
-  ctaWrap.className = "mt-4 w-full flex justify-end";
-  const cta = document.createElement("button");
-  cta.className =
-    "px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white " +
-    "border border-violet-400/30 shadow-[0_0_16px_2px_#7037d355]";
-  cta.textContent = "Let's start 🕹️";
-  cta.onclick = () => startTournamentAndGo();
-  ctaWrap.appendChild(cta);
-  host.appendChild(ctaWrap);
+  // Call-to-action button - only show after Matchmaking is clicked (paired = true)
+  if (paired) {
+    const ctaWrap = document.createElement("div");
+    ctaWrap.className = "mt-4 w-full flex justify-end";
+    const cta = document.createElement("button");
+    cta.className =
+      "px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white " +
+      "border border-violet-400/30 shadow-[0_0_16px_2px_#7037d355]";
+    cta.textContent = "Let's start 🕹️";
+    cta.onclick = () => startTournamentAndGo();
+    ctaWrap.appendChild(cta);
+    host.appendChild(ctaWrap);
+  }
 }
 
 // Page-level state management
@@ -336,25 +435,89 @@ export function initLobbyPageTournament() {
   mode = (document.getElementById("mode-4") as HTMLInputElement).checked ? "4" : "2";
 
   // Get DOM elements for event binding
-  const friendInput = byId<HTMLInputElement>("friend-name");
-  const addFriendBtn = byId<HTMLButtonElement>("btn-add-friend");
+  const guestInput = byId<HTMLInputElement>("guest-name");
   const addGuestBtn = byId<HTMLButtonElement>("btn-add-guest");
+  const friendEmailInput = byId<HTMLInputElement>("friend-email");
+  const friendPasswordInput = byId<HTMLInputElement>("friend-password");
+  const addFriendBtn = byId<HTMLButtonElement>("btn-add-friend");
   const startBtn = byId<HTMLButtonElement>("btn-start");
   const mode2 = byId<HTMLInputElement>("mode-2");
   const mode4 = byId<HTMLInputElement>("mode-4");
 
-  // Friend player addition
-  addFriendBtn.onclick = () => {
-    addPlayer(friendInput.value);
-    friendInput.value = "";
-  };
+  // Toggle buttons for switching between guest and friend modes
+  const toggleGuestBtn = byId<HTMLButtonElement>("btn-toggle-guest");
+  const toggleFriendBtn = byId<HTMLButtonElement>("btn-toggle-friend");
+  const guestInputs = byId<HTMLDivElement>("guest-inputs");
+  const friendInputs = byId<HTMLDivElement>("friend-inputs");
+
+  // Function to switch to guest mode
+  function showGuestMode() {
+    guestInputs.classList.remove('hidden');
+    friendInputs.classList.add('hidden');
+    
+    // Update button styles
+    toggleGuestBtn.className = "flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-600 text-white border border-violet-400";
+    toggleFriendBtn.className = "flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-transparent text-gray-300 border border-white/10 hover:border-violet-400";
+    
+    // Clear any error messages
+    const errorDiv = byId<HTMLDivElement>("player-error");
+    errorDiv.classList.add('hidden');
+  }
+
+  // Function to switch to friend mode
+  function showFriendMode() {
+    guestInputs.classList.add('hidden');
+    friendInputs.classList.remove('hidden');
+    
+    // Update button styles
+    toggleGuestBtn.className = "flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-transparent text-gray-300 border border-white/10 hover:border-violet-400";
+    toggleFriendBtn.className = "flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-emerald-600 text-white border border-emerald-400";
+    
+    // Clear any error messages
+    const errorDiv = byId<HTMLDivElement>("player-error");
+    errorDiv.classList.add('hidden');
+  }
+
+  // Toggle button event listeners
+  toggleGuestBtn.onclick = showGuestMode;
+  toggleFriendBtn.onclick = showFriendMode;
 
   // Guest player addition
-  const guestInput = byId<HTMLInputElement>("guest-name");
-  addGuestBtn.onclick = () => {
-    addPlayer(guestInput.value);
+  addGuestBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const name = guestInput.value.trim();
+    
+    if (!name) {
+      showErrorMessage("Please enter a guest username");
+      return;
+    }
+    
+    addPlayer(name);
     guestInput.value = "";
-  };
+  });
+
+  // Friend (existing user) addition
+  addFriendBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const email = friendEmailInput.value.trim();
+    const password = friendPasswordInput.value;
+    
+    if (!email || !password) {
+      showErrorMessage("Please enter both email and password");
+      return;
+    }
+    
+    if (!email.includes('@') || !email.includes('.')) {
+      showErrorMessage("Please enter a valid email address");
+      return;
+    }
+    
+    addAuthenticatedPlayer(email, password);
+  });
 
   // Tournament mode selection
   mode2.onchange = () => { if (mode2.checked) setMode("2"); };
