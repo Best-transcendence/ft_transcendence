@@ -3,35 +3,57 @@ import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 
+/**
+ * Tournament Lobby Page Template Generator
+ * 
+ * This module generates the HTML template for the tournament lobby interface.
+ * It provides a user interface for creating tournaments with 2 or 4 players,
+ * including player management, tournament rules selection, and match generation.
+ */
+
+/**
+ * Generates the complete HTML template for the tournament lobby page
+ * 
+ * Creates a tournament creation interface with:
+ * - User interface components (profile, sidebar, logout)
+ * - Tournament size selection (2 or 4 players)
+ * - Player addition system (friends and guests)
+ * - Match generator preview
+ * - Tournament rules and controls
+ * 
+ * @returns {string} Complete HTML template for the tournament lobby
+ */
 export function LobbyPageTournament() {
   return `
-    <!-- Theme -->
+    <!-- Theme component for consistent styling -->
     ${addTheme()}
 
-    <!-- Header with user info -->
+    <!-- Header section with user interface components -->
     <div class="w-full flex justify-between items-center mb-10">
-      ${profileDivDisplay()}
-      ${sidebarDisplay()}
-      ${LogOutBtnDisplay()}
+      ${profileDivDisplay()}    <!-- User profile information -->
+      ${sidebarDisplay()}       <!-- Navigation sidebar -->
+      ${LogOutBtnDisplay()}     <!-- Logout button -->
     </div>
 
-    <!-- Title -->
+    <!-- Page title and description -->
     <div class="flex items-center flex-col text-center">
       <h1 class="text-4xl text-gray-200 font-heading font-bold mb-1">Create Tournament</h1>
       <p class="text-lg text-gray-400 max-w-xl mb-12">Choose 2 or 4 players · Single Elimination</p>
     </div>
 
-    <!-- Builder Card -->
+    <!-- Main tournament builder card with glassmorphism styling -->
     <div class="mx-auto bg-[#271d35] backdrop-blur-md rounded-2xl w-full max-w-[980px] p-6 md:p-8 space-y-6 shadow-[0_0_30px_10px_#7037d3]">
 
-      <!-- Participants Manager -->
+      <!-- Tournament participants management section -->
       <div class="grid md:grid-cols-5 gap-6">
-        <!-- Left: Add players -->
+        <!-- Left column: Player management and tournament settings -->
         <div class="md:col-span-2 space-y-4">
+          <!-- Player addition interface -->
           <div class="rounded-xl border border-white/10 p-4">
             <div class="text-sm text-gray-300 mb-2">Add Player</div>
 
-			  <div class="flex items-center gap-2">
+			<!-- Friend player addition -->
+			<div class="flex items-center gap-2">
 				<input
 				id="friend-name"
 				type="text"
@@ -46,6 +68,7 @@ export function LobbyPageTournament() {
 				</button>
 			</div>
 
+			<!-- Guest player addition -->
 			<div class="flex items-center gap-2 mt-2">
 				<input
 				id="guest-name"
@@ -62,14 +85,16 @@ export function LobbyPageTournament() {
 			</div>
 			</div>
 
-          <!-- Rules -->
+          <!-- Tournament size selection rules -->
           <div class="rounded-xl border border-white/10 p-4">
             <div class="text-sm text-gray-300 mb-2">Rules</div>
             <div class="space-y-2 text-sm text-gray-200">
+              <!-- 2-player tournament option (default) -->
               <label class="flex items-center gap-2">
                 <input type="radio" name="tournament-size" value="2" id="mode-2" class="accent-violet-600" checked />
                 <span>Tournament of <span class="font-mono">2</span> players</span>
               </label>
+              <!-- 4-player tournament option -->
               <label class="flex items-center gap-2">
                 <input type="radio" name="tournament-size" value="4" id="mode-4" class="accent-violet-600" />
                 <span>Tournament of <span class="font-mono">4</span> players</span>
@@ -77,7 +102,7 @@ export function LobbyPageTournament() {
             </div>
           </div>
 
-          <!-- Player counter -->
+          <!-- Player counter and tournament start controls -->
           <div class="rounded-xl border border-white/10 p-4 flex items-center justify-between">
             <div>
               <div class="text-sm text-gray-300">Players</div>
@@ -85,17 +110,20 @@ export function LobbyPageTournament() {
                 <span id="count">0</span>/<span id="max">4</span>
               </div>
             </div>
+            <!-- Tournament start button (disabled until enough players) -->
             <button id="btn-start" class="px-4 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white disabled:opacity-40 disabled:cursor-not-allowed" disabled>
               Matchmaking
             </button>
           </div>
         </div>
 
+        <!-- Right column: Match generator preview -->
         <div class="md:col-span-3 rounded-xl border border-white/10 p-4">
           <div class="text-sm text-gray-300 mb-2">Match Generator</div>
+          <!-- Dynamic match preview container -->
           <div id="matchgenerator" class="flex flex-wrap gap-2 min-h-[42px]"></div>
         </div>
         </div>
       </div>
-  `;
+    `;
 }
