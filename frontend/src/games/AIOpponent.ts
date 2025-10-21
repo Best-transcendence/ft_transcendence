@@ -179,8 +179,6 @@ export function GamePongAIOpponent(): string {
 			Use the 
 			<span class="text-purple-600">↑</span>
 			<span class="text-purple-600">↓</span>
-			<span class="text-purple-600">←</span>
-			<span class="text-purple-600">→</span>
 			arrows!
 		</p></span>
 		</p>
