@@ -1,33 +1,47 @@
-//Services:
+/**
+ * Application Router and Authentication System
+ * 
+ * This module handles client-side routing, user authentication, and page management
+ * for the Pong game application. It provides a centralized routing system with
+ * protected routes, user session management, and WebSocket connection handling.
+ */
+
+// Service imports for API communication and WebSocket connection
 import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
 import { GamePongRemote, initRemoteGame } from "./games/Pong2dRemote";
-//Pages:
+
+// Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
-import { GamePongTournament } from "./games/Tournament";
-import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { initGame } from "./games/InitGame";
-import { LobbyPageTournament } from "./pages/LobbyPageTournament";
+import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
+import { GamePongTournament } from "./games/Tournament";
+import { LobbyPageTournament } from "./pages/TournamentLobby";
+import { initLobbyPageTournament } from "./tournament/InitTournamentLobby";
 import { initGameTournament } from "./games/InitGameTournament";
-import { initGameAIOpponent } from "./games/InitGameAIOpponent";
+import { bootTournamentFlow } from "./games/TournamentFlow";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
-//Components:
+// UI component imports for consistent interface elements
 import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn";
 import { triggerPopup } from "./components/Popups";
 import { friendRequest } from "./components/FriendRequestDiv";
 
-// Centralizes user extraction into a variable
+// Global user state - centralizes user data across the application
 export let thisUser: any = undefined;
 
+/**
+ * Fetches current user data from the API and updates global user state
+ * Called before rendering protected pages to ensure user authentication
+ */
 async function fetchUser() {
   try {
     const data = await getCurrentUser();
@@ -37,151 +51,164 @@ async function fetchUser() {
   }
 }
 
-/*  Centralizing the user data extraction for the
-	protected (AKA logged-in only) pages */
-/* function protectedPage(renderer: () => string)
-{
-	const app = document.getElementById("app")!;
-
-	if (thisUser != undefined)
-	{
-		const html = renderer();
-		app.innerHTML = html;
-
-		sideBar(); //centralise sidebar attach here
-		logOutBtn(); //centralise logout button attach here
-	}
-	else
-	{
-		console.error("Failed to load user");
-		window.location.hash = "login";
-	}
-}; */
-
-//tmp async function to render visual edit without having to relog
+/**
+ * Protected page wrapper that ensures user authentication before rendering
+ * 
+ * This function handles authentication checks and renders pages only for logged-in users.
+ * It automatically redirects to login if the user is not authenticated.
+ * 
+ * @param renderer - Function that returns the HTML content for the page
+ * @param postRender - Optional array of functions to execute after page rendering
+ *                    (used for page-specific initialization like event listeners)
+ */
 export async function protectedPage(
   renderer: () => string,
   ...postRender: (() => void)[]
 ) {
   const app = document.getElementById("app")!;
 
+  // Fetch and validate user authentication
   await fetchUser();
   if (thisUser != undefined) {
+    // Render the page content
     app.innerHTML = renderer();
 
-    sideBar();
-    logOutBtn();
+    // Attach common UI components to all protected pages
+    sideBar();     // Navigation sidebar
+    logOutBtn();   // Logout button
 
-    postRender?.forEach((fn) => fn()); // specific page functions for a given page
+    // Execute page-specific initialization functions
+    postRender?.forEach((fn) => fn());
   } else {
     console.error("Failed to load user");
-    window.location.hash = "login";
+    window.location.hash = "login";  // Redirect to login if not authenticated
   }
 }
 
-//_______ Info
-/*
-The router will set up the routing system for the SAP
-with the # for now just to see if everything works.
-*/
+/**
+ * Main application router function
+ * 
+ * Handles client-side routing using hash-based navigation (#route).
+ * Manages page rendering, authentication, and URL parameter parsing.
+ * Supports both public routes (login) and protected routes (authenticated pages).
+ */
 export function router() {
   const app = document.getElementById("app")!;
 
+  // Parse URL hash to extract route and query parameters
   const rawHash = window.location.hash.slice(1);
-  const [route, query] = rawHash.split("?"); // to get the route and after the ? to get the query
+  const [route, query] = rawHash.split("?"); // Split route and query parameters
 
-  const page = route || "login";
+  const page = route || "login";  // Default to login page if no route specified
 
-  // TODO store in the gameinit if it's needed
+  // Parse query parameters for route-specific data
   const params = new URLSearchParams(query || "");
 
+  // Skip routing for asset requests (CSS, JS, images, etc.)
   if (window.location.pathname.startsWith("/assets/"))
-    //lets us open assets on web
     return;
 
+  // Route handling - switch between different application pages
   switch (page) {
+    // Public routes (no authentication required)
     case "login":
       app.innerHTML = LoginPage();
-      attachLoginListeners();
+      attachLoginListeners();  // Set up login form event listeners
       break;
 
+    // Protected routes (authentication required)
     case "lobby":
       protectedPage(
         () => LobbyPage(),
         () => {
-          initLobby();
+          initLobby();  // Initialize lobby-specific functionality
         }
       );
       break;
 
-	case "lobbytournament":
-      protectedPage(
-        () => LobbyPageTournament(),
-      );
-      break;
-
-
     case "intro":
-      protectedPage(() => GameIntroPage());
+      protectedPage(() => GameIntroPage());  // Game introduction page
       break;
 
     case "pong2d":
-      protectedPage(() => GamePong2D(), initGame);
+      protectedPage(() => GamePong2D(), initGame);  // Local Pong game
       break;
+
     case "remote":
+      // Remote multiplayer game with room ID validation
       const roomId = query ? new URLSearchParams(query).get("room") : null;
-      localStorage.setItem("roomId", roomId); // Keep the room ID.
+      if (roomId) localStorage.setItem("roomId", roomId); // Store room ID for game
       if (!roomId) {
-        app.innerHTML = NotFoundPage();
+        app.innerHTML = NotFoundPage();  // Show 404 if no room ID provided
         return;
       }
       protectedPage(
         () => GamePongRemote(),
-        () => initRemoteGame(roomId)
+        () => initRemoteGame(roomId)  // Initialize remote game with room ID
+      );
+      break;
+
+    // Tournament system routes
+    case "lobbytournament":
+      protectedPage(
+        () => LobbyPageTournament(),
+        () => initLobbyPageTournament()  // Initialize tournament lobby
       );
       break;
 
     case "tournament":
-      protectedPage(() => GamePongTournament(), initGameTournament);
+      protectedPage(
+        () => GamePongTournament(),
+        () => {
+          initGameTournament();  // Initialize tournament game
+          bootTournamentFlow({   // Set up tournament flow management
+            onSpaceStart: () => (window as any).beginTournamentRound?.(),
+          });
+        }
+      );
       break;
 
-	case "tournament":
-		protectedPage(() => GamePongTournament(), initGameTournament);
-		break;
+    // Game mode routes
+    case "AIopponent":
+      protectedPage(() => GamePongAIOpponent(), setupAIOpponent);  // AI opponent game
+      break;
 
-	case "AIopponent":
-		protectedPage(() => GamePongAIOpponent(), setupAIOpponent);
-		break;
+    // User management routes
+    case "profile":
+      protectedPage(() => ProfilePage(), triggerPopup);  // User profile page
+      break;
 
-	case "profile":
-		protectedPage(() => ProfilePage(), triggerPopup);
-		break;
+    case "friends":
+      protectedPage(() => FriendsPage(), triggerPopup, friendRequest);  // Friends management
+      break;
+    
+    case "dashboard":
+      protectedPage(() => DashboardPage());  // User dashboard
+      break;
 
-	case "friends":
-		protectedPage(() => FriendsPage(), triggerPopup, friendRequest);
-		break;
-	
-	case "dashboard":
-		protectedPage(() => DashboardPage());
-		break;
+    case "history":
+      protectedPage(() => HistoryPage(), matchesEvents);  // Match history page
+      break;
 
-	case "history":
-		protectedPage(() => HistoryPage(), matchesEvents);
-		break;
-
+    // Fallback for unknown routes
     default:
-      app.innerHTML = NotFoundPage();
+      app.innerHTML = NotFoundPage();  // 404 page for invalid routes
   }
 }
 
-/* Example: add listeners after rendering LoginPage */
+/**
+ * Sets up event listeners for the login page
+ * Handles both login and signup functionality with form validation
+ */
 function attachLoginListeners() {
   const form = document.getElementById("login-form");
-  let isSignupMode = false;
+  let isSignupMode = false;  // Toggle between login and signup modes
 
+  // Main form submission handler for both login and signup
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // Extract form field values
     const email = (
       document.getElementById("email-field") as HTMLInputElement
     )?.value.trim();
@@ -199,7 +226,7 @@ function attachLoginListeners() {
       let user;
 
       if (isSignupMode) {
-        // Handle signup
+        // Handle user registration
         if (!name || !confirmPassword) {
           alert("❌ All fields are required for signup");
           return;
@@ -217,28 +244,25 @@ function attachLoginListeners() {
         // Switch back to login mode after successful signup
         signupToggle?.click();
       } else {
-        // Handle login
+        // Handle user login
         user = await login(email, password);
-        // TODO: make sure not to expose token to the console.log. Now we are exposing it.
         console.log("Logged in:", user);
-        localStorage.setItem("jwt", user.token);
+        localStorage.setItem("jwt", user.token);  // Store JWT token for authentication
 
-        //TODO: adapt this to the WebSocket microservice
         console.log("✅ Logged in with token:", user.token);
 
-        // ________ connect global WebSocket
-        // Always connect WS using localStorage
+        // Establish WebSocket connection for real-time features
         const token = localStorage.getItem("jwt") || user.token;
         if (token) {
           connectSocket(token);
         }
-        // connectSocket(user.token);
 
+        // Update user state and navigate to game intro
         await fetchUser();
-        window.location.hash = "intro"; // navigate to gamePage
+        window.location.hash = "intro";
       }
     } catch (err: unknown) {
-      // We are checking if DB is up
+      // Error handling with user-friendly messages
       if (
         typeof err === "object" &&
         err &&
@@ -248,7 +272,7 @@ function attachLoginListeners() {
         if (err.message.includes("fetch")) {
           alert("❌ Cannot connect to server. Is the backend running?");
         } else {
-          // DB is up but wrong credentials or signup error
+          // Server is up but authentication failed
           const action = isSignupMode ? "Signup" : "Login";
           alert(`❌ ${action} failed: ${err.message}`);
         }
@@ -256,50 +280,50 @@ function attachLoginListeners() {
     }
   });
 
+  // Guest login button - allows access without authentication
   const guest = document.getElementById("guest-login");
   guest?.addEventListener("click", () => {
-    window.location.hash = "lobby"; // guest also goes to lobby
+    window.location.hash = "lobby"; // Guest users go directly to lobby
   });
 
-  // Signup toggle functionality
+  // Signup/login mode toggle functionality
   const signupToggle = document.getElementById("signup-toggle");
   const nameField = document.getElementById("name-field");
-  const confirmPasswordField = document.getElementById(
-    "confirm-password-field"
-  );
-  const submitButton = document.getElementById(
-    "submit-button"
-  ) as HTMLButtonElement | null;
+  const confirmPasswordField = document.getElementById("confirm-password-field");
+  const submitButton = document.getElementById("submit-button") as HTMLButtonElement | null;
   const title = document.getElementById("form-title");
 
+  /**
+   * Updates the form UI based on current mode (login/signup)
+   * Shows/hides fields and updates button text and titles
+   */
   function render() {
     if (!signupToggle) return;
     if (isSignupMode) {
-      // Show signup fields
+      // Show signup-specific fields
       nameField?.classList.remove("hidden");
       confirmPasswordField?.classList.remove("hidden");
-      // Texts
+      // Update UI text for signup mode
       if (submitButton) submitButton.textContent = "Register";
       if (title) title.textContent = "Sign Up";
       signupToggle.innerHTML = `Already have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign In</span>`;
     } else {
-      // Hide signup fields
+      // Hide signup fields for login mode
       nameField?.classList.add("hidden");
       confirmPasswordField?.classList.add("hidden");
-      // Texts
+      // Update UI text for login mode
       if (submitButton) submitButton.textContent = "Login";
       if (title) title.textContent = "Sign In";
-      signupToggle.innerHTML =
-        'Don\'t have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign Up</span>';
+      signupToggle.innerHTML = 'Don\'t have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign Up</span>';
     }
   }
 
+  // Toggle between login and signup modes
   signupToggle?.addEventListener("click", () => {
     isSignupMode = !isSignupMode;
-
     render();
   });
 
-  // Initial render so text/visibility is consistent even if HTML shipped empty
+  // Initial render to ensure consistent UI state
   render();
 }
