@@ -34,6 +34,14 @@ curl https://loca.lt/mytunnelpassword
 
 ## ⚙️ Setup & Run (Local Dev)
 
+### 0. Clear cache in browser if needed
+
+Hard Refresh
+Mac: Cmd + Shift + R
+Windows/Linux: Ctrl + Shift + F5 or Ctrl + F5
+
+
+
 ### 1. Install dependencies
 
 ```bash

@@ -41,6 +41,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	globalScorePlayer = 0;
 	globalGameRunning = false;
 	globalAnimationFrameId = null;
+	(window as any).globalAnimationFrameId = null;
 	
 	// --- AI CONFIGURATION (Left Paddle) ---
 	// The AI uses a finite state machine with difficulty-based parameters
@@ -245,6 +246,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		resetBall();
 		animationFrameId = requestAnimationFrame(loop);
 		globalAnimationFrameId = animationFrameId;
+		(window as any).globalAnimationFrameId = animationFrameId;
 	}
 
 	/**
@@ -267,6 +269,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 			console.log("Cancelling global animation frame:", globalAnimationFrameId);
 			cancelAnimationFrame(globalAnimationFrameId);
 			globalAnimationFrameId = null;
+			(window as any).globalAnimationFrameId = null;
 		}
 		
 		console.log("Running after stop:", running);
@@ -338,6 +341,8 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		}
 		
 		animationFrameId = requestAnimationFrame(loop);
+		globalAnimationFrameId = animationFrameId;
+		(window as any).globalAnimationFrameId = animationFrameId;
 	}
 
 	/**
@@ -680,6 +685,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 			console.log("Cancelling global animation frame:", globalAnimationFrameId);
 			cancelAnimationFrame(globalAnimationFrameId);
 			globalAnimationFrameId = null;
+			(window as any).globalAnimationFrameId = null;
 		}
 		
 		// Clear AI update interval

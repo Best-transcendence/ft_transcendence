@@ -1,7 +1,7 @@
 # ft_transcendence - Main Makefile
 # School 42 project - Docker management
 
-.PHONY: help build up down logs clean restart status
+.PHONY: help build up down logs clean restart status rebuild rebuild-frontend rebuild-all clear-cache
 
 # Default target
 docker:
@@ -25,21 +25,27 @@ help:
 	@echo "🚀 ft_transcendence - Docker Management"
 	@echo ""
 	@echo "Available commands:"
-	@echo "  make docker    - Stop, build, start all services and follow logs (DEFAULT)"
-	@echo "  make build     - Build all Docker images"
-	@echo "  make up        - Start all services"
-	@echo "  make down      - Stop all services"
-	@echo "  make logs      - Follow logs from all services"
-	@echo "  make restart   - Restart all services"
-	@echo "  make clean     - Clean up all Docker resources"
-	@echo "  make status    - Show status of all services"
+	@echo "  make docker          - Stop, build, start all services and follow logs (DEFAULT)"
+	@echo "  make build           - Build all Docker images"
+	@echo "  make up              - Start all services"
+	@echo "  make down            - Stop all services"
+	@echo "  make logs            - Follow logs from all services"
+	@echo "  make restart         - Restart all services"
+	@echo "  make clean           - Clean up all Docker resources"
+	@echo "  make status          - Show status of all services"
+	@echo ""
+	@echo "Rebuild commands (force cache clear):"
+	@echo "  make rebuild-frontend - Force rebuild frontend without cache"
+	@echo "  make rebuild-all      - Force rebuild ALL services without cache"
+	@echo "  make clear-cache      - Clear frontend build cache (dist, .vite)"
+	@echo "  make rebuild          - Alias for rebuild-frontend (common use case)"
 	@echo ""
 	@echo "Individual service commands:"
-	@echo "  make up-user   - Start only user-service"
-	@echo "  make up-auth   - Start only auth-service"
-	@echo "  make up-gateway- Start only gateway-service"
-	@echo "  make up-ws     - Start only ws-service"
-	@echo "  make up-frontend- Start only frontend"
+	@echo "  make up-user         - Start only user-service"
+	@echo "  make up-auth         - Start only auth-service"
+	@echo "  make up-gateway      - Start only gateway-service"
+	@echo "  make up-ws           - Start only ws-service"
+	@echo "  make up-frontend     - Start only frontend"
 	@echo ""
 
 # Build all images
@@ -104,3 +110,41 @@ up-ws:
 up-frontend:
 	@echo "🚀 Starting frontend..."
 	docker compose up -d frontend
+
+# Clear frontend build cache
+clear-cache:
+	@echo "🧹 Clearing frontend build cache..."
+	@rm -rf frontend/dist frontend/node_modules/.vite
+	@echo "✅ Cache cleared!"
+
+# Force rebuild frontend without cache
+rebuild-frontend: down clear-cache
+	@echo "🔨 Force rebuilding frontend (no cache)..."
+	docker compose build --no-cache frontend
+	@echo "🚀 Starting all services..."
+	docker compose up -d
+	@echo "✅ Frontend rebuilt and all services started!"
+	@echo ""
+	@echo "⚠️  BROWSER CACHE ISSUE - You MUST clear your browser cache!"
+	@echo ""
+	@echo "Choose ONE method:"
+	@echo "  1. Hard Refresh:     Cmd+Shift+R (Mac) or Ctrl+Shift+F5 (Windows/Linux)"
+	@echo "  2. DevTools:         Right-click refresh → 'Empty Cache and Hard Reload'"
+	@echo "  3. Incognito Mode:   Open http://localhost:3000 in incognito/private window"
+	@echo "  4. Disable Cache:    F12 → Network tab → Check 'Disable cache' → Refresh"
+	@echo ""
+
+# Alias for rebuild-frontend (most common use case)
+rebuild: rebuild-frontend
+
+# Force rebuild ALL services without cache
+rebuild-all: down
+	@echo "🧹 Clearing frontend build cache..."
+	@rm -rf frontend/dist frontend/node_modules/.vite
+	@echo "🔨 Force rebuilding ALL services (no cache)..."
+	@echo "⚠️  This may take several minutes..."
+	docker compose build --no-cache
+	@echo "🚀 Starting all services..."
+	docker compose up -d
+	@echo "✅ All services rebuilt and started!"
+	@echo "📋 Hard refresh browser (Cmd+Shift+R / Ctrl+Shift+R)"

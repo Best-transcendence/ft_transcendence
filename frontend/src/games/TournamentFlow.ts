@@ -308,6 +308,7 @@ function acceptGameResult(winnerName: string) {
     if (!m.winnerId) m.winnerId = m.winsA > m.winsB ? m.playerA.id : m.playerB.id;
     bracket.championId = m.winnerId;
     const champ = bracket.players.find(p => p.id === bracket!.championId)!.name;
+    
     showChampion(champ);
     return;
   }
@@ -448,6 +449,11 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
  * Removes event handlers, DOM elements, and global references
  */
 export function teardownTournamentFlow() {
+  // Stop the game loop
+  if (typeof (window as any).stopTournamentGame === 'function') {
+    (window as any).stopTournamentGame();
+  }
+
   // Remove space key capture handler
   detachSpaceHandler();
 
@@ -462,6 +468,7 @@ export function teardownTournamentFlow() {
   (window as any).tournamentCurrentPlayers = undefined;
   (window as any).reportTournamentGameResult = undefined;
   (window as any).tournamentTimeUp = undefined;
+  (window as any).stopTournamentGame = undefined;
 
   // Reset tournament flow state
   bracket = null;

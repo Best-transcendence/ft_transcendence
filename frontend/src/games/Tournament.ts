@@ -95,13 +95,24 @@ export function GamePongTournament(): string {
 					bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
 					Press Space When You Are Ready
 					</p>
-	
+
 	<!-- Game sound effects -->
 					<audio id="paddleSound" src="/assets/paddle.wav"></audio>
 					<audio id="lossSound" src="/assets/loss.wav"></audio>
 					<audio id="wallSound" src="/assets/wall.wav"></audio>
-	
+
 				</div>
+			</div>
+		</div>
+
+		<!-- Game Over Overlay (shown when time runs out) -->
+		<div id="timeUpOverlay" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+			<div class="bg-gradient-to-br from-violet-600/20 to-purple-600/20 border border-violet-400/30 rounded-2xl p-8 max-w-md text-center">
+				<h2 class="text-3xl font-bold text-white mb-4">Time's Up!</h2>
+				<div id="winnerText" class="text-2xl font-semibold text-emerald-300 mb-6"></div>
+				<button id="continueToResults" class="px-6 py-3 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-500 transition cursor-pointer">
+					Continue
+				</button>
 			</div>
 		</div>
 		`;

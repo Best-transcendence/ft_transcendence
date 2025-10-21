@@ -1,6 +1,7 @@
 import { thisUser } from "../router";
 import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
+import { registerTournamentGame } from "./GameController";
 
 /**
  * Tournament Game Controller
@@ -29,6 +30,9 @@ const DIFFICULTY = {
 // Global handler for game timeout events - prevents duplicate listeners across tournaments
 let _timeupHandler: ((e: Event) => void) | null = null;
 
+// Singleton guard - prevent multiple initializations
+let _initialized = false;
+
 /**
  * Initializes the tournament game system
  * 
@@ -36,6 +40,15 @@ let _timeupHandler: ((e: Event) => void) | null = null;
  * This function is called when entering a tournament game session.
  */
 export function initGameTournament(): void {
+  // Prevent multiple initializations
+  if (_initialized) {
+    console.log("=== TOURNAMENT GAME ALREADY INITIALIZED - SKIPPING ===");
+    return;
+  }
+  
+  console.log("=== INITIALIZING TOURNAMENT GAME ===");
+  _initialized = true;
+  
   // Utility function to get DOM elements by ID with non-null assertion
   const $ = (id: string) => document.getElementById(id)!;
 
@@ -81,12 +94,46 @@ export function initGameTournament(): void {
 
 // Flag to prevent multiple keyboard event listeners from being bound
 let __keysBound = false;
+let __keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+let __keyupHandler: ((e: KeyboardEvent) => void) | null = null;
 
 /**
- * Stops the game loop and cleans up animation frame
- * Called when the game needs to be paused or ended
+ * Destroys the tournament game completely
+ * Removes all event listeners and resets state
+ */
+function destroyGame() {
+  console.log("=== DESTROYING TOURNAMENT GAME (FULL CLEANUP) ===");
+  running = false;
+  if (animationFrameId) {
+    console.log("Cancelling animation frame:", animationFrameId);
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = 0;
+  }
+  
+  // Remove keyboard event listeners
+  console.log("Removing keyboard listeners");
+  if (__keydownHandler) {
+    document.removeEventListener("keydown", __keydownHandler);
+    __keydownHandler = null;
+  }
+  if (__keyupHandler) {
+    document.removeEventListener("keyup", __keyupHandler);
+    __keyupHandler = null;
+  }
+  __keysBound = false;
+  
+  // Reset initialization flag
+  _initialized = false;
+  
+  console.log("=== TOURNAMENT GAME DESTROYED ===");
+}
+
+/**
+ * Stops the game loop (for pausing between rounds)
+ * Does NOT remove event listeners - only stops the animation frame
  */
 function stopGame() {
+  console.log("=== PAUSING TOURNAMENT GAME ===");
   running = false;
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId);
@@ -194,6 +241,7 @@ function serveBall() {
  */
 function startGame() {
   if (running) return;                 // Prevent starting multiple games
+  console.log("=== STARTING TOURNAMENT GAME ===");
   running = true;
   startPress.classList.add("hidden");  // Hide start instruction
 
@@ -208,6 +256,7 @@ function startGame() {
 
   // Start the game loop
   animationFrameId = requestAnimationFrame(loop);
+  console.log("Tournament game loop started, animationFrameId:", animationFrameId);
 }
 
 // Remove any previous timeout handler to prevent duplicates across tournaments
@@ -222,32 +271,68 @@ if (_timeupHandler) {
  * Reads current scores from DOM and notifies tournament system
  */
 _timeupHandler = () => {
+  console.log("=== TOURNAMENT TIME UP ===");
   stopGame();  // Stop the game loop
 
   // Read current scores from DOM elements
   const l = Number(score1?.textContent ?? 0);  // Left player score
   const r = Number(score2?.textContent ?? 0);  // Right player score
+  console.log("Final scores: Left =", l, "Right =", r);
 
-  // Notify tournament system of round completion with final scores
-  const timeUp = (window as any).tournamentTimeUp;
-  if (typeof timeUp === "function") timeUp(l, r);
+  // Get player names from tournament system
+  const players = (window as any).tournamentCurrentPlayers;
+  const leftName = players?.left || "Player 1";
+  const rightName = players?.right || "Player 2";
+
+  // Show time up overlay with winner
+  const timeUpOverlay = document.getElementById("timeUpOverlay");
+  const winnerText = document.getElementById("winnerText");
+  
+  if (timeUpOverlay && winnerText) {
+    // Determine winner
+    if (l > r) {
+      winnerText.textContent = `${leftName} won 🏆`;
+      console.log("Winner:", leftName);
+    } else if (r > l) {
+      winnerText.textContent = `${rightName} won 🏆`;
+      console.log("Winner:", rightName);
+    } else {
+      winnerText.textContent = "It's a tie! 🤝";
+      console.log("Result: Tie");
+    }
+    timeUpOverlay.classList.remove("hidden");
+  }
+
+  // Set up continue button to hide overlay and notify tournament system
+  const continueBtn = document.getElementById("continueToResults");
+  if (continueBtn) {
+    // Remove old listeners
+    const newBtn = continueBtn.cloneNode(true) as HTMLButtonElement;
+    continueBtn.parentNode?.replaceChild(newBtn, continueBtn);
+    
+    newBtn.addEventListener("click", () => {
+      console.log("Continue button clicked, hiding overlay");
+      timeUpOverlay?.classList.add("hidden");
+      
+      // Notify tournament system of round completion with final scores
+      const timeUp = (window as any).tournamentTimeUp;
+      if (typeof timeUp === "function") {
+        console.log("Calling tournamentTimeUp with scores:", l, r);
+        timeUp(l, r);
+      }
+    });
+  }
 };
 
 // Register the timeout handler
 window.addEventListener("game:timeup", _timeupHandler);
-
-// Exit overlay button handler - returns to intro page
-const overlayExit = document.getElementById("overlayExit");
-overlayExit?.addEventListener("click", () => {
-  window.location.hash = "intro";
-});
 
   // Bind keyboard controls only once to prevent duplicate listeners
   if (!__keysBound) {
     __keysBound = true;
     
     // Keyboard input handler for game controls
-    document.addEventListener("keydown", (e) => {
+    __keydownHandler = (e: KeyboardEvent) => {
       // Space bar: Start game round (with overlay protection)
       if (e.code === "Space" && !running) {
         const ov = document.getElementById("tournament-overlay");
@@ -264,10 +349,11 @@ overlayExit?.addEventListener("click", () => {
       // Player 2 controls (Arrow keys)
       if (e.key === "ArrowUp") p2Up = true;
       if (e.key === "ArrowDown") p2Down = true;
-    });
+    };
+    document.addEventListener("keydown", __keydownHandler);
 
     // Keyboard release handler for smooth paddle movement
-    document.addEventListener("keyup", (e) => {
+    __keyupHandler = (e: KeyboardEvent) => {
       // Player 1 controls (WASD)
       if (e.key === "w") p1Up = false;
       if (e.key === "s") p1Down = false;
@@ -275,7 +361,8 @@ overlayExit?.addEventListener("click", () => {
       // Player 2 controls (Arrow keys)
       if (e.key === "ArrowUp") p2Up = false;
       if (e.key === "ArrowDown") p2Down = false;
-    });
+    };
+    document.addEventListener("keyup", __keyupHandler);
   }
 
   /**
@@ -374,12 +461,14 @@ overlayExit?.addEventListener("click", () => {
       // Ball went past left side - Player 2 (right) scores
       s2++;
       score2.textContent = s2.toString();
+      console.log("⚡ Right player scored! New scores: Left =", s1, "Right =", s2);
       //playSound(lossSfx);                    // TODO: Implement sound effects
       resetBall();
     } else if (ballCenterX > FIELD) {
       // Ball went past right side - Player 1 (left) scores
       s1++;
       score1.textContent = s1.toString();
+      console.log("⚡ Left player scored! New scores: Left =", s1, "Right =", s2);
       //playSound(lossSfx);                    // TODO: Implement sound effects
       resetBall();
     }
@@ -435,4 +524,7 @@ overlayExit?.addEventListener("click", () => {
 
   // Initialize the game in a clean state (scores 0-0, objects centered)
   prepareNewRound();
+
+  // Register with unified game controller (use destroyGame for full cleanup)
+  registerTournamentGame(destroyGame);
 }
