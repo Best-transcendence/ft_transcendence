@@ -58,12 +58,12 @@ export function GamePongTournament(): string {
 				alt="Arcade machine" />
 	
 	<!-- Game play area - positioned over the arcade screen -->
-			<div id="gameWindow" class="absolute z-10 backdrop-blur-sm"
-				style="top: 6.1%; left: 24.1%; width: 51%; height: 59.2%;
-				background: var(--game-area-background);
-				border: 9px solid var(--color-frame);
-				border-radius: 1rem;">
-	
+		<div id="gameWindow" class="absolute z-10 backdrop-blur-sm"
+			style="top: 6.1%; left: 24.1%; width: 51%; height: 59.2%;
+			background: var(--game-area-background);
+			border: 9px solid var(--color-frame);
+			border-radius: 1rem;">
+
 	<!-- Center net divider line -->
 					<div class="absolute border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
 					h-[96%] top-[2%] left-[calc(50%-0.4vw)]"></div>

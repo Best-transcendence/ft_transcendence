@@ -10,6 +10,22 @@ import { startTimer } from "../components/Timer";
  * scoring system, and tournament-specific features like timed rounds.
  */
 
+// Difficulty configuration (from AI system)
+const DIFFICULTY = {
+  easy: { 
+    ballSpeed: 1.0, 
+    gameTime: 40 
+  },
+  medium: { 
+    ballSpeed: 1.5, 
+    gameTime: 30 
+  },
+  hard: { 
+    ballSpeed: 2.5, 
+    gameTime: 20 
+  }
+};
+
 // Global handler for game timeout events - prevents duplicate listeners across tournaments
 let _timeupHandler: ((e: Event) => void) | null = null;
 
@@ -98,7 +114,12 @@ function stopGame() {
 (window as any).beginTournamentRound = () => {
   // Do nothing if a round is already running (space key protection)
   if (running) return;
-  startTimer(15);           // Start 15-second timer
+  
+  // Get game time from difficulty settings
+  const difficulty = (window as any).tournamentDifficulty || "medium";
+  const gameTime = DIFFICULTY[difficulty as keyof typeof DIFFICULTY].gameTime;
+  
+  startTimer(gameTime);     // Start timer based on difficulty
   serveBall();              // Serve the ball with random direction
   startGame();              // Begin the game loop
 };
@@ -148,9 +169,12 @@ function prepareNewRound() {
  * Serves the ball with a random direction
  * Sets initial velocity with consistent speed regardless of angle
  * Alternates serve direction each time for fairness
+ * Speed is based on tournament difficulty
  */
 function serveBall() {
-  const speed = 1.5;  // Consistent total speed
+  // Get difficulty from tournament settings
+  const difficulty = (window as any).tournamentDifficulty || "medium";
+  const speed = DIFFICULTY[difficulty as keyof typeof DIFFICULTY].ballSpeed;
   
   // Random angle between -45 and 45 degrees (in radians)
   const angleVariation = (Math.random() - 0.5) * Math.PI / 2;  // ±45°
@@ -369,6 +393,7 @@ overlayExit?.addEventListener("click", () => {
    * Resets ball to center and serves with alternating direction
    * Called after a point is scored
    * Alternates serve side each time for maximum fairness
+   * Speed is based on tournament difficulty
    */
   function resetBall() {
     // Center the ball in the field
@@ -376,7 +401,8 @@ overlayExit?.addEventListener("click", () => {
     ballY = 50 - BALL_H / 2;
     
     // Serve with consistent speed and alternating direction
-    const speed = 1.5;  // Consistent total speed
+    const difficulty = (window as any).tournamentDifficulty || "medium";
+    const speed = DIFFICULTY[difficulty as keyof typeof DIFFICULTY].ballSpeed;
     
     // Random angle between -45 and 45 degrees (in radians)
     const angleVariation = (Math.random() - 0.5) * Math.PI / 2;  // ±45°

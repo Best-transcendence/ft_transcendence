@@ -40,12 +40,18 @@ export type Round = {
 };
 
 /**
+ * Tournament difficulty levels affecting game parameters
+ */
+export type Difficulty = "easy" | "medium" | "hard";
+
+/**
  * Complete tournament bracket structure
  */
 export type Bracket = {
   players: Player[];       // All tournament participants (order matters for pairing)
   rounds: Round[];         // Tournament rounds (round 1, then round 2 if applicable)
   championId?: string;     // Tournament champion (set when final is decided)
+  difficulty?: Difficulty; // Tournament difficulty (affects ball speed and game time)
 };
 
 // Internal utilities for match creation and ID generation

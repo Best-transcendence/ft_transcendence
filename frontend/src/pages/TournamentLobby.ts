@@ -52,7 +52,7 @@ export function LobbyPageTournament() {
           <div class="rounded-xl border border-white/10 p-4">
             <div class="text-sm text-gray-300 mb-3">Add Player</div>
 
-            <!-- Two buttons to toggle between guest and friend -->
+            <!-- Two buttons to toggle between guest and user -->
             <div class="flex gap-2 mb-3">
               <button
                 type="button"
@@ -63,10 +63,10 @@ export function LobbyPageTournament() {
               </button>
               <button
                 type="button"
-                id="btn-toggle-friend"
+                id="btn-toggle-user"
                 class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-transparent text-gray-300 border border-white/10 hover:border-violet-400"
               >
-                Add Friend
+                Add User
               </button>
             </div>
 
@@ -87,28 +87,28 @@ export function LobbyPageTournament() {
               </button>
             </div>
 
-            <!-- Friend (existing user) inputs (hidden by default) -->
-            <div id="friend-inputs" class="space-y-2 hidden">
+            <!-- User (existing user) inputs (hidden by default) -->
+            <div id="user-inputs" class="space-y-2 hidden">
               <input
-                id="friend-email"
+                id="user-email"
                 type="email"
-                placeholder="Friend's email"
+                placeholder="User's email"
                 autocomplete="off"
                 class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
               <input
-                id="friend-password"
+                id="user-password"
                 type="password"
-                placeholder="Friend's password"
+                placeholder="User's password"
                 autocomplete="off"
                 class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
               <button
                 type="button"
-                id="btn-add-friend"
+                id="btn-add-user"
                 class="w-full px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium cursor-pointer"
               >
-                Verify & Add Friend
+                Verify & Add User
               </button>
             </div>
 
@@ -116,16 +116,14 @@ export function LobbyPageTournament() {
             <div id="player-error" class="text-red-400 text-sm mt-2 hidden"></div>
           </div>
 
-          <!-- Tournament size selection rules -->
+          <!-- Tournament size selection -->
           <div class="rounded-xl border border-white/10 p-4">
-            <div class="text-sm text-gray-300 mb-2">Rules</div>
+            <div class="text-sm text-gray-300 mb-2">Tournament Size</div>
             <div class="space-y-2 text-sm text-gray-200">
-              <!-- 2-player tournament option (default) -->
               <label class="flex items-center gap-2">
                 <input type="radio" name="tournament-size" value="2" id="mode-2" class="accent-violet-600" checked />
                 <span>Tournament of <span class="font-mono">2</span> players</span>
               </label>
-              <!-- 4-player tournament option -->
               <label class="flex items-center gap-2">
                 <input type="radio" name="tournament-size" value="4" id="mode-4" class="accent-violet-600" />
                 <span>Tournament of <span class="font-mono">4</span> players</span>
@@ -133,18 +131,43 @@ export function LobbyPageTournament() {
             </div>
           </div>
 
-          <!-- Player counter and tournament start controls -->
-          <div class="rounded-xl border border-white/10 p-4 flex items-center justify-between">
-            <div>
-              <div class="text-sm text-gray-300">Players</div>
-              <div class="text-2xl font-semibold text-white">
-                <span id="count">0</span>/<span id="max">4</span>
+          <!-- Player counter, difficulty and tournament start controls -->
+          <div class="rounded-xl border border-white/10 p-4">
+            <!-- Player counter -->
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <div class="text-sm text-gray-300">Players</div>
+                <div class="text-2xl font-semibold text-white">
+                  <span id="count">0</span>/<span id="max">4</span>
+                </div>
+              </div>
+              <!-- Tournament start button (disabled until enough players) -->
+              <button id="btn-start" class="px-4 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                Matchmaking
+              </button>
+            </div>
+
+            <!-- Difficulty selection -->
+            <div class="border-t border-white/10 pt-4">
+              <div class="text-sm text-gray-300 mb-2">Difficulty</div>
+              <div class="flex gap-3">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="tournament-difficulty" value="easy" id="difficulty-easy" class="accent-violet-600" />
+                  <span class="text-sm text-gray-200">Easy</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="tournament-difficulty" value="medium" id="difficulty-medium" class="accent-violet-600" checked />
+                  <span class="text-sm text-gray-200">Medium</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="tournament-difficulty" value="hard" id="difficulty-hard" class="accent-violet-600" />
+                  <span class="text-sm text-gray-200">Hard</span>
+                </label>
+              </div>
+              <div class="text-xs text-gray-400 mt-2">
+                <span id="difficulty-info">30s · Normal ball speed</span>
               </div>
             </div>
-            <!-- Tournament start button (disabled until enough players) -->
-            <button id="btn-start" class="px-4 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white disabled:opacity-40 disabled:cursor-not-allowed" disabled>
-              Matchmaking
-            </button>
           </div>
         </div>
 
