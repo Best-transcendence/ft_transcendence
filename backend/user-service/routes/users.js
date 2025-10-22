@@ -1,4 +1,54 @@
 // User management routes for user service
+
+// Calculate user statistics from match history
+async function calculateUserStats(prisma, userId) {
+  // Get all matches where user participated
+  const allMatches = await prisma.match.findMany({
+    where: {
+      OR: [
+        { player1Id: userId },
+        { player2Id: userId }
+      ]
+    }
+  });
+
+  const stats = {
+    gamesPlayed: allMatches.length,
+    wins: allMatches.filter(m => m.winnerId === userId).length,
+    losses: allMatches.filter(m => m.winnerId && m.winnerId !== userId).length,
+    draws: allMatches.filter(m => m.winnerId === null || m.winnerId === 0).length,
+    pointsFor: 0,
+    pointsAgainst: 0,
+    highestScore: 0
+  };
+
+  // Calculate points
+  allMatches.forEach(match => {
+    const isPlayer1 = match.player1Id === userId;
+    const playerScore = isPlayer1 ? match.player1Score : match.player2Score;
+    const opponentScore = isPlayer1 ? match.player2Score : match.player1Score;
+    
+    stats.pointsFor += playerScore;
+    stats.pointsAgainst += opponentScore;
+    stats.highestScore = Math.max(stats.highestScore, playerScore);
+  });
+
+  // Ensure we always return explicit stats, even when no matches
+  if (!stats) {
+    return {
+      gamesPlayed: 0,
+      wins: 0,
+      losses: 0,
+      draws: 0,
+      pointsFor: 0,
+      pointsAgainst: 0,
+      highestScore: 0
+    };
+  }
+  
+  return stats;
+}
+
 export default async function (fastify, _opts) {
 
   // GET /users - Get all user profiles
@@ -272,8 +322,6 @@ export default async function (fastify, _opts) {
 
   // GET /users/me - Get current user profile
   fastify.get('/me', {
-    // Everything in schema is public information only, for documentation purposes (Swagger).
-    // We have to add it for each endpoint we create.
     schema: {
       tags: ['User Management'],
       summary: 'Get Current User Profile',
@@ -337,7 +385,19 @@ export default async function (fastify, _opts) {
 						}
 					}
 				},
-                stats: { type: 'object' },
+                stats: {
+                  type: 'object',
+                  properties: {
+                    gamesPlayed: { type: 'integer' },
+                    wins: { type: 'integer' },
+                    losses: { type: 'integer' },
+                    draws: { type: 'integer' },
+                    pointsFor: { type: 'integer' },
+                    pointsAgainst: { type: 'integer' },
+                    highestScore: { type: 'integer' }
+                  },
+                  additionalProperties: false
+                },
                 createdAt: { type: 'string', format: 'date-time' },
                 updatedAt: { type: 'string', format: 'date-time' }
               }
@@ -368,48 +428,110 @@ export default async function (fastify, _opts) {
 			{
 			  select: { id: true, name: true, profilePicture: true, bio: true },
 			  orderBy: { name: 'asc'}
-			},
-		  player1Matches:
-			{
-			  include:
-				{
-				  player1: { select: { id: true, name: true, profilePicture: true } },
-				  player2: { select: { id: true, name: true, profilePicture: true } }
-				},
-			  orderBy: { date: 'desc' }
-			},
-		  player2Matches:
-			{
-			  include:
-				{
-				  player1: { select: { id: true, name: true, profilePicture: true } },
-				  player2: { select: { id: true, name: true, profilePicture: true } }
-				},
-			  orderBy: { date: 'desc' }
 			}
 		}
       });
 
-      if (user.friendOf) // sorts friends name alphabetically
-        user.friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-
-      if (user) //combine all matches + sorts by date
-      {
-        const allMatches =
-		[
-		  ...user.player1Matches,
-		  ...user.player2Matches
-		].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        user.matches = allMatches;
-        delete user.player1Matches;
-        delete user.player2Matches;
-      }
       if (!user) {
         return reply.status(404).send({ error: 'User profile not found' });
       }
 
-      return { user };
+      if (user.friendOf) // sorts friends name alphabetically
+        user.friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+      // Fetch all matches where user participated (without Prisma relations)
+      const allMatches = await fastify.prisma.match.findMany({
+        where: {
+          OR: [
+            { player1Id: user.id },
+            { player2Id: user.id }
+          ]
+        },
+        orderBy: { date: 'desc' }
+      });
+
+      // Fetch player details for each match
+      const matchesWithPlayers = await Promise.all(
+        allMatches.map(async (match) => {
+          const player1 = match.player1Id 
+            ? await fastify.prisma.userProfile.findUnique({
+                where: { id: match.player1Id },
+                select: { id: true, name: true, profilePicture: true }
+              })
+            : null;
+          
+          const player2 = match.player2Id
+            ? await fastify.prisma.userProfile.findUnique({
+                where: { id: match.player2Id },
+                select: { id: true, name: true, profilePicture: true }
+              })
+            : null;
+
+          return {
+            ...match,
+            player1,
+            player2
+          };
+        })
+      );
+
+      user.matches = matchesWithPlayers;
+
+      // Calculate stats on-the-fly
+      console.log(`[${request.id}] About to calculate stats for user ${user.id}`);
+      const stats = await calculateUserStats(fastify.prisma, user.id);
+      console.log(`[${request.id}] Calculated stats:`, stats);
+      console.log('DEBUG final stats before sending:', JSON.stringify(stats));
+      
+      // Create stats object manually to avoid any serialization issues
+      const manualStats = {
+        gamesPlayed: stats.gamesPlayed || 0,
+        wins: stats.wins || 0,
+        losses: stats.losses || 0,
+        draws: stats.draws || 0,
+        pointsFor: stats.pointsFor || 0,
+        pointsAgainst: stats.pointsAgainst || 0,
+        highestScore: stats.highestScore || 0
+      };
+      console.log(`[${request.id}] Manual stats:`, manualStats);
+      
+      // Create a clean user object without circular references
+      const cleanUser = {
+        id: user.id,
+        authUserId: user.authUserId,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        profilePicture: user.profilePicture,
+        bio: user.bio,
+        friends: user.friends,
+        friendOf: user.friendOf,
+        matches: matchesWithPlayers,
+        stats: manualStats
+      };
+      console.log(`[${request.id}] Final clean user stats:`, cleanUser.stats);
+
+      // Create a completely clean stats object to avoid any serialization issues
+      const cleanStats = {
+        gamesPlayed: Number(manualStats.gamesPlayed) || 0,
+        wins: Number(manualStats.wins) || 0,
+        losses: Number(manualStats.losses) || 0,
+        draws: Number(manualStats.draws) || 0,
+        pointsFor: Number(manualStats.pointsFor) || 0,
+        pointsAgainst: Number(manualStats.pointsAgainst) || 0,
+        highestScore: Number(manualStats.highestScore) || 0
+      };
+      
+      cleanUser.stats = cleanStats;
+      console.log(`[${request.id}] Clean stats object:`, cleanStats);
+      console.log(`[${request.id}] Final user with stats:`, JSON.stringify(cleanUser, null, 2));
+      
+      // Log the final response before sending
+      console.log(`[${request.id}] Final response user stats:`, cleanUser.stats);
+      console.log(`[${request.id}] Final response JSON:`, JSON.stringify({ user: cleanUser }, null, 2));
+      
+      return { user: cleanUser };
     } catch (_err) {
       return reply.status(401).send({ error: 'Unauthorized' });
     }

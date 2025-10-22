@@ -45,11 +45,16 @@ export let thisUser: any = undefined;
  * Fetches current user data from the API and updates global user state
  * Called before rendering protected pages to ensure user authentication
  */
-async function fetchUser() {
+export async function fetchUser() {
   try {
     const data = await getCurrentUser();
     thisUser = data.user;
-  } catch {
+    console.log("=== FETCH USER DEBUG ===");
+    console.log("Data received:", data);
+    console.log("User stats:", data.user?.stats);
+    console.log("Final thisUser.stats:", thisUser.stats);
+  } catch (error) {
+    console.error("Error fetching user:", error);
     thisUser = undefined;
   }
 }
@@ -65,7 +70,7 @@ async function fetchUser() {
  *                    (used for page-specific initialization like event listeners)
  */
 export async function protectedPage(
-  renderer: () => string,
+  renderer: () => string | Promise<string>,
   ...postRender: (() => void)[]
 ) {
   const app = document.getElementById("app")!;
@@ -74,7 +79,8 @@ export async function protectedPage(
   await fetchUser();
   if (thisUser != undefined) {
     // Render the page content
-    app.innerHTML = renderer();
+    const content = await renderer();
+    app.innerHTML = content;
 
     // Attach common UI components to all protected pages
     sideBar(); // Navigation sidebar

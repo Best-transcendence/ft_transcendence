@@ -155,8 +155,10 @@ function mountOverlay() {
  * @param left - Left player name
  * @param right - Right player name  
  * @param label - Round label (e.g., "Round 1", "Final")
+ * @param leftPlayer - Full left Player object (optional)
+ * @param rightPlayer - Full right Player object (optional)
  */
-function showOverlay(left: string, right: string, label: string) {
+function showOverlay(left: string, right: string, label: string, leftPlayer?: Player, rightPlayer?: Player) {
   mountOverlay();
   (window as any).layoutTournamentRound?.();   // Reset game field
 
@@ -172,7 +174,13 @@ function showOverlay(left: string, right: string, label: string) {
   // Store current match information
   currentLeftName = left;
   currentRightName = right;
-  (window as any).tournamentCurrentPlayers = { left, right, label };
+  (window as any).tournamentCurrentPlayers = { 
+    left, 
+    right, 
+    label,
+    leftPlayer,   // Full Player object
+    rightPlayer   // Full Player object
+  };
 }
 
 /**
@@ -299,7 +307,7 @@ function acceptGameResult(winnerName: string) {
 
     // Continue to next round if not all 3 games played
     if (played < 3) {
-      showOverlay(m.playerA.name, m.playerB.name, labelFor2pBo3(played)); // Round 2 / Final
+      showOverlay(m.playerA.name, m.playerB.name, labelFor2pBo3(played), m.playerA, m.playerB); // Round 2 / Final
       attachSpaceToStart();
       return;
     }
@@ -332,7 +340,9 @@ function acceptGameResult(winnerName: string) {
   const nxt = nextMatch(bracket);
   if (nxt) {
     currentMatch = nxt;
-    showOverlay(nxt.playerA.name, nxt.playerB.name, labelFor(nxt, seed.mode)); // Round 2 or Final
+    (window as any).tournamentCurrentMatch = currentMatch; // Update global reference
+    console.log("Updated tournamentCurrentMatch:", currentMatch);
+    showOverlay(nxt.playerA.name, nxt.playerB.name, labelFor(nxt, seed.mode), nxt.playerA, nxt.playerB); // Round 2 or Final
     attachSpaceToStart();
   }
 }
@@ -402,7 +412,7 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
   // Show first match overlay
   if (currentMatch) {
     const startLabel = seed.mode === "2" ? labelFor2pBo3(0) : labelFor(currentMatch, seed.mode);
-    showOverlay(currentMatch.playerA.name, currentMatch.playerB.name, startLabel);
+    showOverlay(currentMatch.playerA.name, currentMatch.playerB.name, startLabel, currentMatch.playerA, currentMatch.playerB);
     attachSpaceToStart(() => (window as any).beginTournamentRound?.()); // Seed the ref
   }
 
@@ -410,6 +420,10 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
   (window as any).reportTournamentGameResult = (winnerName: string) => {
     acceptGameResult(winnerName);
   };
+  
+  // Expose current match for match saving logic
+  (window as any).tournamentCurrentMatch = currentMatch;
+  console.log("Set tournamentCurrentMatch:", currentMatch);
   
   // Expose tournament difficulty for game to access
   const difficulty = bracket?.difficulty || "medium";

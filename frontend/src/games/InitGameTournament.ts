@@ -279,10 +279,45 @@ _timeupHandler = () => {
   const r = Number(score2?.textContent ?? 0);  // Right player score
   console.log("Final scores: Left =", l, "Right =", r);
 
-  // Get player names from tournament system
+  // Get player names and data from tournament system
   const players = (window as any).tournamentCurrentPlayers;
   const leftName = players?.left || "Player 1";
   const rightName = players?.right || "Player 2";
+  const leftPlayer = players?.leftPlayer;
+  const rightPlayer = players?.rightPlayer;
+
+  console.log("=== TOURNAMENT MATCH SAVING DEBUG ===");
+  console.log("Left player:", leftPlayer);
+  console.log("Right player:", rightPlayer);
+  console.log("Left authenticated:", leftPlayer?.isAuthenticated);
+  console.log("Right authenticated:", rightPlayer?.isAuthenticated);
+  
+  if (leftPlayer?.isAuthenticated && rightPlayer?.isAuthenticated) {
+    // Determine if this is a final match by checking the current match round
+    const currentMatch = (window as any).tournamentCurrentMatch;
+    const isFinal = currentMatch?.round === 2;
+    
+    console.log("Current match:", currentMatch);
+    console.log("Is final:", isFinal);
+    
+    const matchData: MatchObject = {
+      type: isFinal ? "TOURNAMENT_FINAL" : "TOURNAMENT_INTERMEDIATE",
+      date: new Date().toISOString(),
+      player2Id: rightPlayer.authUserId!,
+      player1Score: l,
+      player2Score: r,
+    };
+    
+    console.log("Saving match data:", matchData);
+    
+    saveMatch(matchData).then(result => {
+      console.log("Match saved successfully:", result);
+    }).catch(err => 
+      console.error("Failed to save tournament match:", err)
+    );
+  } else {
+    console.log("Skipping match save - players not authenticated");
+  }
 
   // Show time up overlay with winner
   const timeUpOverlay = document.getElementById("timeUpOverlay");

@@ -3,12 +3,15 @@ import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { profilePopup , inputPopup } from "../components/Popups"
-import { thisUser } from "../router"
+import { thisUser, fetchUser } from "../router"
 import { addTheme } from "../components/Theme"
 
 // Manages Profile page display
 export function ProfilePage()
 {
+	// Show refresh notification
+	alert("Please refresh the page to see updated stats!");
+	
 	return `
 <!-- Theme -->
 		${ addTheme() }
@@ -89,6 +92,12 @@ export function ProfilePage()
 	${ inputPopup() }
 
 	<div class="flex flex-col items-center mt-6 space-y-2">
-		<p class="font-semibold center text-gray-200">Wins:   -  Losses: </p>
+		<p class="font-semibold center text-gray-200">
+			Wins: ${thisUser.stats?.wins || 0} - Losses: ${thisUser.stats?.losses || 0}
+		</p>
+		${thisUser.stats?.draws > 0 ? `<p class="text-sm text-gray-400">Draws: ${thisUser.stats.draws}</p>` : ''}
+		<!-- Debug info -->
+		<p class="text-xs text-gray-500">Debug: ${JSON.stringify(thisUser.stats)}</p>
+		<p class="text-xs text-gray-500">Full user: ${JSON.stringify(thisUser, null, 2)}</p>
 	</div>`;
 }
