@@ -143,7 +143,122 @@ Connection: Upgrade
 
 ---
 
-✅ **Status:** Ready for testing
+## Testing
+This section describes how to verify that ModSecurity is correctly integrated with the project, both in **DetectionOnly (dev)** and **blocking (staging/production)** modes.
+
+### **1. Prerequisites**
+
+- Ensure the WAF container is running (`waf_service`) with Nginx + ModSecurity integrated.
+- SSL certificates should be configured (`/etc/nginx/certs/server.crt` and `server.key`).
+- For local testing, `curl -k` is used to bypass self-signed cert warnings.
+
+---
+
+### **2. Example Tests**
+
+### **2.1 Health Check**
+
+```bash
+curl -k https://localhost/health
+
+```
+
+**Expected output:**
+
+- Frontend HTML page (if `/` is mapped to SPA)
+- Confirms normal traffic passes through WAF without interference.
+
+---
+
+### **2.2 SQL Injection**
+
+```bash
+curl -k "https://localhost/?id=1%20OR%201=1"
+curl -k "https://localhost/?username=admin'--"
+
+```
+
+**Expected output:**
+
+- **DetectionOnly:** HTML response of the page; request logged in `/var/log/modsec/modsec_audit.log`
+- **Blocking (`SecRuleEngine On`):** HTTP **403 Forbidden** response (request blocked), and logged in ModSecurity.
+
+---
+
+### **2.3 Cross-Site Scripting (XSS)**
+
+```bash
+curl -k "https://localhost/?q=%3Cscript%3Ealert('xss')%3C/script%3E"
+
+```
+
+**Expected output:**
+
+- **DetectionOnly:** HTML page returned, logs show XSS detection.
+- **Blocking:** 403 Forbidden, log contains matched XSS rule.
+
+---
+
+### **2.4 Local File Inclusion (LFI)**
+
+```bash
+curl -k "https://localhost/?file=../../../../etc/passwd"
+
+```
+
+**Expected output:**
+
+- **DetectionOnly:** HTML page returned; ModSecurity logs entries like:
+
+```
+id "930120" → OS File Access Attempt
+id "932160" → Remote Command Execution
+id "949110" → Inbound Anomaly Score Exceeded
+
+```
+
+- **Blocking:** HTTP 403 Forbidden; request logged with same rule IDs.
+
+---
+
+### **2.5 HTTP TRACE Method**
+
+```bash
+curl -k -X TRACE https://localhost/
+
+```
+
+**Expected output:**
+
+- **DetectionOnly:** 405 Not Allowed (blocked by Nginx)
+- **Blocking:** 405 Not Allowed (same; ModSecurity may also log)
+
+---
+
+### **3. ModSecurity Logs**
+
+- Logs are located inside the WAF container:
+
+```bash
+docker exec -it waf_service tail -f /var/log/modsec/modsec_audit.log
+
+```
+
+- Logs show rule matches, variable values, request URIs, and anomaly scores.
+- **DetectionOnly:** Events logged but requests pass.
+- **Blocking (`SecRuleEngine On`):** Requests are denied with HTTP 403.
+
+---
+
+### **4. Notes**
+
+- Ensure you **escape special characters** in URLs for SQLi/XSS tests (`%20`, `%3C`, etc.).
+- In development, leave `SecRuleEngine DetectionOnly` to avoid accidental blocking.
+- When moving to production, switch to `SecRuleEngine On` to actively block malicious traffic.
+<br>
+---
+
+## ✅ **Status:** Ready for testing
 
 ⚠️ **Next steps before production:**
 

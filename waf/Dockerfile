@@ -1,6 +1,6 @@
 FROM owasp/modsecurity:nginx
 
-# Copy your nginx configuration and ModSecurity configuration into image
+# Copy volumes
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY modsecurity.conf /etc/nginx/modsec/modsecurity.conf
 COPY crs/ /etc/nginx/modsec/crs/
