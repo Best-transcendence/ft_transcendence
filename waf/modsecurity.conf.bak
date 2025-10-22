@@ -3,7 +3,7 @@ SecRuleEngine DetectionOnly # -> only logs, doesn't block. TODO change to SecRul
 SecRequestBodyAccess On 	# -> allows ModSecurity to inspect HTTP requests bodies
 
 SecAuditEngine RelevantOnly # -> only log actions that triggered rules
-SecAuditLog /var/log/modsec/modsec_audit.log
+SecAuditLog /var/log/modsec_audit.log # -> path to audit log file
 SecAuditLogParts ABIJDEFHZ # -> what sections are shown in log
 # A = audit log header
 # B = request headers

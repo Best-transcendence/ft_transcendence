@@ -1,23 +1,14 @@
-FROM nginx:1.22-alpine
+FROM owasp/modsecurity:nginx
 
-# Install curl and git (optional), and modsecurity dependencies if available
-RUN apk add --no-cache curl ca-certificates
-
-# Create directories for ModSecurity + CRS
-RUN mkdir -p /etc/nginx/modsec \
-    && mkdir -p /etc/nginx/modsec/crs
-
-# Copy modsecurity config and CRS into image
+# Copy your nginx configuration and ModSecurity configuration into image
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY modsecurity.conf /etc/nginx/modsec/modsecurity.conf
 COPY crs/ /etc/nginx/modsec/crs/
-
-# Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy SSL certs
 COPY certs/ /etc/nginx/certs/
+
+# Ensure logs directories exist
+RUN mkdir -p /var/log/modsec /var/log/nginx
 
 EXPOSE 80 443
 
 CMD ["nginx", "-g", "daemon off;"]
-

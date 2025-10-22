@@ -1,3 +1,5 @@
+version: '2.4'
+
 services:
   # =============================================================================
   # BACKEND SERVICES
@@ -177,16 +179,21 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    #volumes:
-    #  - ./waf/modsec_logs:/var/log/modsec
-    #  - ./waf/nginx_logs:/var/log/nginx
-    #  - ./waf/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-   #   - ./waf/modsecurity.conf:/etc/nginx/modsec/modsecurity.conf:ro
-    #  - ./waf/crs:/etc/nginx/modsec/crs:ro
-   #   - ./waf/certs:/etc/nginx/certs:ro
+    volumes:
+      - ./waf/modsec_logs:/var/log/modsec
+      - ./waf/nginx_logs:/var/log/nginx
+      - ./waf/nginx.conf:/etc/nginx/templates/conf.d/default.conf.template:ro
+      - ./waf/modsecurity.conf:/etc/nginx/templates/modsecurity.d/setup.conf.template:ro
+      - ./waf/crs:/etc/nginx/modsec/crs:ro
+      - ./waf/exception-rules.conf:/etc/nginx/modsec/exception-rules.conf:ro
+      - ./waf/certs:/etc/nginx/certs:ro
     depends_on:
-      - gateway-service
-      - ws-service
+      gateway-service:
+        condition: service_healthy
+      ws-service:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
     networks:
       - ft_transcendence_network
     restart: unless-stopped
