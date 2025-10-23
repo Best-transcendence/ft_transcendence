@@ -39,7 +39,32 @@ import { triggerPopup } from "./components/Popups";
 import { friendRequest } from "./components/FriendRequestDiv";
 
 // Global user state - centralizes user data across the application
-export let thisUser: any = undefined;
+export interface UserStats {
+  gamesPlayed: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  pointsFor: number;
+  pointsAgainst: number;
+  highestScore: number;
+}
+
+export interface User {
+  id?: number;
+  authUserId?: number;
+  name?: string;
+  email?: string;
+  profilePicture?: string;
+  bio?: string;
+  friends?: any[];
+  friendOf?: any[];
+  matches?: any[];
+  stats?: UserStats;   // ✅ tell TS that stats exists
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const thisUser: User = {};
 
 /**
  * Fetches current user data from the API and updates global user state
@@ -48,16 +73,17 @@ export let thisUser: any = undefined;
 export async function fetchUser() {
   try {
     const data = await getCurrentUser();
-    thisUser = data.user;
+    Object.assign(thisUser, data.user); // merge new data into existing reference
+
     console.log("=== FETCH USER DEBUG ===");
     console.log("Data received:", data);
-    console.log("User stats:", data.user?.stats);
-    console.log("Final thisUser.stats:", thisUser.stats);
+    console.log("User stats:", thisUser.stats);
   } catch (error) {
     console.error("Error fetching user:", error);
-    thisUser = undefined;
+    for (const key in thisUser) delete (thisUser as any)[key];
   }
 }
+
 
 /**
  * Protected page wrapper that ensures user authentication before rendering

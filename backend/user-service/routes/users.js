@@ -2,39 +2,19 @@
 
 // Calculate user statistics from match history
 async function calculateUserStats(prisma, userId) {
-  // Get all matches where user participated
+  console.log(`[calculateUserStats] Starting calculation for userId: ${userId}`);
+  
   const allMatches = await prisma.match.findMany({
     where: {
-      OR: [
-        { player1Id: userId },
-        { player2Id: userId }
-      ]
+      OR: [{ player1Id: userId }, { player2Id: userId }]
     }
   });
 
-  const stats = {
-    gamesPlayed: allMatches.length,
-    wins: allMatches.filter(m => m.winnerId === userId).length,
-    losses: allMatches.filter(m => m.winnerId && m.winnerId !== userId).length,
-    draws: allMatches.filter(m => m.winnerId === null || m.winnerId === 0).length,
-    pointsFor: 0,
-    pointsAgainst: 0,
-    highestScore: 0
-  };
+  console.log(`[calculateUserStats] Found ${allMatches.length} matches for user ${userId}`);
+  console.log(`[calculateUserStats] Raw matches:`, JSON.stringify(allMatches, null, 2));
 
-  // Calculate points
-  allMatches.forEach(match => {
-    const isPlayer1 = match.player1Id === userId;
-    const playerScore = isPlayer1 ? match.player1Score : match.player2Score;
-    const opponentScore = isPlayer1 ? match.player2Score : match.player1Score;
-    
-    stats.pointsFor += playerScore;
-    stats.pointsAgainst += opponentScore;
-    stats.highestScore = Math.max(stats.highestScore, playerScore);
-  });
-
-  // Ensure we always return explicit stats, even when no matches
-  if (!stats) {
+  if (!allMatches || allMatches.length === 0) {
+    console.log(`[calculateUserStats] No matches found, returning default values`);
     return {
       gamesPlayed: 0,
       wins: 0,
@@ -45,9 +25,48 @@ async function calculateUserStats(prisma, userId) {
       highestScore: 0
     };
   }
-  
+
+  const stats = {
+    gamesPlayed: allMatches.length,
+    wins: 0,
+    losses: 0,
+    draws: 0,
+    pointsFor: 0,
+    pointsAgainst: 0,
+    highestScore: 0
+  };
+
+  console.log(`[calculateUserStats] Initial stats:`, JSON.stringify(stats));
+
+  for (const match of allMatches) {
+    const isPlayer1 = match.player1Id === userId;
+    
+    // Convert BigInt to Number if needed
+    const playerScore = Number(isPlayer1 ? match.player1Score : match.player2Score);
+    const opponentScore = Number(isPlayer1 ? match.player2Score : match.player1Score);
+
+    console.log(`[calculateUserStats] Match ${match.id}: playerScore=${playerScore}, opponentScore=${opponentScore}, winnerId=${match.winnerId}, isPlayer1=${isPlayer1}`);
+
+    stats.pointsFor += playerScore;
+    stats.pointsAgainst += opponentScore;
+    stats.highestScore = Math.max(stats.highestScore, playerScore);
+
+    if (match.winnerId === userId) {
+      stats.wins++;
+      console.log(`[calculateUserStats] Match ${match.id}: WIN`);
+    } else if (match.winnerId === null || match.winnerId === 0) {
+      stats.draws++;
+      console.log(`[calculateUserStats] Match ${match.id}: DRAW`);
+    } else if (match.winnerId) {
+      stats.losses++;
+      console.log(`[calculateUserStats] Match ${match.id}: LOSS`);
+    }
+  }
+
+  console.log(`[calculateUserStats] Final calculated stats:`, JSON.stringify(stats));
   return stats;
 }
+
 
 export default async function (fastify, _opts) {
 
@@ -387,16 +406,16 @@ export default async function (fastify, _opts) {
 				},
                 stats: {
                   type: 'object',
+                  additionalProperties: true, // ✅  allow all keys and keep numbers even if types mismatch slightly
                   properties: {
-                    gamesPlayed: { type: 'integer' },
-                    wins: { type: 'integer' },
-                    losses: { type: 'integer' },
-                    draws: { type: 'integer' },
-                    pointsFor: { type: 'integer' },
-                    pointsAgainst: { type: 'integer' },
-                    highestScore: { type: 'integer' }
+                    gamesPlayed: { type: ['integer', 'number', 'null'] },
+                    wins: { type: ['integer', 'number', 'null'] },
+                    losses: { type: ['integer', 'number', 'null'] },
+                    draws: { type: ['integer', 'number', 'null'] },
+                    pointsFor: { type: ['integer', 'number', 'null'] },
+                    pointsAgainst: { type: ['integer', 'number', 'null'] },
+                    highestScore: { type: ['integer', 'number', 'null'] }
                   },
-                  additionalProperties: false
                 },
                 createdAt: { type: 'string', format: 'date-time' },
                 updatedAt: { type: 'string', format: 'date-time' }
@@ -455,16 +474,16 @@ export default async function (fastify, _opts) {
         allMatches.map(async (match) => {
           const player1 = match.player1Id 
             ? await fastify.prisma.userProfile.findUnique({
-                where: { id: match.player1Id },
-                select: { id: true, name: true, profilePicture: true }
-              })
+              where: { id: match.player1Id },
+              select: { id: true, name: true, profilePicture: true }
+            })
             : null;
           
           const player2 = match.player2Id
             ? await fastify.prisma.userProfile.findUnique({
-                where: { id: match.player2Id },
-                select: { id: true, name: true, profilePicture: true }
-              })
+              where: { id: match.player2Id },
+              select: { id: true, name: true, profilePicture: true }
+            })
             : null;
 
           return {
@@ -530,8 +549,18 @@ export default async function (fastify, _opts) {
       // Log the final response before sending
       console.log(`[${request.id}] Final response user stats:`, cleanUser.stats);
       console.log(`[${request.id}] Final response JSON:`, JSON.stringify({ user: cleanUser }, null, 2));
-      
-      return { user: cleanUser };
+      console.log('🟣 FINAL STATS CHECK:', stats);
+      console.log(`[${request.id}] DEBUG: calculateUserStats result before sending:`, JSON.stringify(manualStats));
+
+      // Clean up any non-serializable types (like BigInt, Decimal, etc.)
+      const safeUser = JSON.parse(JSON.stringify(cleanUser));
+
+      // Debug log before sending
+      console.log(`[${request.id}] 🧩 Safe user before sending:`, safeUser.stats);
+      console.log(`[${request.id}] 🧩 Final response JSON:`, JSON.stringify({ user: safeUser }, null, 2));
+
+      return { user: safeUser };
+
     } catch (_err) {
       return reply.status(401).send({ error: 'Unauthorized' });
     }

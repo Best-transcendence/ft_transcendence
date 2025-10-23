@@ -12,7 +12,17 @@ import fastifyCors from '@fastify/cors';
 // dotenv.config();
 
 // Create Fastify server instance with logging
-const app = Fastify({ logger: true });
+const app = Fastify({
+  logger: true,
+  ajv: false,
+  // Critical fix — keep full objects in responses
+  serializerOpts: {
+    removeAdditional: false,
+    skipNull: false
+  }
+});
+
+
 
 // Register Swagger for API documentation
 await app.register(fastifySwagger, {
