@@ -104,35 +104,6 @@ waf/
 
 ---
 
-## Example Requests / Responses
-
-**Request to Gateway:**
-
-```
-GET /api/user HTTP/1.1
-Host: example.com
-Authorization: Bearer <token>
-```
-
-**WAF Response in DetectionOnly mode:**
-
-- HTTP status code unchanged
-- Potential threats logged to `/var/log/modsec_audit.log`
-
-**Request to WebSocket:**
-
-```
-GET /ws HTTP/1.1
-Host: example.com
-Upgrade: websocket
-Connection: Upgrade
-
-```
-
-**Response:** proxied to WebSocket service transparently
-
----
-
 ## Design Decisions & Assumptions
 
 - WAF is implemented as a **standalone container** in front of backend services.
