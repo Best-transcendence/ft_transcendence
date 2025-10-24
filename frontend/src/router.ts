@@ -18,11 +18,12 @@ import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePong2D } from "./games/Pong2d";
 import { initGame } from "./games/InitGame";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
+import { destroyCurrentGame } from "./games/GameController";
 import { GamePongTournament } from "./games/Tournament";
 import { LobbyPageTournament } from "./pages/TournamentLobby";
 import { initLobbyPageTournament } from "./tournament/InitTournamentLobby";
 import { initGameTournament } from "./games/InitGameTournament";
-import { bootTournamentFlow } from "./games/TournamentFlow";
+import { bootTournamentFlow, teardownTournamentFlow } from "./games/TournamentFlow";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
@@ -107,6 +108,26 @@ export function router() {
   // Skip routing for asset requests (CSS, JS, images, etc.)
   if (window.location.pathname.startsWith("/assets/"))
     return;
+
+  // Cleanup previous games when navigating away
+  console.log("=== ROUTER NAVIGATION ===", "Page:", page);
+  
+  // UNIFIED GAME CLEANUP: Let game creation functions handle cleanup
+  // Each game type (AI, tournament, etc.) will call destroyCurrentGame() when initializing
+  // This ensures proper cleanup order and prevents destroying games that haven't been created yet
+  
+  // Stop tournament flow if navigating away from tournament
+  if (page !== "tournament" && page !== "lobbytournament") {
+    console.log("Tearing down tournament flow");
+    teardownTournamentFlow();
+  }
+  
+  // Cleanup games when navigating to non-game pages
+  const isGamePage = page === "AIopponent" || page === "tournament" || page === "pong" || page === "remote";
+  if (!isGamePage) {
+    console.log("Navigating to non-game page - destroying any active game");
+    destroyCurrentGame();
+  }
 
   // Route handling - switch between different application pages
   switch (page) {

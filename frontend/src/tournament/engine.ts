@@ -10,8 +10,10 @@
  * Represents a player in the tournament system
  */
 export type Player = { 
-  id: string;    // Unique player identifier
-  name: string;  // Player display name
+  id: string;              // Unique player identifier ("me" | "guest_xyz" | "auth_123")
+  name: string;            // Player display name
+  isAuthenticated?: boolean;  // true if real user account, false/undefined for guest
+  authUserId?: number;     // Real user ID from database (for stats tracking)
 };
 
 /**
@@ -38,12 +40,18 @@ export type Round = {
 };
 
 /**
+ * Tournament difficulty levels affecting game parameters
+ */
+export type Difficulty = "easy" | "medium" | "hard";
+
+/**
  * Complete tournament bracket structure
  */
 export type Bracket = {
   players: Player[];       // All tournament participants (order matters for pairing)
   rounds: Round[];         // Tournament rounds (round 1, then round 2 if applicable)
   championId?: string;     // Tournament champion (set when final is decided)
+  difficulty?: Difficulty; // Tournament difficulty (affects ball speed and game time)
 };
 
 // Internal utilities for match creation and ID generation

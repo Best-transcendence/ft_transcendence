@@ -7,6 +7,7 @@ import {
   reportMatchResult,
 } from "../tournament/engine";
 import { myName, ensureMeFirst } from "../tournament/utils"; // reuse shared helpers
+import { resetTimer } from "../components/Timer";
 
 /**
  * Tournament Flow Controller
@@ -63,7 +64,8 @@ function attachSpaceToStart(onSpaceStart?: () => void) {
  */
 type SeedPayload = {
   mode: "2" | "4";                    // Tournament mode: 2-player or 4-player
-  players: Player[];                  // List of participating players
+  difficulty?: "easy" | "medium" | "hard"; // Tournament difficulty level
+  players: Player[];                  // List of participating players (with auth data)
   pairs: [string, string][] | null;   // Player pairings for 4-player tournaments
 };
 
@@ -306,6 +308,7 @@ function acceptGameResult(winnerName: string) {
     if (!m.winnerId) m.winnerId = m.winsA > m.winsB ? m.playerA.id : m.playerB.id;
     bracket.championId = m.winnerId;
     const champ = bracket.players.find(p => p.id === bracket!.championId)!.name;
+    
     showChampion(champ);
     return;
   }
@@ -351,6 +354,7 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
   // Create tournament bracket based on mode
   if (seed.mode === "2") {
     bracket = createTwoPlayerTournament(players.slice(0, 2) as [Player, Player]);
+    bracket.difficulty = seed.difficulty || "medium";
 
     // Defensive reset of BO3 state
     const r1 = bracket.rounds.find(r => r.round === 1);
@@ -378,11 +382,13 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
         const s2: [Player, Player] = [map.get(pB1)!, map.get(pB2)!];
         const ordered: [Player, Player, Player, Player] = [s1[0], s1[1], s2[0], s2[1]];
         bracket = createFourPlayerTournament(ordered);
+        bracket.difficulty = seed.difficulty || "medium";
       }
     } else {
       // Fallback: deterministic semis from first 4 (you're first due to ensureMeFirst)
       const p = players.slice(0, 4) as [Player, Player, Player, Player];
       bracket = createFourPlayerTournament(p);
+      bracket.difficulty = seed.difficulty || "medium";
     }
   }
 
@@ -393,16 +399,26 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
     currentMatch = r1?.matches?.[0] ?? null;
   }
 
+  // Show first match overlay
   if (currentMatch) {
     const startLabel = seed.mode === "2" ? labelFor2pBo3(0) : labelFor(currentMatch, seed.mode);
     showOverlay(currentMatch.playerA.name, currentMatch.playerB.name, startLabel);
     attachSpaceToStart(() => (window as any).beginTournamentRound?.()); // Seed the ref
   }
 
-  // Expose game result reporting function to global scope
+  // Expose game result reporting function and difficulty to global scope
   (window as any).reportTournamentGameResult = (winnerName: string) => {
     acceptGameResult(winnerName);
   };
+  
+  // Expose tournament difficulty for game to access
+  const difficulty = bracket?.difficulty || "medium";
+  (window as any).tournamentDifficulty = difficulty;
+  
+  // Initialize timer display with correct difficulty time
+  const difficultyTimes = { easy: 40, medium: 30, hard: 20 };
+  const gameTime = difficultyTimes[difficulty];
+  resetTimer(gameTime);
 
   // Timer timeout handler: decides winner or triggers tie-breakers
   (window as any).tournamentTimeUp = (leftScore: number, rightScore: number) => {
@@ -433,6 +449,11 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
  * Removes event handlers, DOM elements, and global references
  */
 export function teardownTournamentFlow() {
+  // Stop the game loop
+  if (typeof (window as any).stopTournamentGame === 'function') {
+    (window as any).stopTournamentGame();
+  }
+
   // Remove space key capture handler
   detachSpaceHandler();
 
@@ -447,6 +468,7 @@ export function teardownTournamentFlow() {
   (window as any).tournamentCurrentPlayers = undefined;
   (window as any).reportTournamentGameResult = undefined;
   (window as any).tournamentTimeUp = undefined;
+  (window as any).stopTournamentGame = undefined;
 
   // Reset tournament flow state
   bracket = null;
