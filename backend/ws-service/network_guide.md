@@ -1,32 +1,38 @@
 # 🛠️ ft_transcendence – Backend Setup Guide
 
-## 📌 Overview
-The backend is composed of this microservices:
-- **Auth Service** (authentication, JWT, login/signup)
-- **User Service** (profiles, friends, stats)
-- **Gateway Service** (API routing, load balancing)
-- **WebSocket Service** (real-time communication)
-
 ⚠️ **Important:** Due to current Docker issues, you must run the `make` file **in each individual service** to start it locally.
 Do not rely on Docker Compose alone. Because for remote connections is not connecting very well.
 
 ## 2. ⚙️ Environment Configuration
 
-Copy the example `example.env.txt` file:
+- BACKEND
+Edit global `.env` and set your **LAN IP**:
 
-Edit `.env` and set your **LAN IP**:
-
-```env
-LAN_IP=192.168.x.xxx   # your local IP
-```
+*example*
+# =============================================================================
+LAN_IP=192.168.0.65
+# ============================================================================
 
 Replace all `localhost` references with `${LAN_IP}` so services can talk to each other across the network.
+
+It's enough if you replace in the global .env, since the Makefile in the services deploy from it.
+
+- FRONTEND
+
+change the IP to your local network IP:
+*example*
+# =============================================================================
+VITE_BACKEND_URL=http://192.168.0.65:3003
+VITE_WS_URL=ws://192.168.0.65:4000
+# ============================================================================
 
 ### 🔍 How to find your LAN IP
 - **Linux/macOS**: `ip addr show` → look for `inet 192.168.x.x`
 - **Windows**: `ipconfig` → look for `IPv4 Address`
 - **Phone**: Wi-Fi settings → IP Address
 
+- Host configuration (probably already set up)
+HOST=0.0.0.0
 ---
 
 ## 4. ▶️ Running Services
