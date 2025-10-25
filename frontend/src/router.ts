@@ -309,12 +309,6 @@ function attachLoginListeners() {
     }
   });
 
-  // Guest login button - allows access without authentication
-  const guest = document.getElementById("guest-login");
-  guest?.addEventListener("click", () => {
-    window.location.hash = "lobby"; // Guest users go directly to lobby
-  });
-
   // Signup/login mode toggle functionality
   const signupToggle = document.getElementById("signup-toggle");
   const nameField = document.getElementById("name-field");

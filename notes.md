@@ -25,3 +25,6 @@ const wss = new WebSocketServer({ server: app.server });
 
 // Register WebSocket logic
 registerWebsocketHandlers(wss, app);
+
+// users.js
+fastify.get('/public/:authUserId', {
