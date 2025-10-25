@@ -47,7 +47,7 @@ fastify.get('/public/:authUserId', {
     summary: 'Public user lookup by auth user id',
     description: 'Returns a public profile subset for the given auth user id',
 
-    // ✅ FIX: params must be a JSON-Schema object
+    // params must be a JSON-Schema object
     params: {
       type: 'object',
       properties: {
