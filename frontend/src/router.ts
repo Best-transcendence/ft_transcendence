@@ -15,7 +15,6 @@ import { GamePongRemote, initRemoteGame } from "./games/Pong2dRemote";
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
-import { initGame } from "./games/InitGame";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { destroyCurrentGame } from "./games/GameController";
 import { GamePongTournament } from "./games/Tournament";
