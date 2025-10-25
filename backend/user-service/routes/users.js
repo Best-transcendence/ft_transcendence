@@ -41,6 +41,64 @@ export default async function (fastify, _opts) {
     });
   });
 
+fastify.get('/public/:authUserId', {
+  schema: {
+    tags: ['User Management'],
+    summary: 'Public user lookup by auth user id',
+    description: 'Returns a public profile subset for the given auth user id',
+
+    // ✅ FIX: params must be a JSON-Schema object
+    params: {
+      type: 'object',
+      properties: {
+        authUserId: { type: 'integer' }
+      },
+      required: ['authUserId'],
+      additionalProperties: false
+    },
+
+    response: {
+      200: {
+        type: 'object',
+        properties: {
+          authUserId: { type: 'integer' },
+          name: { type: 'string' },
+          profileId: { type: 'integer' },
+          profilePicture: { type: 'string', nullable: true }
+        }
+      },
+      404: {
+        type: 'object',
+        properties: { error: { type: 'string' } }
+      }
+    }
+  }
+}, async (req, reply) => {
+  const authUserId = Number(req.params.authUserId);
+  if (!authUserId || Number.isNaN(authUserId)) {
+    return reply.code(400).send({ error: 'Invalid authUserId' });
+  }
+
+  const user = await fastify.prisma.userProfile.findUnique({
+    where: { authUserId },
+    select: {
+      authUserId: true,
+      name: true,
+      id: true,
+      profilePicture: true
+    }
+  });
+
+  if (!user) return reply.code(404).send({ error: 'Not found' });
+
+  return {
+    authUserId: user.authUserId,
+    name: user.name,
+    profileId: user.id,
+    profilePicture: user.profilePicture
+  };
+});
+
   // POST /users/bootstrap - Create or update user profile (called by auth-service)
   fastify.post('/bootstrap', {
     // Everything in schema is public information only, for documentation purposes (Swagger).
