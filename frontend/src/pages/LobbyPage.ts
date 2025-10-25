@@ -4,7 +4,7 @@ import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { thisUser } from "../router";
-import { triggerInvitePopup } from "../components/remote-popup";
+import { triggerInvitePopup, closeInvitePopup } from "../components/RemotePopup";
 
 const EMOJIS = [
   "⚡",
@@ -157,6 +157,7 @@ export async function initLobby() {
     const route = hash.split("?")[0];
     if (route !== "lobby") {
       try { socket.send(JSON.stringify({ type: "lobby:leave" })); } catch {}
+	closeInvitePopup();                        //  hide any open invite popup
       window.removeEventListener("hashchange", leaveIfNotLobby);
       window.removeEventListener("beforeunload", onUnload);
     }
@@ -166,6 +167,7 @@ export async function initLobby() {
 	// LEAVE on tab close/refresh
   const onUnload = () => {
     try { socket.send(JSON.stringify({ type: "lobby:leave" })); } catch {}
+	closeInvitePopup();                          // close on refresh
   };
   window.addEventListener("beforeunload", onUnload);
 

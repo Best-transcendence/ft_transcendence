@@ -12,9 +12,9 @@ export function triggerInvitePopup(inviteData: { from: { id: string; name?: stri
   if (activeInvitePopup) return;
 
   const overlay = document.createElement("div");
+  overlay.id = "invite-overlay"; // id for clarity
   overlay.className = "fixed inset-0 bg-black/60 z-50 flex items-center justify-center";
 
-  // TODO this it their own id
   const fromName = inviteData.from.name ?? `Player ${inviteData.from.id}`;
 
   overlay.innerHTML = `
@@ -36,13 +36,6 @@ export function triggerInvitePopup(inviteData: { from: { id: string; name?: stri
     activeInvitePopup = null;
   };
 
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) {
-      sendWSMessage("invite:declined", { from: inviteData.from.id });
-      cleanup();
-    }
-  });
-
   overlay.querySelector("#acceptInvite")?.addEventListener("click", () => {
     sendWSMessage("invite:accepted", { from: inviteData.from.id }); 
     cleanup();
@@ -55,8 +48,13 @@ export function triggerInvitePopup(inviteData: { from: { id: string; name?: stri
 }
 
 export function closeInvitePopup() {
-  const el = document.getElementById('invite-popup');
-  if (el && el.parentElement) {
-    el.parentElement.removeChild(el);
+  // Close using the tracked overlay first
+  if (activeInvitePopup) {
+    activeInvitePopup.remove();
+    activeInvitePopup = null;
+    return;
   }
+  // Fallback by ids if needed
+  document.getElementById("invite-popup")?.remove();
+  document.getElementById("invite-overlay")?.remove();
 }
