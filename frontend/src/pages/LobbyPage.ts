@@ -26,6 +26,15 @@ function emojiForId(id: number) {
   return EMOJIS[index];
 }
 
+function escapeHTML(s: string) {
+  return s
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 export function LobbyPage() {
   return `
     ${addTheme()}
@@ -71,17 +80,32 @@ export async function initLobby() {
           .map((u: any) => {
             const id = String(u?.id ?? "");
             const idNum = Number(id) || 0;
-            const label = `${emojiForId(idNum)} - ${id}`;
-            return `
-            <div class="bg-slate-900 backdrop-blur-md rounded-lg shadow-[0_0_30px_10px_#7037d3] p-4 flex items-center justify-between">
-              <span class="text-gray-300 font-medium">${label}</span>
-              <button class="invite-btn px-3 py-1 text-sm rounded bg-purple-600 text-white hover:bg-purple-700"
-                      data-user-id="${id}">
-                Invite
-              </button>
-            </div>`;
-          })
-          .join("");
+
+            // prefer username; fallback to "Player {id}"
+			const rawName = (u?.name ?? "").trim();
+			const displayName = rawName ? escapeHTML(rawName) : `Player ${id}`;
+
+			// small avatar circle with emoji
+			const avatar = emojiForId(idNum);
+		
+				return `
+			<div class="bg-slate-900 backdrop-blur-md rounded-lg shadow-[0_0_30px_10px_#7037d3] p-4 flex items-center justify-between">
+				<div class="flex items-center gap-3">
+				<div class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 text-lg">
+					${avatar}
+				</div>
+				<div class="flex flex-col">
+					<span class="text-gray-200 font-medium">${displayName}</span>
+					<span class="text-gray-500 text-xs">ID: ${id}</span>
+				</div>
+				</div>
+				<button class="invite-btn px-3 py-1 text-sm rounded bg-purple-600 text-white hover:bg-purple-700"
+						data-user-id="${id}">
+				Invite
+				</button>
+			</div>`;
+		})
+		.join("");
 
         usersContainer.querySelectorAll(".invite-btn").forEach((btn) => {
           btn.addEventListener("click", () => {

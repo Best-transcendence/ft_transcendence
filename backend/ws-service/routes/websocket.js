@@ -4,13 +4,31 @@ import { WebSocket } from 'ws';
 import { registerRoomHandlers } from './rooms.js';
 import { registerGameHandlers } from './game.js';
 
+const namesCache = new Map(); // userId(string) -> name
+
+async function fetchUserName(app, userId) {
+  const base = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+  try {
+    const res = await fetch(`${base}/users/public/${userId}`);
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const user = await res.json();
+    const name = user?.name ?? null;
+    if (name) namesCache.set(String(userId), name);
+    return name;
+  } catch (err) {
+    app.log.warn({ userId, err: err.message }, 'Failed to fetch username');
+    return null;
+  }
+}
+
 const onlineUsers = new Map();
 
 function getAllUsers() {
-  return [...onlineUsers.values()].map(s => ({
-    id: s.user.id,
-    name: s.user.name,
-  }));
+  return [...onlineUsers.values()].map(s => {
+    const id = s.user.id;
+    const name = s.user.name ?? namesCache.get(String(id)) ?? null;
+    return { id, name };
+  });
 }
 
 function sendUserList(ws) {
@@ -52,30 +70,35 @@ export function registerWebsocketHandlers(wss, app) {
       return;
     }
 
-	    const userId = Number(decoded.id ?? decoded.userId ?? decoded.userID ?? decoded.sub);
-    const name =
-      decoded.name ?? decoded.username ?? decoded.email ?? `User#${userId || 'unknown'}`;
+	// existing normalization
+	const userId = Number(decoded.id ?? decoded.userId ?? decoded.userID ?? decoded.sub);
+	const tokenFromQuery = token; // keep the raw token for user-service
+
+	// prefer a claim name if present; otherwise try cache
+	let displayName =
+	decoded.name ?? decoded.username ?? namesCache.get(String(userId)) ?? null;
+
+	ws.user = { id: userId, name: displayName };
+	onlineUsers.set(String(userId), ws);
+
+	// kick off async hydration if name is still missing
+	if (!ws.user.name) {
+	(async () => {
+		const resolved = await fetchUserName(app, userId, tokenFromQuery);
+		if (resolved && ws.readyState === WebSocket.OPEN) {
+		ws.user.name = resolved;
+		// update the cache and rebroadcast so everyone sees the real name
+		namesCache.set(String(userId), resolved);
+		broadcastUsers();
+		}
+	})();
+	}
 
     if (!userId || Number.isNaN(userId)) {
       app.log.warn({ decoded }, 'JWT missing user id — closing connection');
       ws.close(1008, 'Invalid token payload');
       return;
     }
-
-	ws.user = { id: userId, name };
-
-    // let payload;
-    // try {
-    //   payload = jwt.verify(token, process.env.JWT_SECRET);
-    // } catch (err) {
-    //   app.log.error({
-    //     error: err.message,
-    //     token: 'Present',
-    //     ip: req.socket.remoteAddress,
-    //   }, 'Invalid WebSocket Token — closing connection');
-    //   ws.close();
-    //   return;
-    // }
 
      // Track this connection (1 entry per user; last tab wins)
     onlineUsers.set(String(userId), ws);
