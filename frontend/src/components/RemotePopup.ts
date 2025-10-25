@@ -53,3 +53,10 @@ export function triggerInvitePopup(inviteData: { from: { id: string; name?: stri
     cleanup();
   });
 }
+
+export function closeInvitePopup() {
+  const el = document.getElementById('invite-popup');
+  if (el && el.parentElement) {
+    el.parentElement.removeChild(el);
+  }
+}
