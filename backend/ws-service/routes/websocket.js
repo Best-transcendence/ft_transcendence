@@ -6,6 +6,28 @@ import { registerGameHandlers } from './game.js';
 
 const onlineUsers = new Map();
 
+function getAllUsers() {
+  return [...onlineUsers.values()].map(s => ({
+    id: s.user.id,
+    name: s.user.name,
+  }));
+}
+
+function sendUserList(ws) {
+  const all = getAllUsers();
+  const filtered = all.filter(u => u.id !== ws.user.id); // hide self
+  ws.send(JSON.stringify({ type: 'user:list', users: filtered }));
+}
+
+function broadcastUsers() {
+  // Tailor list per recipient to exclude themselves
+  for (const [, recipient] of onlineUsers) {
+    if (recipient.readyState === WebSocket.OPEN) {
+      sendUserList(recipient);
+    }
+  }
+}
+
 export function registerWebsocketHandlers(wss, app) {
   const roomHandlers = registerRoomHandlers(wss, onlineUsers, app);
   const gameHandlers = registerGameHandlers(wss, onlineUsers, app);
@@ -20,46 +42,109 @@ export function registerWebsocketHandlers(wss, app) {
       return;
     }
 
-    let payload;
+	// Verify & normalize JWT
+    let decoded;
     try {
-      payload = jwt.verify(token, process.env.JWT_SECRET);
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
-      app.log.error({
-        error: err.message,
-        token: 'Present',
-        ip: req.socket.remoteAddress,
-      }, 'Invalid WebSocket Token — closing connection');
-      ws.close();
+      app.log.error({ error: err.message, ip: req.socket.remoteAddress }, 'Invalid WebSocket Token — closing');
+      ws.close(1008, 'Invalid or expired token');
       return;
     }
 
-    ws.user = payload;
-    onlineUsers.set(String(ws.user.id), ws);
+	    const userId = Number(decoded.id ?? decoded.userId ?? decoded.userID ?? decoded.sub);
+    const name =
+      decoded.name ?? decoded.username ?? decoded.email ?? `User#${userId || 'unknown'}`;
 
-    app.log.info({ userId: ws.user.id }, 'WS Connected');
-    ws.send(JSON.stringify({ type: 'welcome', user: payload }));
+    if (!userId || Number.isNaN(userId)) {
+      app.log.warn({ decoded }, 'JWT missing user id — closing connection');
+      ws.close(1008, 'Invalid token payload');
+      return;
+    }
+
+	ws.user = { id: userId, name };
+
+    // let payload;
+    // try {
+    //   payload = jwt.verify(token, process.env.JWT_SECRET);
+    // } catch (err) {
+    //   app.log.error({
+    //     error: err.message,
+    //     token: 'Present',
+    //     ip: req.socket.remoteAddress,
+    //   }, 'Invalid WebSocket Token — closing connection');
+    //   ws.close();
+    //   return;
+    // }
+
+     // Track this connection (1 entry per user; last tab wins)
+    onlineUsers.set(String(userId), ws);
+
+    app.log.info({ userId }, 'WS connected');
+    ws.send(JSON.stringify({ type: 'welcome', user: ws.user }));
     broadcastUsers();
 
-    ws.on('message', (raw) => {
+      ws.on('message', (raw) => {
       let data;
       try {
-        data = JSON.parse(raw);
+        data = JSON.parse(raw.toString());
       } catch {
-        app.log.warn({ raw }, 'Invalid JSON message');
+        app.log.warn({ raw: raw?.toString() }, 'Invalid JSON message');
         return;
       }
 
-      if (!data?.type) {
-        app.log.warn({ raw }, 'Missing message type');
+      const type = data?.type;
+      if (!type) {
+        app.log.warn({ raw: raw?.toString() }, 'Missing message type');
+        return;
+      }
+
+      // Handle one-off utility first
+      if (type === 'user:list:request') {
+        sendUserList(ws);
         return;
       }
 
       try {
-        switch (data.type) {
+        switch (type) {
           case 'invite':
-          case 'invite:send':
-            roomHandlers.handleInvite(ws, { ...data, to: String(data.to) });
+          case 'invite:send': {
+            // --- Self-invite & existence guard here ---
+            const toUserId = Number(data.to ?? data.toUserId);
+            const fromUserId = ws.user.id;
+
+            if (!toUserId || Number.isNaN(toUserId)) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                code: 'BAD_INVITE',
+                message: 'Invalid target user.',
+              }));
+              break;
+            }
+
+            if (toUserId === fromUserId) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                code: 'SELF_INVITE',
+                message: 'You cannot invite yourself.',
+              }));
+              break;
+            }
+
+            const target = onlineUsers.get(String(toUserId));
+            if (!target || target.readyState !== WebSocket.OPEN) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                code: 'USER_OFFLINE',
+                message: 'User is offline.',
+              }));
+              break;
+            }
+
+            // Proceed to handler after validation
+            roomHandlers.handleInvite(ws, { ...data, to: String(toUserId) });
             break;
+          }
 
           case 'invite:accepted':
             roomHandlers.handleInviteAccepted(ws, { from: String(data.from) });
@@ -72,12 +157,15 @@ export function registerWebsocketHandlers(wss, app) {
           case 'game:join':
             gameHandlers.handleGameJoin(ws, { ...data, roomId: String(data.roomId) });
             break;
-          case "matchmaking:join":
+
+          case 'matchmaking:join':
             roomHandlers.handleMatchmakingJoin(ws);
             break;
-          case "matchmaking:leave":
+
+          case 'matchmaking:leave':
             roomHandlers.handleMatchmakingLeave(ws);
             break;
+
           case 'game:move':
             gameHandlers.handleGameMove(ws, {
               ...data,
@@ -87,32 +175,18 @@ export function registerWebsocketHandlers(wss, app) {
             break;
 
           default:
-            app.log.warn({ type: data.type }, 'Unhandled WS message');
+            app.log.warn({ type }, 'Unhandled WS message');
         }
-
       } catch (err) {
-        app.log.error({ error: err.message, type: data.type }, 'Error handling WS message');
+        app.log.error({ error: err.message, type }, 'Error handling WS message');
       }
     });
 
     ws.on('close', () => {
-      onlineUsers.delete(String(ws.user.id));
-      app.log.info({ userId: ws.user.id }, 'WS Disconnected');
+      const current = onlineUsers.get(String(ws.user.id));
+      if (current === ws) onlineUsers.delete(String(ws.user.id));
       broadcastUsers();
+      app.log.info({ userId: ws.user.id }, 'WS disconnected');
     });
   });
-
-  function broadcastUsers() {
-    const users = [...onlineUsers.values()].map(ws => ({
-      id: ws.user.id,
-      name: ws.user.name,
-    }));
-    const payload = JSON.stringify({ type: 'user:list', users });
-
-    for (const client of onlineUsers.values()) {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(payload);
-      }
-    }
-  }
 }
