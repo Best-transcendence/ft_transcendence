@@ -1,3 +1,11 @@
+- socket doesn't connect, just if I reload the page
+- it's supposed to only show whoever online AND in the lobby page ✅
+- if I'm a new user it'll show my on profile beetween the online users (it should exclude my own profile) ✅
+- it doesn't show the usernames ✅
+- set back the timer
+- set back the overlay page in the correct way
+- fix the size of the design how it is on the other pages
+
 backend env.js everywhere
 
 main.js 

@@ -143,6 +143,32 @@ export async function initLobby() {
     }
   });
 
+  
+  // tell server: joined lobby
+  socket.addEventListener("open", () => {
+    socket.send(JSON.stringify({ type: "lobby:join" }));
+    // After joining, request list (so server knows you're a lobby member first)
+    socket.send(JSON.stringify({ type: "user:list:request" }));
+  });
+
+  // LEAVE lobby when navigating away from lobby route
+  const leaveIfNotLobby = () => {
+    const hash = window.location.hash.replace(/^#/, "");
+    const route = hash.split("?")[0];
+    if (route !== "lobby") {
+      try { socket.send(JSON.stringify({ type: "lobby:leave" })); } catch {}
+      window.removeEventListener("hashchange", leaveIfNotLobby);
+      window.removeEventListener("beforeunload", onUnload);
+    }
+  };
+  window.addEventListener("hashchange", leaveIfNotLobby);
+
+	// LEAVE on tab close/refresh
+  const onUnload = () => {
+    try { socket.send(JSON.stringify({ type: "lobby:leave" })); } catch {}
+  };
+  window.addEventListener("beforeunload", onUnload);
+
   // proactively request list
   try {
     if (socket?.readyState === 1) {

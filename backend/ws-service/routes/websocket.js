@@ -4,7 +4,7 @@ import { WebSocket } from 'ws';
 import { registerRoomHandlers } from './rooms.js';
 import { registerGameHandlers } from './game.js';
 
-const namesCache = new Map(); // userId(string) -> name
+const namesCache = new Map(); // userId(string) name
 
 async function fetchUserName(app, userId) {
   const base = process.env.USER_SERVICE_URL || 'http://localhost:3002';
@@ -21,8 +21,10 @@ async function fetchUserName(app, userId) {
   }
 }
 
+//TODO show friends' online status
 const onlineUsers = new Map();
 
+// TODO delete if you don't use for checking online friends
 function getAllUsers() {
   return [...onlineUsers.values()].map(s => {
     const id = s.user.id;
@@ -36,12 +38,30 @@ function sendUserList(ws) {
   const filtered = all.filter(u => u.id !== ws.user.id); // hide self
   ws.send(JSON.stringify({ type: 'user:list', users: filtered }));
 }
+const lobbyUsers = new Map(); // track only users who are on lobby page
 
-function broadcastUsers() {
-  // Tailor list per recipient to exclude themselves
-  for (const [, recipient] of onlineUsers) {
+
+// Build lobby list
+function getLobbyUsers() {
+  return [...lobbyUsers.values()].map(s => {
+    const id = s.user.id;
+    const name = s.user.name ?? namesCache.get(String(id)) ?? null;
+    return { id, name };
+  });
+}
+
+// Send lobby list to one client (excluding themselves)
+function sendLobbyList(ws) {
+  const all = getLobbyUsers();
+  const filtered = all.filter(u => u.id !== ws.user.id);
+  ws.send(JSON.stringify({ type: 'user:list', users: filtered }));
+}
+
+// Broadcast lobby list to all lobby members (each gets a list without themselves)
+function broadcastLobby() {
+  for (const [, recipient] of lobbyUsers) {
     if (recipient.readyState === WebSocket.OPEN) {
-      sendUserList(recipient);
+      sendLobbyList(recipient);
     }
   }
 }
@@ -89,7 +109,7 @@ export function registerWebsocketHandlers(wss, app) {
 		ws.user.name = resolved;
 		// update the cache and rebroadcast so everyone sees the real name
 		namesCache.set(String(userId), resolved);
-		broadcastUsers();
+		broadcastLobby();
 		}
 	})();
 	}
@@ -105,7 +125,7 @@ export function registerWebsocketHandlers(wss, app) {
 
     app.log.info({ userId }, 'WS connected');
     ws.send(JSON.stringify({ type: 'welcome', user: ws.user }));
-    broadcastUsers();
+    broadcastLobby();
 
       ws.on('message', (raw) => {
       let data;
@@ -122,12 +142,23 @@ export function registerWebsocketHandlers(wss, app) {
         return;
       }
 
-      // Handle one-off utility first
-      if (type === 'user:list:request') {
-        sendUserList(ws);
+
+	  //Lobby presence messages
+    if (type === 'lobby:join') {
+        lobbyUsers.set(ws.user.id, ws);
+        broadcastLobby();
         return;
       }
-
+      if (type === 'lobby:leave') {
+        lobbyUsers.delete(ws.user.id);
+        broadcastLobby();
+        return;
+      }
+      if (type === 'user:list:request') {
+        // Send lobby-only list
+        sendLobbyList(ws);
+        return;
+      }
       try {
         switch (type) {
           case 'invite':
@@ -154,16 +185,17 @@ export function registerWebsocketHandlers(wss, app) {
               break;
             }
 
-            const target = onlineUsers.get(String(toUserId));
+            // Only allow inviting players actually in the lobby
+            const target = lobbyUsers.get(toUserId);
             if (!target || target.readyState !== WebSocket.OPEN) {
               ws.send(JSON.stringify({
                 type: 'error',
-                code: 'USER_OFFLINE',
-                message: 'User is offline.',
+                code: 'USER_NOT_IN_LOBBY',
+                message: 'User is not in the lobby.',
               }));
               break;
             }
-
+		
             // Proceed to handler after validation
             roomHandlers.handleInvite(ws, { ...data, to: String(toUserId) });
             break;
@@ -182,6 +214,9 @@ export function registerWebsocketHandlers(wss, app) {
             break;
 
           case 'matchmaking:join':
+			// If you consider matchmaking leaving the lobby:
+            lobbyUsers.delete(ws.user.id);
+            broadcastLobby();
             roomHandlers.handleMatchmakingJoin(ws);
             break;
 
@@ -197,6 +232,18 @@ export function registerWebsocketHandlers(wss, app) {
             });
             break;
 
+		case "lobby:join":
+			// If joining a game should remove from lobby:
+            lobbyUsers.delete(ws.user.id);
+            broadcastLobby();
+            gameHandlers.handleGameJoin(ws, { ...data, roomId: String(data.roomId) });
+            break;
+
+		case "lobby:leave":
+			lobbyUsers.delete(ws.user.id);
+			broadcastLobby();
+			break;
+
           default:
             app.log.warn({ type }, 'Unhandled WS message');
         }
@@ -206,9 +253,12 @@ export function registerWebsocketHandlers(wss, app) {
     });
 
     ws.on('close', () => {
+      // cleanup both maps
+      lobbyUsers.delete(ws.user.id);
       const current = onlineUsers.get(String(ws.user.id));
       if (current === ws) onlineUsers.delete(String(ws.user.id));
-      broadcastUsers();
+
+      broadcastLobby(); // update lists
       app.log.info({ userId: ws.user.id }, 'WS disconnected');
     });
   });
