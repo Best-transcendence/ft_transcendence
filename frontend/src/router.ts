@@ -15,7 +15,6 @@ import { GamePongRemote, initRemoteGame } from "./games/Pong2dRemote";
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
-import { GamePong2D } from "./games/Pong2d";
 import { initGame } from "./games/InitGame";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { destroyCurrentGame } from "./games/GameController";
@@ -157,10 +156,6 @@ export function router() {
 
     case "intro":
       protectedPage(() => GameIntroPage());
-      break;
-
-    case "pong2d":
-      protectedPage(() => GamePong2D(), initGame);  // Local Pong game
       break;
 
     case "remote":

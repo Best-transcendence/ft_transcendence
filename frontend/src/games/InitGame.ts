@@ -31,7 +31,7 @@ export function initGame(): void {
   let ballVelX = 0, ballVelY = 0;
 
   let p1Vel = 0, p2Vel = 0;
-  const accel = 0.5, maxSpeed = 2.5, friction = 0.1;
+  const accemal = 0.5, maxSpeed = 2.5, friction = 0.1;
 
   let p1Up = false, p1Down = false, p2Up = false, p2Down = false;
 
