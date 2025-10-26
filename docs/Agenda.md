@@ -35,15 +35,14 @@
 | 4  | **Microservices architecture**                   | —               | 2                        | MAJOR            | ✅ DONE                                                                        |
 | 5  | **DevOps: log management**                       | 1               | 8, 10                    | MAJOR            | ⏳ Not started                                                                 |
 | 6  | **Standard User Management**                     | 1, 2            | 4, 7, 3                  | MAJOR            | 🔧 In progress — Friend button, online status, input validation, match history |
-| 7  | **WAF + Vault (secrets mgmt)**                   | 5               | 8, 9, 10                 | MAJOR            | 🧍 Assigned: Camille — Not started                                             |
+| 7  | **WAF + Vault (secrets mgmt)**                   | 5               | 8, 9, 10                 | MAJOR            | 🔧 In progress — Camill                                                        |
 | 8  | **Auth: JWT + 2FA**                              | 2               | 5, 10                    | MAJOR            | 🧍 Assigned: Camille — Not started                                             |
-| 9  | **SSR integration patterns (confirm)**           | 1, 3            | 5, 10                    | Minor            | 🧍 Assigned: Tina — Not started                                                |
-| 10 | **Responsive (all devices)**                     | 3               | 6, 7, 8, 9               | Minor            | 🧍 Assigned: Tina — Not started                                                |
-| 11 | **Accessibility features**                       | 3               | 6, 7, 8, 9, 10           | Minor            | ⏳ Not started                                                                 |
-| 12 | **AI opponent**                                  | 1, 2, 8         | 13                       | MAJOR            | ✅ DONE                                                                        |
-| 13 | **User & game stats dashboards**                 | 2, 5, 8, 9      | 12                       | Minor            | 🧍 Assigned: Tina — In progress                                                |
-| 14 | **Expanded browser compatibility**               | 3, 12, 13       | —                        | Minor            | 🧪 Testing close to evaluation                                                 |
-| 15 | **Remote players** *(Test: network reliability)* | —               | —                        | MAJOR            | 🧪 Test for disconnections, lag scenarios                                      |
+| 9  | **Multiple languages (i18n)**                    | 3               | 6, 7, 8, 9               | Minor            | ✅ DONE                                                                        |
+| 10 | **Accessibility features**                       | 3               | 6, 7, 8, 9, 10           | Minor            | 🧍 Assigned: Tina - Not started                                                |
+| 11 | **AI opponent**                                  | 1, 2, 8         | 13                       | MAJOR            | ✅ DONE                                                                        |
+| 12 | **User & game stats dashboards**                 | 2, 5, 8, 9      | 12                       | Minor            | 🧍 Assigned: Yulia(?) — In progress                                            |
+| 13 | **Expanded browser compatibility**               | 3, 12, 13       | —                        | Minor            | 🧪 Testing close to evaluation                                                 |
+| 14 | **Remote players** *(Test: network reliability)* | —               | —                        | MAJOR            | ✅ DONE                                       |
 
 
 | #  | Workstream                         | Must come after | Can run in parallel with |
@@ -88,8 +87,9 @@
 | O1 | Game customization options              | 3,7             | 8,11                     | - Minor
 | O2 | Remote authentication (IdP/OAuth/SAML)  | 5               | 6,8                      | - Major, if we have time after 2FA
 | O3 | GDPR toolkit (anonymize/local/delete)   | 2,5             | 11                       | - Minor
-| O4 | Multiple languages (i18n)               | 3               | 8,9                      | - Minor
+| O4 | Device compatibilita                    | 3               | 8,9                      | - Minor
 | O5 | Store tournament scores on Blockchain   | 12              | -                        | - Major
+| O6 |SSR integration patterns                 |                 | -                        | - Major
 
 # My Recommended Modules
 (I explain my opinion at the end of every line)
