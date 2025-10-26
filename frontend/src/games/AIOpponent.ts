@@ -18,6 +18,8 @@ import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { TimerDisplay, startTimer, resetTimer } from "../components/Timer";
 import { createAIGame, destroyAIGame, isGameRunning } from "./AIGameController";
+import { t } from "../i18n/lang"; // ✅
+import { LanguageSwitcher, setupLanguageSwitcher } from "../i18n/LanguageSwitcher";
 
 /**
  * Generates the HTML template for the AI opponent game page
@@ -46,8 +48,13 @@ export function GamePongAIOpponent(): string {
 		<!-- Protected pages components -->
 		${ profileDivDisplay() }
 		${ sidebarDisplay() }
-		${ LogOutBtnDisplay() }
-	</div>
+        <!-- Group Language and Logout on the right -->
+        <div class="flex gap-2 items-center">
+            ${LanguageSwitcher()}
+             ${LogOutBtnDisplay()}
+        </div>
+     </div>
+
 
 	<!-- Game timer display -->
 	${ TimerDisplay() }
@@ -79,31 +86,31 @@ export function GamePongAIOpponent(): string {
 		<div class="relative h-full w-full flex flex-col items-center justify-center px-4
 					animate-zoomIn">
 			<!-- Main title -->
-			<h2 class="text-3xl font-bold text-white mb-2">Choose Difficulty</h2>
+              <h2 id="diffTitle" class="text-3xl font-bold text-white mb-2">${t("chooseDifficulty")}</h2> <!-- ✅ -->
 
 			<!-- Subtitle explaining the selection -->
-			<p class="text-lg text-gray-200 mb-8">Select your AI opponent level</p>
+			<p class="text-lg text-gray-200 mb-8">${t("selectAiLevel")} </p>
 
 			<!-- Difficulty selection buttons -->
 			<div class="flex gap-4 mb-8">
 				<button id="btnEasy"
 					class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-purple-600 hover:bg-purple-700">
-					Easy
+					  ${t("easy")} 
 				</button>
 				<button id="btnMedium"
 					class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-purple-600 hover:bg-purple-700">
-					Medium
+					 ${t("medium")}
 				</button>
 				<button id="btnHard"
 					class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-purple-600 hover:bg-purple-700">
-					Hard
+					 ${t("hard")}
 				</button>
 			</div>
 
 			<!-- Navigation back to main menu -->
 			<button id="backToIntro"
 					class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-gray-600 hover:bg-gray-700">
-			Back to Arcade Clash
+			 ${t("backToArcade")}
 			</button>
 		</div>
 		</div>
@@ -117,20 +124,20 @@ export function GamePongAIOpponent(): string {
 		<div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4
 					animate-zoomIn">
 			<!-- Game over title -->
-			<h2 class="text-2xl font-bold text-white">Time's up!</h2>
+			<h2 id="timeUpTitle" class="text-2xl font-bold text-white">${t("timeUp")}</h2>
 
 			<!-- Winner announcement (dynamically updated) -->
-			<p id="winnerText" class="text-lg text-gray-200 mt-2 mb-6">You won 🥇</p>
+			<p id="winnerText" class="text-lg text-gray-200 mt-2 mb-6">${t("youWon")}</p>
 
 			<!-- Action buttons -->
 			<div class="flex gap-4">
 				<button id="playAgain"
 						class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-purple-600 hover:bg-purple-700">
-				Play Again
+				 ${t("playAgain")}
 				</button>
 				<button id="overlayExit"
 						class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-gray-600 hover:bg-gray-700">
-				Back to Arcade Clash
+				 ${t("backToArcade")} 
 				</button>
 			</div>
 		</div>
@@ -167,20 +174,16 @@ export function GamePongAIOpponent(): string {
 		<p id="startPress"
 		class="absolute bottom-[5%] left-1/2 -translate-x-1/2 text-center
 		bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
-		Press Space To Start The Game
+		${t("pressStart")}
 		</p>
 
 		<!-- Keyboard controls hint -->
-		<p id="keyboardHintAI"
-			class="absolute bottom-[15%] left-1/2 -translate-x-1/2 text-center
-			bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
-			You are the <span class="font-semibold text-white">RIGHT</span> paddle
-			<span class="font-semibold"><br>
-			Use the 
-			<span class="text-purple-600">↑</span>
-			<span class="text-purple-600">↓</span>
-			arrows!
-		</p></span>
+<p id="keyboardHintAI"
+  class="absolute bottom-[15%] left-1/2 -translate-x-1/2 text-center
+  bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
+  ${t("controlsHint").replace(/\n/g, "<br>")}
+</p>
+
 		</p>
 
 		<!-- Audio elements for sound effects -->
@@ -220,6 +223,8 @@ let gameInitialized = false;
 export function setupAIOpponent() {
 	console.log("Setting up AI opponent game");
 	
+	setupLanguageSwitcher();
+
 	// --- DOM ELEMENT REFERENCES ---
 	// Get references to all interactive elements
 	const difficultyOverlay = document.getElementById("difficultySelectionOverlay");
