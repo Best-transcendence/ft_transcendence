@@ -40,7 +40,7 @@
 | 9  | **SSR integration patterns (confirm)**           | 1, 3            | 5, 10                    | Minor            | 🧍 Assigned: Tina — Not started                                                |
 | 10 | **Responsive (all devices)**                     | 3               | 6, 7, 8, 9               | Minor            | 🧍 Assigned: Tina — Not started                                                |
 | 11 | **Accessibility features**                       | 3               | 6, 7, 8, 9, 10           | Minor            | ⏳ Not started                                                                 |
-| 12 | **AI opponent**                                  | 1, 2, 8         | 13                       | MAJOR            | 🔧 In progress — Yulia improving complexity                                    |
+| 12 | **AI opponent**                                  | 1, 2, 8         | 13                       | MAJOR            | ✅ DONE                                                                        |
 | 13 | **User & game stats dashboards**                 | 2, 5, 8, 9      | 12                       | Minor            | 🧍 Assigned: Tina — In progress                                                |
 | 14 | **Expanded browser compatibility**               | 3, 12, 13       | —                        | Minor            | 🧪 Testing close to evaluation                                                 |
 | 15 | **Remote players** *(Test: network reliability)* | —               | —                        | MAJOR            | 🧪 Test for disconnections, lag scenarios                                      |
