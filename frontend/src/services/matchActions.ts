@@ -22,8 +22,8 @@ export interface MatchObject
 {
 	type: string,
 	date: string,
-	player1Id?: number | null,
-	player2Id?: number | null,
+	player1Id: number,
+	player2Id: number,
 	player1Score: number,
 	player2Score: number,
 }
@@ -33,7 +33,7 @@ export async function saveMatch(match: any)
 	console.log("=== SAVEMATCH DEBUG ===");
 	console.log("Match data:", match);
 	
-	const token = localStorage.getItem("token");
+	const token = localStorage.getItem("jwt");
 	console.log("Token exists:", !!token);
 
 	const res = await fetch(`${API_URL}/users/me`,

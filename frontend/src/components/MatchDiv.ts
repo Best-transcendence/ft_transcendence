@@ -1,6 +1,22 @@
 import { thisUser } from "../router"
 import { formatDate } from "../utils"
 
+// Map database enum values to human-readable titles
+function getMatchTypeDisplay(type: string): string {
+  switch (type) {
+    case 'ONE_VS_ONE':
+      return '1 vs 1 Match';
+    case 'TOURNAMENT_INTERMEDIATE':
+      return 'Tournament Match';
+    case 'TOURNAMENT_FINAL':
+      return 'Tournament Final';
+    case 'AI':
+      return 'AI Match';
+    default:
+      return type;
+  }
+}
+
 // No friend div appearance + button to go back to #intro page
 export function noHistory()
 {
@@ -29,7 +45,7 @@ export function matchCard(match: any)
 	transition: all 0.3s ease-in-out;">
 
 	<!-- Match Info Header -->
-		<h1 class="text-xl font-semibold text-gray-200 mb-2">${ match.type }</h1>
+		<h1 class="text-xl font-semibold text-gray-200 mb-2">${ getMatchTypeDisplay(match.type) }</h1>
 		<p class="text-gray-400 mb-10">${ formatDate(match.date, 'S') }</p>
 
 	<!-- Players vertical cards -->

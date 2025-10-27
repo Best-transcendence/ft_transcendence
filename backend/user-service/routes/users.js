@@ -11,10 +11,10 @@ async function calculateUserStats(prisma, userId) {
   });
 
   console.log(`[calculateUserStats] Found ${allMatches.length} matches for user ${userId}`);
-  console.log(`[calculateUserStats] Raw matches:`, JSON.stringify(allMatches, null, 2));
+  console.log('[calculateUserStats] Raw matches:', JSON.stringify(allMatches, null, 2));
 
   if (!allMatches || allMatches.length === 0) {
-    console.log(`[calculateUserStats] No matches found, returning default values`);
+    console.log('[calculateUserStats] No matches found, returning default values');
     return {
       gamesPlayed: 0,
       wins: 0,
@@ -36,7 +36,7 @@ async function calculateUserStats(prisma, userId) {
     highestScore: 0
   };
 
-  console.log(`[calculateUserStats] Initial stats:`, JSON.stringify(stats));
+  console.log('[calculateUserStats] Initial stats:', JSON.stringify(stats));
 
   for (const match of allMatches) {
     const isPlayer1 = match.player1Id === userId;
@@ -63,7 +63,7 @@ async function calculateUserStats(prisma, userId) {
     }
   }
 
-  console.log(`[calculateUserStats] Final calculated stats:`, JSON.stringify(stats));
+  console.log('[calculateUserStats] Final calculated stats:', JSON.stringify(stats));
   return stats;
 }
 
@@ -585,7 +585,8 @@ export default async function (fastify, _opts) {
 		  	  type: 'object',
 		  	  properties:
 				{
-				  type: { type: 'string', enum: ['tournament', '1v1', 'AI'] },
+				  type: { type: 'string', enum: ['ONE_VS_ONE', 'TOURNAMENT_INTERMEDIATE', 'TOURNAMENT_FINAL'] },
+				  player1Id: { type: 'integer' },
 				  player2Id: { type: 'integer' },
 				  player1Score: { type: 'integer' },
 				  player2Score: { type: 'integer' },
@@ -597,9 +598,11 @@ export default async function (fastify, _opts) {
       },
       response: {
         200: {
-          description: 'Updated user profile',
+          description: 'Updated user profile or match created',
           type: 'object',
           properties: {
+            message: { type: 'string' },
+            match: { type: 'object' },
             user: {
               type: 'object',
               properties: {
@@ -668,11 +671,19 @@ export default async function (fastify, _opts) {
 
       if (action === 'create_match')
       {
-        const { type, player2Id, player1Score, player2Score, _winnerId, date } = matchData;
-        const currentUser = await fastify.prisma.userProfile.findUnique(
-          {
-            where: { authUserId: userId }
-          });
+        console.log(`[${request.id}] Creating match with data:`, matchData);
+        const { type, player1Id, player2Id, player1Score, player2Score, _winnerId, date } = matchData;
+        
+        // Get both player profiles
+        const player1Profile = await fastify.prisma.userProfile.findUnique({
+          where: { authUserId: player1Id }
+        });
+        const player2Profile = await fastify.prisma.userProfile.findUnique({
+          where: { authUserId: player2Id }
+        });
+
+        console.log(`[${request.id}] Player1 profile:`, player1Profile);
+        console.log(`[${request.id}] Player2 profile:`, player2Profile);
 
         // retrieve date or create it
         let matchDate = new Date();
@@ -681,9 +692,11 @@ export default async function (fastify, _opts) {
 
         let finalWinnerId = null; // In case of draw
         if (player1Score > player2Score)
-          finalWinnerId = currentUser.id;
+          finalWinnerId = player1Profile.id;
         else if (player1Score < player2Score)
-          finalWinnerId = player2Id;
+          finalWinnerId = player2Profile.id;
+
+        console.log(`[${request.id}] Match details - player1Id: ${player1Profile.id}, player2Id: ${player2Profile.id}, scores: ${player1Score}-${player2Score}, winnerId: ${finalWinnerId}`);
 
         const match = await fastify.prisma.match.create(
           {
@@ -691,13 +704,15 @@ export default async function (fastify, _opts) {
 				{
 				  type,
 				  date: matchDate,
-				  player1Id: currentUser.id,
-				  player2Id,
+				  player1Id: player1Profile.id,
+				  player2Id: player2Profile.id,
 				  player1Score,
 				  player2Score,
 				  winnerId: finalWinnerId
 				}
           });
+        
+        console.log(`[${request.id}] Match created successfully:`, match);
         return { message: 'Match created successfully', match };
       }
 
