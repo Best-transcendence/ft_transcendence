@@ -1,10 +1,13 @@
-import { connectSocket } from "../services/ws";
+import { connectSocket, onSocketMessage, sendWSMessage } from "../services/ws";
 import { addTheme } from "../components/Theme";
 import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { thisUser } from "../router";
-import { triggerInvitePopup, closeInvitePopup } from "../components/RemotePopup";
+import {
+  triggerInvitePopup,
+  closeInvitePopup,
+} from "../components/RemotePopup";
 
 const EMOJIS = [
   "⚡",
@@ -65,7 +68,8 @@ export async function initLobby() {
   const selfId = String(thisUser?.id ?? "");
   usersContainer.innerHTML = `<p class="text-gray-400">Waiting for online users…</p>`;
 
-  const socket = connectSocket(token, (msg) => {
+  const socket = connectSocket(token);
+  const unsuscribe = onSocketMessage((msg) => {
     switch (msg.type) {
       case "user:list": {
         const list = Array.isArray(msg.users) ? msg.users : [];
@@ -82,13 +86,13 @@ export async function initLobby() {
             const idNum = Number(id) || 0;
 
             // prefer username; fallback to "Player {id}"
-			const rawName = (u?.name ?? "").trim();
-			const displayName = rawName ? escapeHTML(rawName) : `Player ${id}`;
+            const rawName = (u?.name ?? "").trim();
+            const displayName = rawName ? escapeHTML(rawName) : `Player ${id}`;
 
-			// small avatar circle with emoji
-			const avatar = emojiForId(idNum);
-		
-				return `
+            // small avatar circle with emoji
+            const avatar = emojiForId(idNum);
+
+            return `
 			<div class="bg-slate-900 backdrop-blur-md rounded-lg shadow-[0_0_30px_10px_#7037d3] p-4 flex items-center justify-between">
 				<div class="flex items-center gap-3">
 				<div class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 text-lg">
@@ -104,8 +108,8 @@ export async function initLobby() {
 				Invite
 				</button>
 			</div>`;
-		})
-		.join("");
+          })
+          .join("");
 
         usersContainer.querySelectorAll(".invite-btn").forEach((btn) => {
           btn.addEventListener("click", () => {
@@ -143,31 +147,43 @@ export async function initLobby() {
     }
   });
 
-  
   // tell server: joined lobby
-  socket.addEventListener("open", () => {
+  // tell server: joined lobby
+  if (socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({ type: "lobby:join" }));
-    // After joining, request list (so server knows you're a lobby member first)
     socket.send(JSON.stringify({ type: "user:list:request" }));
-  });
+  } else {
+    socket.addEventListener(
+      "open",
+      () => {
+        socket.send(JSON.stringify({ type: "lobby:join" }));
+        socket.send(JSON.stringify({ type: "user:list:request" }));
+      },
+      { once: true }
+    );
+  }
 
   // LEAVE lobby when navigating away from lobby route
   const leaveIfNotLobby = () => {
     const hash = window.location.hash.replace(/^#/, "");
     const route = hash.split("?")[0];
     if (route !== "lobby") {
-      try { socket.send(JSON.stringify({ type: "lobby:leave" })); } catch {}
-	closeInvitePopup();                        //  hide any open invite popup
+      try {
+        socket.send(JSON.stringify({ type: "lobby:leave" }));
+      } catch {}
+      closeInvitePopup(); //  hide any open invite popup
       window.removeEventListener("hashchange", leaveIfNotLobby);
       window.removeEventListener("beforeunload", onUnload);
     }
   };
   window.addEventListener("hashchange", leaveIfNotLobby);
 
-	// LEAVE on tab close/refresh
+  // LEAVE on tab close/refresh
   const onUnload = () => {
-    try { socket.send(JSON.stringify({ type: "lobby:leave" })); } catch {}
-	closeInvitePopup();                          // close on refresh
+    try {
+      socket.send(JSON.stringify({ type: "lobby:leave" }));
+    } catch {}
+    closeInvitePopup(); // close on refresh
   };
   window.addEventListener("beforeunload", onUnload);
 

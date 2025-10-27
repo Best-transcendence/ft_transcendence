@@ -12,6 +12,10 @@ export function GamePongRemote(): string {
     const msg = JSON.parse(event.data);
 
     switch (msg.type) {
+      case "game:ready":
+        document.getElementById("startPress")?.classList.remove("hidden");
+        break;
+
       case "room:start":
         initRemoteGame(msg.roomId);
         break;
@@ -44,8 +48,8 @@ export function GamePongRemote(): string {
               msg.winner === "draw"
                 ? "It's a draw 🤝"
                 : msg.winner === "p1"
-                  ? "Player 1 wins 🥇"
-                  : "Player 2 wins 🥇";
+                ? "Player 1 wins 🥇"
+                : "Player 2 wins 🥇";
           }
         }
         break;
@@ -148,9 +152,18 @@ export function initRemoteGame(roomId: string) {
   socket?.send(JSON.stringify({ type: "game:join", roomId }));
 
   document.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+      socket?.send(JSON.stringify({ type: "game:begin", roomId }));
+      document.getElementById("startPress")?.remove();
+    }
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
       socket?.send(
-        JSON.stringify({ type: "game:move", direction: e.key, action: "down", roomId })
+        JSON.stringify({
+          type: "game:move",
+          direction: e.key,
+          action: "down",
+          roomId,
+        })
       );
     }
   });
@@ -158,7 +171,12 @@ export function initRemoteGame(roomId: string) {
   document.addEventListener("keyup", (e) => {
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
       socket?.send(
-        JSON.stringify({ type: "game:move", direction: e.key, action: "up", roomId })
+        JSON.stringify({
+          type: "game:move",
+          direction: e.key,
+          action: "up",
+          roomId,
+        })
       );
     }
   });
@@ -178,8 +196,13 @@ function updateGameState(state: any) {
 
   paddle1.style.top = state.p1Y + "%";
   paddle2.style.top = state.p2Y + "%";
-  ball.style.left = state.ballX + "%";
-  ball.style.top = state.ballY + "%";
+  if ("ballX" in state && "ballY" in state) {
+    ball.style.left = state.ballX + "%";
+    ball.style.top = state.ballY + "%";
+    ball.style.opacity = "1";
+  } else {
+    ball.style.opacity = "0";
+  }
   score1.textContent = state.s1.toString();
   score2.textContent = state.s2.toString();
 }
