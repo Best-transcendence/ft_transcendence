@@ -2,6 +2,28 @@ version: '2.4'
 
 services:
   # =============================================================================
+  # Vault (dev) - HashiCorp Vault server
+  # =============================================================================
+  vault:
+    image: hashicorp/vault:1.14.0
+    container_name: vault_dev
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_ADDR: "http://0.0.0.0:8200"
+    volumes:
+      - ./vault:/vault/config:ro
+      - ./vault/data:/vault/file
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sSf http://127.0.0.1:8200/v1/sys/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  # =============================================================================
   # BACKEND SERVICES
   # =============================================================================
 
@@ -19,7 +41,7 @@ services:
       - USER_DATABASE_URL=${USER_DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+      # TODO: Move JWT_SECRET and other sensitive values to Vault and Vault Agent
     ports:
       - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     volumes:
@@ -49,7 +71,7 @@ services:
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+      # TODO: Move JWT_SECRET and other sensitive values to Vault and Vault Agent
     ports:
       - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
     volumes:
@@ -83,7 +105,7 @@ services:
       - WS_SERVICE_URL=http://ws_service:${WS_PORT}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+      # TODO: Move JWT_SECRET and other sensitive values to Vault and Vault Agent
     ports:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
     depends_on:
@@ -118,7 +140,7 @@ services:
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+      # TODO: Move JWT_SECRET and other sensitive values to Vault and Vault Agent
     ports:
       - "${WS_PORT}:${WS_PORT}"
     depends_on:
