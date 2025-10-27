@@ -9,6 +9,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     // Initialize game state if it's the first time
     if (!room.state) {
       room.state = {
+        active: true,
         p1Y: 37.5,
         p2Y: 37.5,
         p1Vel: 0,
@@ -54,6 +55,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
   }
 
   function handleGameMove(ws, data) {
+    if (!room.state.active) return;
     const { roomId, direction, action } = data;
     const room = rooms.get(roomId);
     if (!room || !room.state) return;
@@ -175,48 +177,55 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     });
   }
 
-function startGameTimer(roomId, room, duration) {
-  const endTime = Date.now() + duration * 1000;
+  function startGameTimer(roomId, room, duration) {
+    const endTime = Date.now() + duration * 1000;
 
-  room.timerId = setInterval(() => {
-    const now = Date.now();
-    let remaining = Math.ceil((endTime - now) / 1000);
+    room.timerId = setInterval(() => {
+      const now = Date.now();
+      let remaining = Math.ceil((endTime - now) / 1000);
 
-    if (remaining < 0) remaining = 0;
+      if (remaining < 0) remaining = 0;
 
-    // Broadcast authoritative timer
-    room.players.forEach(client => {
-      if (client.readyState === 1) {
-        client.send(JSON.stringify({
-          type: "game:timer",
-          remaining
-        }));
-      }
-    });
-
-    if (remaining <= 0) {
-      clearInterval(room.timerId);
-      clearInterval(room.loopId);
-      room.timerId = null;
-      room.loopId = null;
-
-      // Decide winner
-      let winner = "draw";
-      if (room.state.s1 > room.state.s2) winner = "p1";
-      else if (room.state.s2 > room.state.s1) winner = "p2";
-
+      // Broadcast authoritative timer
       room.players.forEach(client => {
         if (client.readyState === 1) {
           client.send(JSON.stringify({
-            type: "game:timeup",
-            winner,
-            scores: { s1: room.state.s1, s2: room.state.s2 }
+            type: "game:timer",
+            remaining
           }));
         }
       });
-    }
-  }, 1000);
-}
+
+      if (remaining <= 0) {
+        clearInterval(room.timerId);
+        clearInterval(room.loopId);
+        room.timerId = null;
+        room.loopId = null;
+
+        // Decide winner
+        let winner = "draw";
+        if (room.state.s1 > room.state.s2) winner = "p1";
+        else if (room.state.s2 > room.state.s1) winner = "p2";
+
+        room.players.forEach(client => {
+          if (client.readyState === 1) {
+            client.send(JSON.stringify({
+              type: "game:timeup",
+              winner,
+              scores: { s1: room.state.s1, s2: room.state.s2 }
+            }));
+          }
+        });
+        room.state.active = false;
+        room.state.p1Vel = 0;
+        room.state.p2Vel = 0;
+        room.state.p1Up = false;
+        room.state.p1Down = false;
+        room.state.p2Up = false;
+        room.state.p2Down = false;
+      }
+    }, 1000);
+  }
 
 
   return {
