@@ -4,18 +4,21 @@ services:
   # =============================================================================
   # Vault (dev) - HashiCorp Vault server
   # =============================================================================
-  vault:
+  vault-service:
+
     image: hashicorp/vault:1.14.0
-    container_name: vault_dev
+    container_name: vault_service
     cap_add:
       - IPC_LOCK
     ports:
       - "8200:8200"
     environment:
-      VAULT_ADDR: "http://0.0.0.0:8200"
+      - VAULT_ADDR=http://127.0.0.1:8200
     volumes:
-      - ./vault:/vault/config:ro
+      - ./vault:/vault/config
       - ./vault/data:/vault/file
+    command:
+      - "server"
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -sSf http://127.0.0.1:8200/v1/sys/health || exit 1"]

@@ -41,19 +41,19 @@
 ### Step 1 — Build and compose
 
 ```bash
-docker-compose build vault
-docker-compose up -d vault
+docker-compose build vault-service
+docker-compose up -d vault-service
 ```
 
 ### Step 2 — Check Vault health
 
 ```bash
-docker-compose ps vault
+docker-compose ps vault-service
 # or
 curl -sSf http://127.0.0.1:8200/v1/sys/health
 ```
 
-Vault should respond (status `200`) but **will be sealed initially**.
+Vault should respond status `503` or (status `200` but **will be sealed initially**).
 
 ---
 
@@ -62,7 +62,7 @@ Vault should respond (status `200`) but **will be sealed initially**.
 Run:
 
 ```bash
-docker exec -it vault_dev vault operator init
+vault operator init
 ```
 
 - This generates:
@@ -78,7 +78,7 @@ docker exec -it vault_dev vault operator init
 For each unseal key received:
 
 ```bash
-docker exec -it vault_dev vault operator unseal <UNSEAL_KEY>
+vault operator unseal <UNSEAL_KEY>
 ```
 
 - Repeat with all unseal keys if using multiple shares.
@@ -86,7 +86,19 @@ docker exec -it vault_dev vault operator unseal <UNSEAL_KEY>
 
 ---
 
-### Step 5 — Fetch secrets
+### Step 5 — Check if all healthy
+
+Try checking:
+
+```bash
+curl -sSf http://127.0.0.1:8200/v1/sys/health>
+```
+
+- Response should start with `{"initialized":true,"sealed":false,`
+
+---
+
+### Step 6 — Fetch secrets
 
 - Backend services are configured to fetch secrets dynamically from Vault:
     - Database credentials
