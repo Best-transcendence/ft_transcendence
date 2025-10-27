@@ -80,7 +80,7 @@ export function registerWebsocketHandlers(wss, app) {
       return;
     }
 
-	// Verify & normalize JWT
+    // Verify & normalize JWT
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -90,29 +90,29 @@ export function registerWebsocketHandlers(wss, app) {
       return;
     }
 
-	// existing normalization
-	const userId = Number(decoded.id ?? decoded.userId ?? decoded.userID ?? decoded.sub);
-	const tokenFromQuery = token; // keep the raw token for user-service
+    // existing normalization
+    const userId = Number(decoded.id ?? decoded.userId ?? decoded.userID ?? decoded.sub);
+    const tokenFromQuery = token; // keep the raw token for user-service
 
-	// prefer a claim name if present; otherwise try cache
-	let displayName =
-	decoded.name ?? decoded.username ?? namesCache.get(String(userId)) ?? null;
+    // prefer a claim name if present; otherwise try cache
+    let displayName =
+      decoded.name ?? decoded.username ?? namesCache.get(String(userId)) ?? null;
 
-	ws.user = { id: userId, name: displayName };
-	onlineUsers.set(String(userId), ws);
+    ws.user = { id: userId, name: displayName };
+    onlineUsers.set(String(userId), ws);
 
-	// kick off async hydration if name is still missing
-	if (!ws.user.name) {
-	(async () => {
-		const resolved = await fetchUserName(app, userId, tokenFromQuery);
-		if (resolved && ws.readyState === WebSocket.OPEN) {
-		ws.user.name = resolved;
-		// update the cache and rebroadcast so everyone sees the real name
-		namesCache.set(String(userId), resolved);
-		broadcastLobby();
-		}
-	})();
-	}
+    // kick off async hydration if name is still missing
+    if (!ws.user.name) {
+      (async () => {
+        const resolved = await fetchUserName(app, userId, tokenFromQuery);
+        if (resolved && ws.readyState === WebSocket.OPEN) {
+          ws.user.name = resolved;
+          // update the cache and rebroadcast so everyone sees the real name
+          namesCache.set(String(userId), resolved);
+          broadcastLobby();
+        }
+      })();
+    }
 
     if (!userId || Number.isNaN(userId)) {
       app.log.warn({ decoded }, 'JWT missing user id — closing connection');
@@ -120,14 +120,14 @@ export function registerWebsocketHandlers(wss, app) {
       return;
     }
 
-     // Track this connection (1 entry per user; last tab wins)
+    // Track this connection (1 entry per user; last tab wins)
     onlineUsers.set(String(userId), ws);
 
     app.log.info({ userId }, 'WS connected');
     ws.send(JSON.stringify({ type: 'welcome', user: ws.user }));
     broadcastLobby();
 
-      ws.on('message', (raw) => {
+    ws.on('message', (raw) => {
       let data;
       try {
         data = JSON.parse(raw.toString());
@@ -143,8 +143,8 @@ export function registerWebsocketHandlers(wss, app) {
       }
 
 
-	  //Lobby presence messages
-    if (type === 'lobby:join') {
+      //Lobby presence messages
+      if (type === 'lobby:join') {
         lobbyUsers.set(ws.user.id, ws);
         broadcastLobby();
         return;
@@ -195,7 +195,7 @@ export function registerWebsocketHandlers(wss, app) {
               }));
               break;
             }
-		
+
             // Proceed to handler after validation
             roomHandlers.handleInvite(ws, { ...data, to: String(toUserId) });
             break;
@@ -214,7 +214,7 @@ export function registerWebsocketHandlers(wss, app) {
             break;
 
           case 'matchmaking:join':
-			// If you consider matchmaking leaving the lobby:
+            // If you consider matchmaking leaving the lobby:
             lobbyUsers.delete(ws.user.id);
             broadcastLobby();
             roomHandlers.handleMatchmakingJoin(ws);
@@ -231,18 +231,14 @@ export function registerWebsocketHandlers(wss, app) {
               direction: data.direction,
             });
             break;
-
-		case "lobby:join":
-			// If joining a game should remove from lobby:
-            lobbyUsers.delete(ws.user.id);
-            broadcastLobby();
-            gameHandlers.handleGameJoin(ws, { ...data, roomId: String(data.roomId) });
+          case 'game:begin':
+            gameHandlers.handleGameBegin(ws, data);
             break;
 
-		case "lobby:leave":
-			lobbyUsers.delete(ws.user.id);
-			broadcastLobby();
-			break;
+          case "lobby:leave":
+            lobbyUsers.delete(ws.user.id);
+            broadcastLobby();
+            break;
 
           default:
             app.log.warn({ type }, 'Unhandled WS message');
