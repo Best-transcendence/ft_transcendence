@@ -179,8 +179,6 @@ export function GamePongAIOpponent(): string {
 			Use the 
 			<span class="text-purple-600">↑</span>
 			<span class="text-purple-600">↓</span>
-			<span class="text-purple-600">←</span>
-			<span class="text-purple-600">→</span>
 			arrows!
 		</p></span>
 		</p>
@@ -246,6 +244,9 @@ export function setupAIOpponent() {
 	if (timeUpOverlay) {
 		timeUpOverlay.classList.add("hidden");
 	}
+	
+	// Initialize timer with medium difficulty (default) instead of hardcoded 1:30
+	resetTimer(30);
 
 	// --- DIFFICULTY SELECTION HANDLER ---
 	/**
