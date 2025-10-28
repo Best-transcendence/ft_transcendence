@@ -15,7 +15,7 @@ import { registerTournamentGame } from "./GameController";
 const DIFFICULTY = {
   easy: { 
     ballSpeed: 1.0, 
-    gameTime: 40 
+    gameTime: 8 // TODO: Change back to 40 seconds
   },
   medium: { 
     ballSpeed: 1.5, 
@@ -294,6 +294,7 @@ _timeupHandler = () => {
   console.log("Right authenticated:", rightPlayer?.isAuthenticated);
   console.log("Tournament current players:", (window as any).tournamentCurrentPlayers);
   
+  // Save match if both players are authenticated (regardless of who the logged-in user is)
   if (leftPlayer?.isAuthenticated && rightPlayer?.isAuthenticated) {
     // Determine if this is a final match by checking the current match round
     const currentMatch = (window as any).tournamentCurrentMatch;
@@ -305,7 +306,7 @@ _timeupHandler = () => {
     const matchData: MatchObject = {
       type: isFinal ? "TOURNAMENT_FINAL" : "TOURNAMENT_INTERMEDIATE",
       date: new Date().toISOString(),
-      player1Id: leftPlayer.authUserId!,  // Always pass both player IDs
+      player1Id: leftPlayer.authUserId!,
       player2Id: rightPlayer.authUserId!,
       player1Score: l,
       player2Score: r,
@@ -319,7 +320,7 @@ _timeupHandler = () => {
       console.error("Failed to save tournament match:", err)
     );
   } else {
-    console.log("Skipping match save - players not authenticated");
+    console.log("Skipping match save - not both players authenticated");
   }
 
   // Show time up overlay with winner
