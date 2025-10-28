@@ -8,6 +8,7 @@ import {
 } from "../tournament/engine";
 import { myName, ensureMeFirst } from "../tournament/utils"; // reuse shared helpers
 import { resetTimer } from "../components/Timer";
+import { difficulty, resetDifficulty } from "../tournament/InitTournamentLobby";
 
 /**
  * Tournament Flow Controller
@@ -230,6 +231,7 @@ function showChampion(name: string) {
   btnNew?.addEventListener("click", () => {
     teardownTournamentFlow();
     localStorage.removeItem("tournamentSeed");
+    resetDifficulty(); // Reset difficulty to medium
     window.location.hash = "#lobbytournament";
   });
 
@@ -237,6 +239,7 @@ function showChampion(name: string) {
   btnBack?.addEventListener("click", () => {
     teardownTournamentFlow();
     localStorage.removeItem("tournamentSeed");
+    resetDifficulty(); // Reset difficulty to medium
     window.location.hash = "#intro";
   });
 }
@@ -361,10 +364,17 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
 
   const players = ensureMeFirst(seed.players);
 
+  // Use difficulty from saved seed (set when tournament was created)
+  const currentDifficulty: "easy" | "medium" | "hard" = seed.difficulty || "medium";
+  
+  console.log("🔍 DIFFICULTY DEBUG - Seed data:");
+  console.log("  Saved difficulty:", seed.difficulty);
+  console.log("🎯 SELECTED DIFFICULTY:", currentDifficulty);
+
   // Create tournament bracket based on mode
   if (seed.mode === "2") {
     bracket = createTwoPlayerTournament(players.slice(0, 2) as [Player, Player]);
-    bracket.difficulty = seed.difficulty || "medium";
+    bracket.difficulty = currentDifficulty;
 
     // Defensive reset of BO3 state
     const r1 = bracket.rounds.find(r => r.round === 1);
@@ -392,13 +402,13 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
         const s2: [Player, Player] = [map.get(pB1)!, map.get(pB2)!];
         const ordered: [Player, Player, Player, Player] = [s1[0], s1[1], s2[0], s2[1]];
         bracket = createFourPlayerTournament(ordered);
-        bracket.difficulty = seed.difficulty || "medium";
+        bracket.difficulty = currentDifficulty;
       }
     } else {
       // Fallback: deterministic semis from first 4 (you're first due to ensureMeFirst)
       const p = players.slice(0, 4) as [Player, Player, Player, Player];
       bracket = createFourPlayerTournament(p);
-      bracket.difficulty = seed.difficulty || "medium";
+      bracket.difficulty = currentDifficulty;
     }
   }
 
@@ -426,12 +436,12 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
   console.log("Set tournamentCurrentMatch:", currentMatch);
   
   // Expose tournament difficulty for game to access
-  const difficulty = bracket?.difficulty || "medium";
-  (window as any).tournamentDifficulty = difficulty;
+  const tournamentDifficulty = bracket?.difficulty || "medium";
+  (window as any).tournamentDifficulty = tournamentDifficulty;
   
   // Initialize timer display with correct difficulty time
   const difficultyTimes = { easy: 8, medium: 30, hard: 20 }; // TODO: Change easy back to 40 seconds
-  const gameTime = difficultyTimes[difficulty];
+  const gameTime = difficultyTimes[tournamentDifficulty];
   resetTimer(gameTime);
 
   // Timer timeout handler: decides winner or triggers tie-breakers
@@ -463,6 +473,9 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
  * Removes event handlers, DOM elements, and global references
  */
 export function teardownTournamentFlow() {
+  // Reset difficulty to medium when leaving tournament
+  resetDifficulty();
+  
   // Stop the game loop
   if (typeof (window as any).stopTournamentGame === 'function') {
     (window as any).stopTournamentGame();
@@ -483,6 +496,7 @@ export function teardownTournamentFlow() {
   (window as any).reportTournamentGameResult = undefined;
   (window as any).tournamentTimeUp = undefined;
   (window as any).stopTournamentGame = undefined;
+  (window as any).tournamentDifficulty = undefined;
 
   // Reset tournament flow state
   bracket = null;
