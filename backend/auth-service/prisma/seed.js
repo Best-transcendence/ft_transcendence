@@ -5,10 +5,10 @@ const prisma = new PrismaClient();
 
 // Vault client
 const vault = Vault(
-{
-	endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
-	token: process.env.VAULT_TOKEN,
-});
+  {
+    endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
+    token: process.env.VAULT_TOKEN,
+  });
 
 // List of users to seed
 const users = [
