@@ -8,7 +8,7 @@ import {
 } from "../tournament/engine";
 import { myName, ensureMeFirst } from "../tournament/utils"; // reuse shared helpers
 import { resetTimer } from "../components/Timer";
-import { difficulty, resetDifficulty } from "../tournament/InitTournamentLobby";
+import { difficulty, resetDifficulty, getDisplayName } from "../tournament/InitTournamentLobby";
 
 /**
  * Tournament Flow Controller
@@ -166,15 +166,15 @@ function showOverlay(left: string, right: string, label: string, leftPlayer?: Pl
   if (!overlay || !nameLeftEl || !nameRightEl || !roundLabelEl) return;
   championEl?.classList.add("hidden");  // Hide champion banner for regular matches
 
-  // Update overlay content
-  nameLeftEl.textContent = left;
-  nameRightEl.textContent = right;
+  // Update overlay content with display names (including "(G)" for guests)
+  nameLeftEl.textContent = leftPlayer ? getDisplayName(leftPlayer) : left;
+  nameRightEl.textContent = rightPlayer ? getDisplayName(rightPlayer) : right;
   roundLabelEl.textContent = label;
   overlay.classList.remove("hidden");
 
   // Store current match information
-  currentLeftName = left;
-  currentRightName = right;
+  currentLeftName = leftPlayer ? getDisplayName(leftPlayer) : left;
+  currentRightName = rightPlayer ? getDisplayName(rightPlayer) : right;
   (window as any).tournamentCurrentPlayers = { 
     left, 
     right, 

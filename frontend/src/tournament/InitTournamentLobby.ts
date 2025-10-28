@@ -37,6 +37,15 @@ export function resetDifficulty() {
   difficulty = "medium";
 }
 
+/**
+ * Gets display name for a player, adding "(G)" suffix for guests
+ * @param player - Player object
+ * @returns Display name with guest indicator if applicable
+ */
+export function getDisplayName(player: Player): string {
+  return player.isAuthenticated ? player.name : `${player.name} (G)`;
+}
+
 // Tournament pairing and match generation
 
 /**
@@ -234,16 +243,19 @@ function addPlayer(name: string) {
 
   const trimmed = name.trim();
   if (!trimmed) return;
+  
+  // Limit guest names to 9 characters to accommodate "(G)" suffix
+  const finalName = trimmed.length > 9 ? trimmed.substring(0, 9) : trimmed;
 
   // Prevent adding current user by name
-  if (trimmed.toLowerCase() === myName().toLowerCase()) return;
+  if (finalName.toLowerCase() === myName().toLowerCase()) return;
 
   // Prevent duplicate players by name (case-insensitive)
-  if (players.some(p => p.name.toLowerCase() === trimmed.toLowerCase())) return;
+  if (players.some(p => p.name.toLowerCase() === finalName.toLowerCase())) return;
 
   // Generate unique player ID and add to tournament
   const id = `guest_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
-  players.push({ id, name: trimmed, isAuthenticated: false });
+  players.push({ id, name: finalName, isAuthenticated: false });
 
   // Ensure current user is always first in the list
   players = ensureMeFirst(players);
@@ -382,12 +394,12 @@ function renderMatchmakerPreview() {
         chip.className =
           "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
           "bg-emerald-500/15 text-emerald-100 border border-emerald-400/20";
-        chip.innerHTML = `${pl.name} <span class="ml-1">✓</span>`;
+        chip.innerHTML = `${getDisplayName(pl)} <span class="ml-1">✓</span>`;
       } else {
         chip.className =
           "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
           "bg-violet-500/15 text-violet-100 border border-violet-400/20";
-        chip.textContent = pl.name;
+        chip.textContent = getDisplayName(pl);
       }
       
       chips.appendChild(chip);
@@ -420,9 +432,9 @@ function renderMatchmakerPreview() {
     if (playerSlice.length >= 2) {
       const [a, b] = playerSlice;
       if (paired) {
-        grid.appendChild(makeRoundCard("Round 1", a!.name, b!.name));
-        grid.appendChild(makeRoundCard("Round 2", a!.name, b!.name));
-        grid.appendChild(makeRoundCard("Final Round", a!.name, b!.name, true));
+        grid.appendChild(makeRoundCard("Round 1", getDisplayName(a!), getDisplayName(b!)));
+        grid.appendChild(makeRoundCard("Round 2", getDisplayName(a!), getDisplayName(b!)));
+        grid.appendChild(makeRoundCard("Final Round", getDisplayName(a!), getDisplayName(b!), true));
       } else {
         grid.appendChild(makeRoundCard("Round 1", "?", "?"));
         grid.appendChild(makeRoundCard("Round 2", "?", "?"));
@@ -437,8 +449,8 @@ function renderMatchmakerPreview() {
         const [s1a, s1b] = plannedPairs[0]!;
         const [s2a, s2b] = plannedPairs[1]!;
 
-        grid.appendChild(makeRoundCard("Round 1", s1a.name, s1b.name));
-        grid.appendChild(makeRoundCard("Round 2", s2a.name, s2b.name));
+        grid.appendChild(makeRoundCard("Round 1", getDisplayName(s1a), getDisplayName(s1b)));
+        grid.appendChild(makeRoundCard("Round 2", getDisplayName(s2a), getDisplayName(s2b)));
       }
     } else {
       grid.appendChild(makeRoundCard("Round 1", "?", "?"));
