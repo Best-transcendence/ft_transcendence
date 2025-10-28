@@ -37,7 +37,6 @@ Required variables:
 - `GATEWAY_PORT=3003`
 - `AUTH_SERVICE_URL=http://localhost:3001`
 - `USER_SERVICE_URL=http://localhost:3002`
-- `JWT_SECRET=your-secret-key`
 
 ### Running the Service
 ```bash
@@ -64,7 +63,7 @@ npm start
 ## Authentication
 
 The gateway validates JWT tokens for user-service routes:
-- Tokens are validated using the shared `JWT_SECRET`
+- Tokens are validated using the shared `JWT_SECRET` -> fetched from `vault-service`
 - Invalid or missing tokens return `401 Unauthorized`
 - Valid tokens are forwarded to the user-service
 
@@ -76,7 +75,7 @@ The gateway validates JWT tokens for user-service routes:
 cd backend/auth-service
 npm run dev
 
-# Terminal 2 - User Service  
+# Terminal 2 - User Service
 cd backend/user-service
 npm run dev
 

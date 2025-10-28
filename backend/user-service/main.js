@@ -6,6 +6,7 @@ import fastifyJwt from '@fastify/jwt';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 import fastifyCors from '@fastify/cors';
+import Vault from 'node-vault';
 
 // Load environment variables from local .env file
 dotenv.config();
@@ -62,9 +63,25 @@ await app.register(fastifyCors, {
 });
 
 // Register JWT plugin for token validation (shared secret with auth-service)
-await app.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET || 'super-secret-pass',
-});
+// Register JWT plugin for token generation and verification
+const vault = Vault(
+  {
+    endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
+    token: process.env.VAULT_TOKEN
+  });
+
+let jwtSecret;
+try
+{
+  const secret = await vault.read('secret/jwt');
+  jwtSecret = secret.data.data.JWT_SECRET;
+}
+catch (err)
+{
+  console.error('Failed to read JWT secret from Vault:', err);
+  process.exit(1);
+}
+await app.register(fastifyJwt, { secret: jwtSecret });
 
 // Register Prisma plugin to connect to user database
 app.register(prismaPlugin);

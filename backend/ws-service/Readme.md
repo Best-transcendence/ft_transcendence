@@ -92,7 +92,7 @@ with @fastify 5.* and our project is in 4.2.*
 ## Troubleshooting
 
 - “Invalid token, closing WS” or “secret or public key must be provided”
-  - Ensure `.env` exists in ws-service root, contains `JWT_SECRET`, and `dotenv.config()` runs before verification.
+  - Ensure `.env` exists in ws-service root, contains `dotenv.config()` runs before verification.
   - Restart service after changes.
 
 - Socket connects then immediately disconnects

@@ -1,10 +1,30 @@
 import jwt from 'jsonwebtoken';
+import Vault from 'node-vault';
 import { registerRoomHandlers } from './rooms.js';
 import { registerGameHandlers } from './game.js';
 
 const onlineUsers = new Map();
 
-export function registerWebsocketHandlers(wss, app) {
+export async function registerWebsocketHandlers(wss, app) {
+
+  const vault = Vault(
+    {
+      endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
+      token: process.env.VAULT_TOKEN
+    });
+
+  let jwtSecret;
+  try
+  {
+    const secret = await vault.read('secret/jwt');
+    jwtSecret = secret.data.data.JWT_SECRET;
+  }
+  catch (err)
+  {
+    console.error('Failed to read JWT secret from Vault:', err);
+    process.exit(1);
+  }
+
   const roomHandlers = registerRoomHandlers(wss, onlineUsers, app);
   const gameHandlers = registerGameHandlers(wss, onlineUsers, app);
 
@@ -14,7 +34,7 @@ export function registerWebsocketHandlers(wss, app) {
     app.log.info({ token: token || 'MISSING' }, 'Incoming WS token');
 
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET);
+	  const payload = jwt.verify(token, jwtSecret);
       ws.user = payload;
 
       // Guardar el usuario conectado

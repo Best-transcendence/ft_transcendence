@@ -120,7 +120,7 @@ model User {
 AUTH_DATABASE_URL="file:./prisma/auth.db"
 
 # JWT
-JWT_SECRET="your-jwt-secret"
+JWT_SECRET= fetched from Vault `vault-service`
 
 # Service
 AUTH_SERVICE_PORT=3001

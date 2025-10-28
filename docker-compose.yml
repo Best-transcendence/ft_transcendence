@@ -42,9 +42,7 @@ services:
       - USER_SERVICE_PORT=${USER_SERVICE_PORT}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
       - USER_DATABASE_URL=${USER_DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Vault and Vault Agent
     ports:
       - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     volumes:
@@ -72,9 +70,7 @@ services:
       - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
       - AUTH_DATABASE_URL=${AUTH_DATABASE_URL}
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Vault and Vault Agent
     ports:
       - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
     volumes:
@@ -106,9 +102,7 @@ services:
       - AUTH_SERVICE_URL=http://auth_service:${AUTH_SERVICE_PORT}
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - WS_SERVICE_URL=http://ws_service:${WS_PORT}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Vault and Vault Agent
     ports:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
     depends_on:
@@ -141,9 +135,7 @@ services:
       - GATEWAY_URL=http://gateway_service:${GATEWAY_PORT}
       - AUTH_SERVICE_URL=http://auth_service:${AUTH_SERVICE_PORT}
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Vault and Vault Agent
     ports:
       - "${WS_PORT}:${WS_PORT}"
     depends_on:
@@ -204,6 +196,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      VAULT_ADDR: http://vault_service:8200
+      VAULT_TOKEN: ${VAULT_TOKEN}
     volumes:
       - ./waf/modsec_logs:/var/log/modsec
       - ./waf/nginx_logs:/var/log/nginx
@@ -211,7 +206,6 @@ services:
       - ./waf/modsecurity.conf:/etc/nginx/templates/modsecurity.d/setup.conf.template:ro
       - ./waf/crs:/etc/nginx/modsec/crs:ro
       - ./waf/exception-rules.conf:/etc/nginx/modsec/exception-rules.conf:ro
-      - ./waf/certs:/etc/nginx/certs:ro
     depends_on:
       gateway-service:
         condition: service_healthy
