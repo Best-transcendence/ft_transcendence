@@ -1,4 +1,5 @@
 import { API_URL } from "./config";
+import { fetchUser } from "../router";
 
 /* Create this object + call the saveMatch function for each type of match.
 type:
@@ -62,5 +63,9 @@ export async function saveMatch(match: any)
 	
 	const result = await res.json();
 	console.log("Match saved successfully:", result);
+	
+	// Refresh user data to update match history and stats
+	await fetchUser();
+	
 	return result;
 }

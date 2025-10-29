@@ -6,13 +6,20 @@ import { sidebarDisplay } from "../components/SideBar"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { matchCard, noHistory } from "../components/MatchDiv"
 
-let currentMatch = 0;
+// Load currentMatch from localStorage or default to 0
+let currentMatch = parseInt(localStorage.getItem('matchHistoryIndex') || '0', 10);
 
 export function loadMatches()
 {
 	let userMatches = thisUser.matches;
 	if (!userMatches || userMatches.length === 0)
 		return noHistory();
+
+	// Ensure currentMatch is within valid bounds
+	if (currentMatch >= userMatches.length)
+		currentMatch = userMatches.length - 1;
+	if (currentMatch < 0)
+		currentMatch = 0;
 
 	return matchCard(userMatches[currentMatch]);
 }
@@ -24,10 +31,15 @@ function slideMatches(direction: 'prev' | 'next')
 
 	setTimeout(() =>
 	{
+		const matchesLength = thisUser.matches?.length || 0;
 		if (direction === 'prev' && currentMatch > 0)
 			currentMatch--;
-		else if (direction === 'next' && currentMatch < thisUser.matches.length -1)
+		else if (direction === 'next' && currentMatch < matchesLength - 1)
 			currentMatch++;
+		
+		// Save currentMatch to localStorage
+		localStorage.setItem('matchHistoryIndex', currentMatch.toString());
+		
 		protectedPage(() => HistoryPage(), matchesEvents);
 	}, 200);
 }
@@ -52,7 +64,7 @@ export function matchesEvents()
 
 function leftArrow()
 {
-	if (currentMatch <= 0 || thisUser.matches.length == 0)
+	if (currentMatch <= 0 || !thisUser.matches || thisUser.matches.length == 0)
 		return '';
 
 	return `<button id="prev-match"
@@ -63,7 +75,7 @@ function leftArrow()
 
 function rightArrow()
 {
-	if (currentMatch == thisUser.matches.length -1 || thisUser.matches.length === 0)
+	if (currentMatch == (thisUser.matches?.length ?? 0) - 1 || !thisUser.matches || thisUser.matches.length === 0)
 		return '';
 
 	return `<button id="next-match"
