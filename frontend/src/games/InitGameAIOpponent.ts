@@ -496,40 +496,25 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		
 		// Only check scoring if ball hasn't already scored this round
 		if (ballScored) {
-			console.log("Ball already scored, skipping check");
 			return;
 		}
 
 		// --- SCORING LOGIC ---
 		// Left side - ball exits left, AI (left paddle) missed, so PLAYER scores
 		if (ballX + BALL_W < 0) {
-			console.log("=== PLAYER SCORES (AI missed) === Instance:", myInstanceId);
-			console.log("ballX:", ballX, "ballX + BALL_W:", ballX + BALL_W);
-			console.log("Current scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
-			console.log("Game running:", running);
-			
 			ballScored = true; // Prevent multiple scoring
 			globalScorePlayer++; // Player scores because AI missed
 			score2.textContent = globalScorePlayer.toString();
 			lastScorer = "player"; // Track who scored for next serve direction
-			console.log("New scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
-			console.log("=== END PLAYER SCORES ===");
 			//playSound(lossSfx);
 			resetBall();
 		} 
 		// Right side - ball exits right, Player (right paddle) missed, so AI scores
 		else if (ballX > FIELD) {
-			console.log("=== AI SCORES (Player missed) === Instance:", myInstanceId);
-			console.log("ballX:", ballX, "FIELD:", FIELD);
-			console.log("Current scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
-			console.log("Game running:", running);
-			
 			ballScored = true; // Prevent multiple scoring
 			globalScoreAI++; // AI scores because Player missed
 			score1.textContent = globalScoreAI.toString();
 			lastScorer = "ai"; // Track who scored for next serve direction
-			console.log("New scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
-			console.log("=== END AI SCORES ===");
 			//playSound(lossSfx);
 			resetBall();
 		}

@@ -500,14 +500,12 @@ window.addEventListener("game:timeup", _timeupHandler);
       // Ball went past left side - Player 2 (right) scores
       s2++;
       score2.textContent = s2.toString();
-      console.log("⚡ Right player scored! New scores: Left =", s1, "Right =", s2);
       //playSound(lossSfx);                    // TODO: Implement sound effects
       resetBall();
     } else if (ballCenterX > FIELD) {
       // Ball went past right side - Player 1 (left) scores
       s1++;
       score1.textContent = s1.toString();
-      console.log("⚡ Left player scored! New scores: Left =", s1, "Right =", s2);
       //playSound(lossSfx);                    // TODO: Implement sound effects
       resetBall();
     }

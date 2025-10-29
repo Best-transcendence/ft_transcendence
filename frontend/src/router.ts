@@ -27,7 +27,7 @@ import {
 } from "./games/TournamentFlow";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
-import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
+import { HistoryPage, matchesEvents, resetHistoryPageState } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { LoadingPage, initLoadingPage } from "./pages/LoadingPage";
@@ -258,7 +258,9 @@ export function router() {
       break;
 
     case "history":
-      protectedPage(() => HistoryPage(), matchesEvents); // Match history page
+      // Reset history page state to show latest match on fresh navigation
+      resetHistoryPageState();
+      protectedPage(() => HistoryPage(), matchesEvents);  // Match history page
       break;
 
     // Fallback for unknown routes
