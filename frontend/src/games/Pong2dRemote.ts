@@ -4,13 +4,16 @@ import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { addTheme } from "../components/Theme";
 import { TimerDisplay, resetTimer } from "../components/Timer";
+import { renderPlayerCard } from "../components/cards/NameCard";
+
+import { onSocketMessage } from "../services/ws";
+
+let unsubscribeGame: (() => void) | null = null;
+let currentPlayers: { id: string; name: string }[] = [];
 
 export function GamePongRemote(): string {
-  const socket = getSocket();
-
-  socket.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-
+  if (unsubscribeGame) unsubscribeGame(); // clean old listener
+  unsubscribeGame = onSocketMessage((msg) => {
     switch (msg.type) {
       case "game:ready":
         document.getElementById("startPress")?.classList.remove("hidden");
@@ -20,11 +23,25 @@ export function GamePongRemote(): string {
         initRemoteGame(msg.roomId);
         break;
 
-      case "game:start":
-        // reset timer UI to match server duration
+      case "game:start": {
         resetTimer(msg.duration || 90);
         document.getElementById("startPress")?.remove();
+
+        const { players, playerIndex } = msg;
+        currentPlayers = players;
+        console.log("game:start payload", msg);
+
+        setTimeout(() => {
+          const playerCardsContainer = document.getElementById("player-cards");
+          if (playerCardsContainer && players[0] && players[1]) {
+            playerCardsContainer.innerHTML = `
+  ${renderPlayerCard(players[0].id, players[0].name, "p1", playerIndex === 0)}
+  ${renderPlayerCard(players[1].id, players[1].name, "p2", playerIndex === 1)}
+`;
+          }
+        }, 0);
         break;
+      }
 
       case "game:timer":
         // authoritative countdown from server
@@ -48,8 +65,8 @@ export function GamePongRemote(): string {
               msg.winner === "draw"
                 ? "It's a draw 🤝"
                 : msg.winner === "p1"
-                ? "Player 1 wins 🥇"
-                : "Player 2 wins 🥇";
+                ? `${currentPlayers[0]?.name ?? "Player 1"} wins 🥇`
+                : `${currentPlayers[1]?.name ?? "Player 2"} wins 🥇`;
           }
         }
         break;
@@ -62,7 +79,7 @@ export function GamePongRemote(): string {
         showGameOver(msg.winner);
         break;
     }
-  };
+  });
 
   return `
     ${addTheme()}
@@ -78,6 +95,10 @@ export function GamePongRemote(): string {
 
           <!-- Timer -->
           ${TimerDisplay()}
+
+          <div id="player-cards" class="flex justify-between gap-4 mb-4"></div>
+          <div id="player-controls" class="text-sm text-gray-400 mt-2 text-center"></div>
+
     <!-- Game section -->
     <div class="flex justify-center w-screen overflow-hidden">
       <div class="relative"
@@ -145,30 +166,40 @@ export function GamePongRemote(): string {
     </div>
   `;
 }
+let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+let keyupHandler: ((e: KeyboardEvent) => void) | null = null;
+let currentRoomId: string | null = null;
 
 export function initRemoteGame(roomId: string) {
   const socket = getSocket();
+  currentRoomId = roomId;
 
   socket?.send(JSON.stringify({ type: "game:join", roomId }));
 
-  document.addEventListener("keydown", (e) => {
+  // remove old handlers if they exist
+  if (keydownHandler) document.removeEventListener("keydown", keydownHandler);
+  if (keyupHandler) document.removeEventListener("keyup", keyupHandler);
+
+  keydownHandler = (e: KeyboardEvent) => {
     if (e.code === "Space") {
       socket?.send(JSON.stringify({ type: "game:begin", roomId }));
       document.getElementById("startPress")?.remove();
     }
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
-      socket?.send(
-        JSON.stringify({
-          type: "game:move",
-          direction: e.key,
-          action: "down",
-          roomId,
-        })
-      );
+      if (socket?.readyState === WebSocket.OPEN) {
+        socket.send(
+          JSON.stringify({
+            type: "game:move",
+            direction: e.key,
+            action: "down",
+            roomId,
+          })
+        );
+      }
     }
-  });
+  };
 
-  document.addEventListener("keyup", (e) => {
+  keyupHandler = (e: KeyboardEvent) => {
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
       socket?.send(
         JSON.stringify({
@@ -179,7 +210,10 @@ export function initRemoteGame(roomId: string) {
         })
       );
     }
-  });
+  };
+
+  document.addEventListener("keydown", keydownHandler);
+  document.addEventListener("keyup", keyupHandler);
 
   const overlayExit = document.getElementById("overlayExit");
   overlayExit?.addEventListener("click", () => {
@@ -210,4 +244,16 @@ function updateGameState(state: any) {
 function showGameOver(winner: string) {
   alert(`Game Over! Winner: ${winner}`);
   window.location.hash = "intro";
+}
+
+export function leaveRemoteGame() {
+  const socket = getSocket();
+  if (currentRoomId) {
+    socket?.send(JSON.stringify({ type: "game:leave", roomId: currentRoomId }));
+    currentRoomId = null;
+  }
+  if (keydownHandler) document.removeEventListener("keydown", keydownHandler);
+  if (keyupHandler) document.removeEventListener("keyup", keyupHandler);
+  keydownHandler = null;
+  keyupHandler = null;
 }

@@ -24,7 +24,7 @@ const EMOJIS = [
   "🌟",
   "🍀",
 ];
-function emojiForId(id: number) {
+export function emojiForId(id: number) {
   const index = id % EMOJIS.length;
   return EMOJIS[index];
 }
