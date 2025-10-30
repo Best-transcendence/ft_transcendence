@@ -234,8 +234,18 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     if (!room || !room.state || room.loopId || room.timerId) return;
 
     room.players.forEach(client => {
-      client.send(JSON.stringify({ type: 'game:start', roomId, duration: 30 }));
+      client.send(JSON.stringify({
+        type: 'game:start',
+        roomId,
+        duration: 30,
+        playerIndex: room.players.indexOf(client),
+        players: room.players.map(p => ({
+          id: p.user.id,
+          name: p.user.name ?? `Player ${p.user.id}`
+        }))
+      }));
     });
+
 
     setTimeout(() => {
       startGameLoop(roomId, room);
