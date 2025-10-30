@@ -4,7 +4,67 @@ import { WebSocket } from 'ws';
 import { registerRoomHandlers } from './rooms.js';
 import { registerGameHandlers } from './game.js';
 
+const namesCache = new Map(); // userId(string) name
+
+async function fetchUserName(app, userId) {
+  const base = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+  try {
+    const res = await fetch(`${base}/users/public/${userId}`);
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const user = await res.json();
+    const name = user?.name ?? null;
+    if (name) namesCache.set(String(userId), name);
+    return name;
+  } catch (err) {
+    app.log.warn({ userId, err: err.message }, 'Failed to fetch username');
+    return null;
+  }
+}
+
+//TODO show friends' online status
 const onlineUsers = new Map();
+
+// TODO delete if you don't use for checking online friends
+function getAllUsers() {
+  return [...onlineUsers.values()].map(s => {
+    const id = s.user.id;
+    const name = s.user.name ?? namesCache.get(String(id)) ?? null;
+    return { id, name };
+  });
+}
+
+function sendUserList(ws) {
+  const all = getAllUsers();
+  const filtered = all.filter(u => u.id !== ws.user.id); // hide self
+  ws.send(JSON.stringify({ type: 'user:list', users: filtered }));
+}
+const lobbyUsers = new Map(); // track only users who are on lobby page
+
+
+// Build lobby list
+function getLobbyUsers() {
+  return [...lobbyUsers.values()].map(s => {
+    const id = s.user.id;
+    const name = s.user.name ?? namesCache.get(String(id)) ?? null;
+    return { id, name };
+  });
+}
+
+// Send lobby list to one client (excluding themselves)
+function sendLobbyList(ws) {
+  const all = getLobbyUsers();
+  const filtered = all.filter(u => u.id !== ws.user.id);
+  ws.send(JSON.stringify({ type: 'user:list', users: filtered }));
+}
+
+// Broadcast lobby list to all lobby members (each gets a list without themselves)
+function broadcastLobby() {
+  for (const [, recipient] of lobbyUsers) {
+    if (recipient.readyState === WebSocket.OPEN) {
+      sendLobbyList(recipient);
+    }
+  }
+}
 
 export function registerWebsocketHandlers(wss, app) {
   const roomHandlers = registerRoomHandlers(wss, onlineUsers, app);
@@ -20,46 +80,126 @@ export function registerWebsocketHandlers(wss, app) {
       return;
     }
 
-    let payload;
+    // Verify & normalize JWT
+    let decoded;
     try {
-      payload = jwt.verify(token, process.env.JWT_SECRET);
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
-      app.log.error({
-        error: err.message,
-        token: 'Present',
-        ip: req.socket.remoteAddress,
-      }, 'Invalid WebSocket Token — closing connection');
-      ws.close();
+      app.log.error({ error: err.message, ip: req.socket.remoteAddress }, 'Invalid WebSocket Token — closing');
+      ws.close(1008, 'Invalid or expired token');
       return;
     }
 
-    ws.user = payload;
-    onlineUsers.set(String(ws.user.id), ws);
+    // existing normalization
+    const userId = Number(decoded.id ?? decoded.userId ?? decoded.userID ?? decoded.sub);
+    const tokenFromQuery = token; // keep the raw token for user-service
 
-    app.log.info({ userId: ws.user.id }, 'WS Connected');
-    ws.send(JSON.stringify({ type: 'welcome', user: payload }));
-    broadcastUsers();
+    // prefer a claim name if present; otherwise try cache
+    let displayName =
+      decoded.name ?? decoded.username ?? namesCache.get(String(userId)) ?? null;
+
+    ws.user = { id: userId, name: displayName };
+    onlineUsers.set(String(userId), ws);
+
+    // kick off async hydration if name is still missing
+    if (!ws.user.name) {
+      (async () => {
+        const resolved = await fetchUserName(app, userId, tokenFromQuery);
+        if (resolved && ws.readyState === WebSocket.OPEN) {
+          ws.user.name = resolved;
+          // update the cache and rebroadcast so everyone sees the real name
+          namesCache.set(String(userId), resolved);
+          broadcastLobby();
+        }
+      })();
+    }
+
+    if (!userId || Number.isNaN(userId)) {
+      app.log.warn({ decoded }, 'JWT missing user id — closing connection');
+      ws.close(1008, 'Invalid token payload');
+      return;
+    }
+
+    // Track this connection (1 entry per user; last tab wins)
+    onlineUsers.set(String(userId), ws);
+
+    app.log.info({ userId }, 'WS connected');
+    ws.send(JSON.stringify({ type: 'welcome', user: ws.user }));
+    broadcastLobby();
 
     ws.on('message', (raw) => {
       let data;
       try {
-        data = JSON.parse(raw);
+        data = JSON.parse(raw.toString());
       } catch {
-        app.log.warn({ raw }, 'Invalid JSON message');
+        app.log.warn({ raw: raw?.toString() }, 'Invalid JSON message');
         return;
       }
 
-      if (!data?.type) {
-        app.log.warn({ raw }, 'Missing message type');
+      const type = data?.type;
+      if (!type) {
+        app.log.warn({ raw: raw?.toString() }, 'Missing message type');
         return;
       }
 
+
+      //Lobby presence messages
+      if (type === 'lobby:join') {
+        lobbyUsers.set(ws.user.id, ws);
+        broadcastLobby();
+        return;
+      }
+      if (type === 'lobby:leave') {
+        lobbyUsers.delete(ws.user.id);
+        broadcastLobby();
+        return;
+      }
+      if (type === 'user:list:request') {
+        // Send lobby-only list
+        sendLobbyList(ws);
+        return;
+      }
       try {
-        switch (data.type) {
+        switch (type) {
           case 'invite':
-          case 'invite:send':
-            roomHandlers.handleInvite(ws, { ...data, to: String(data.to) });
+          case 'invite:send': {
+            // --- Self-invite & existence guard here ---
+            const toUserId = Number(data.to ?? data.toUserId);
+            const fromUserId = ws.user.id;
+
+            if (!toUserId || Number.isNaN(toUserId)) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                code: 'BAD_INVITE',
+                message: 'Invalid target user.',
+              }));
+              break;
+            }
+
+            if (toUserId === fromUserId) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                code: 'SELF_INVITE',
+                message: 'You cannot invite yourself.',
+              }));
+              break;
+            }
+
+            // Only allow inviting players actually in the lobby
+            const target = lobbyUsers.get(toUserId);
+            if (!target || target.readyState !== WebSocket.OPEN) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                code: 'USER_NOT_IN_LOBBY',
+                message: 'User is not in the lobby.',
+              }));
+              break;
+            }
+
+            // Proceed to handler after validation
+            roomHandlers.handleInvite(ws, { ...data, to: String(toUserId) });
             break;
+          }
 
           case 'invite:accepted':
             roomHandlers.handleInviteAccepted(ws, { from: String(data.from) });
@@ -73,6 +213,17 @@ export function registerWebsocketHandlers(wss, app) {
             gameHandlers.handleGameJoin(ws, { ...data, roomId: String(data.roomId) });
             break;
 
+          case 'matchmaking:join':
+            // If you consider matchmaking leaving the lobby:
+            lobbyUsers.delete(ws.user.id);
+            broadcastLobby();
+            roomHandlers.handleMatchmakingJoin(ws);
+            break;
+
+          case 'matchmaking:leave':
+            roomHandlers.handleMatchmakingLeave(ws);
+            break;
+
           case 'game:move':
             gameHandlers.handleGameMove(ws, {
               ...data,
@@ -80,34 +231,31 @@ export function registerWebsocketHandlers(wss, app) {
               direction: data.direction,
             });
             break;
+          case 'game:begin':
+            gameHandlers.handleGameBegin(ws, data);
+            break;
+
+          case "lobby:leave":
+            lobbyUsers.delete(ws.user.id);
+            broadcastLobby();
+            break;
 
           default:
-            app.log.warn({ type: data.type }, 'Unhandled WS message');
+            app.log.warn({ type }, 'Unhandled WS message');
         }
-
       } catch (err) {
-        app.log.error({ error: err.message, type: data.type }, 'Error handling WS message');
+        app.log.error({ error: err.message, type }, 'Error handling WS message');
       }
     });
 
     ws.on('close', () => {
-      onlineUsers.delete(String(ws.user.id));
-      app.log.info({ userId: ws.user.id }, 'WS Disconnected');
-      broadcastUsers();
+      // cleanup both maps
+      lobbyUsers.delete(ws.user.id);
+      const current = onlineUsers.get(String(ws.user.id));
+      if (current === ws) onlineUsers.delete(String(ws.user.id));
+
+      broadcastLobby(); // update lists
+      app.log.info({ userId: ws.user.id }, 'WS disconnected');
     });
   });
-
-  function broadcastUsers() {
-    const users = [...onlineUsers.values()].map(ws => ({
-      id: ws.user.id,
-      name: ws.user.name,
-    }));
-    const payload = JSON.stringify({ type: 'user:list', users });
-
-    for (const client of onlineUsers.values()) {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(payload);
-      }
-    }
-  }
 }

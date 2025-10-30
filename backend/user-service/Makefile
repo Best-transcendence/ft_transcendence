@@ -6,6 +6,8 @@
 all:
 	@echo "📦 Installing user-service dependencies..."
 	npm install
+	@echo "Installing .env dependences"
+	npm install dotenv dotenv-expand
 	@echo "🔧 Generating Prisma client..."
 	npx prisma generate
 	@echo "🗄️ Running database migrations..."

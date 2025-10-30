@@ -57,7 +57,7 @@ function leftArrow()
 
 	return `<button id="prev-match"
 	class="text-6xl text-gray-300 hover:text-white cursor-pointer font-bold fixed"
-	style="top: clamp(4rem, 50%, calc(100vh - 4rem)); left: calc(50% - 14vw - 9rem); transform: translateY(-50%); z-index: 51; font-size: clamp(1.5rem, 8vw, 3.75rem);">
+	style="top: clamp(4rem, 50%, calc(100vh - 4rem)); left: calc(50% - 14vw - 9rem); transform: translateY(-50%); z-index: 10; font-size: clamp(1.5rem, 8vw, 3.75rem);">
 	‹</button>`;
 }
 
@@ -68,7 +68,7 @@ function rightArrow()
 
 	return `<button id="next-match"
 	class="text-6xl text-gray-300 hover:text-white cursor-pointer font-bold fixed"
-	style="top: clamp(4rem, 50%, calc(100vh - 4rem)); right: calc(50% - 14vw - 9rem); transform: translateY(-50%); z-index: 51; font-size: clamp(1.5rem, 8vw, 3.75rem);">
+	style="top: clamp(4rem, 50%, calc(100vh - 4rem)); right: calc(50% - 14vw - 9rem); transform: translateY(-50%); z-index: 10; font-size: clamp(1.5rem, 8vw, 3.75rem);">
 
 	›</button>`;
 }

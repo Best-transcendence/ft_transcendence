@@ -9,11 +9,12 @@ export default defineConfig({
   publicDir: 'public',
   server: {
     port: 3000,
+    host:'0.0.0.0',
     open: !isDocker // only locally open browser
   },
   preview: {
     port: 3000,
-    host: true,
+    host:'0.0.0.0',
     open: !isDocker // same behaviour for vite preview
   }
 });

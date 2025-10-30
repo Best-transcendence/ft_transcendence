@@ -88,13 +88,6 @@ export function LoginPage() {
           class="mt-4 text-sm cursor-pointer bg-transparent border-none text-gray-300"
         >
         </button>
-
-        <!-- Guest Option -->
-        <p
-          id="guest-login"
-		  class="mt-4 text-sm text-accent hover:text-accent-hover transition-colors duration-200">
-		  Continue as Guest
-        </p>
       </div>
     </div>
   `;

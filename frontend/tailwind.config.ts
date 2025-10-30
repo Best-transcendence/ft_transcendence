@@ -5,6 +5,16 @@ export default {
     './index.html',
     './src/**/*.{ts,tsx,js,jsx,html}',
   ],
+  safelist: [
+    'from-brand',
+    'to-brand-dark',
+    'hover:from-brand-light',
+    'hover:to-brand',
+    'text-theme-accent1',
+    'hover:text-theme-accent2',
+    'bg-theme-button',
+    'hover:bg-theme-button-hover',
+  ],
   theme: {
     extend: {
       colors: {

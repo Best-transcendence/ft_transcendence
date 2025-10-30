@@ -9,6 +9,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     // Initialize game state if it's the first time
     if (!room.state) {
       room.state = {
+        active: true,
         p1Y: 37.5,
         p2Y: 37.5,
         p1Vel: 0,
@@ -36,22 +37,24 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     // Start game when 2 players are in the room
     if (room.players.length === 2) {
       room.players.forEach(client => {
-        client.send(JSON.stringify({ type: 'game:start', roomId }));
+        client.send(JSON.stringify({ type: 'game:ready', roomId }));
       });
 
       resetBall(room.state);
 
       // Wait 1 second before starting the game loop to allow frontend to load
-      setTimeout(() => {
-        startGameLoop(roomId, room);
-      }, 1000);
+      if (room.loopId) clearInterval(room.loopId);
+      if (room.timerId) clearInterval(room.timerId);
+      room.loopId = null;
+      room.timerId = null;
+
     }
   }
 
   function handleGameMove(ws, data) {
     const { roomId, direction, action } = data;
     const room = rooms.get(roomId);
-    if (!room || !room.state) return;
+    if (!room || !room.state || !room.state.active) return;
 
     const playerIndex = room.players.indexOf(ws);
     if (playerIndex === -1) return;
@@ -94,7 +97,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
       if (state.ballY <= 0 || state.ballY >= FIELD - BALL_H) {
         state.ballVelY *= -1;
       }
-
+      const speedBoost = 1.05; // 5% increase per hit
       // Left paddle collision
       if (
         state.ballX <= PADDLE_W &&
@@ -102,7 +105,8 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         state.ballY <= state.p1Y + PADDLE_H
       ) {
         state.ballX = PADDLE_W;
-        state.ballVelX *= -1;
+        state.ballVelX *= -1 * speedBoost;
+        state.ballVelY *= speedBoost;
       }
 
       // Right paddle collision
@@ -112,7 +116,8 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         state.ballY <= state.p2Y + PADDLE_H
       ) {
         state.ballX = FIELD - PADDLE_W - BALL_W;
-        state.ballVelX *= -1;
+        state.ballVelX *= -1 * speedBoost;
+        state.ballVelY *= speedBoost;
       }
 
       // Scoring logic
@@ -124,6 +129,8 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         state.s1++;
         resetBall(state);
       }
+      if (!room.state.active)
+        resetBall(state);
 
       broadcastGameState(room);
     }, 1000 / 60); // Run at ~60 FPS
@@ -154,12 +161,13 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     const normalized = {
       p1Y: state.p1Y,
       p2Y: state.p2Y,
-      ballX: state.ballX,
-      ballY: state.ballY,
       s1: state.s1,
       s2: state.s2,
     };
-
+    if (state.active) {
+      normalized.ballX = state.ballX;
+      normalized.ballY = state.ballY;
+    }
     room.players.forEach(client => {
       if (client.readyState === 1) {
         client.send(JSON.stringify({
@@ -170,8 +178,85 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     });
   }
 
+  function startGameTimer(roomId, room, duration) {
+    const endTime = Date.now() + duration * 1000;
+
+    room.timerId = setInterval(() => {
+      const now = Date.now();
+      let remaining = Math.ceil((endTime - now) / 1000);
+
+      if (remaining < 0) remaining = 0;
+
+      // Broadcast authoritative timer
+      room.players.forEach(client => {
+        if (client.readyState === 1) {
+          client.send(JSON.stringify({
+            type: "game:timer",
+            remaining
+          }));
+        }
+      });
+
+      if (remaining <= 0) {
+        clearInterval(room.timerId);
+        clearInterval(room.loopId);
+        room.timerId = null;
+        room.loopId = null;
+
+        // Decide winner
+        let winner = "draw";
+        if (room.state.s1 > room.state.s2) winner = "p1";
+        else if (room.state.s2 > room.state.s1) winner = "p2";
+
+        room.players.forEach(client => {
+          if (client.readyState === 1) {
+            client.send(JSON.stringify({
+              type: "game:timeup",
+              winner,
+              scores: { s1: room.state.s1, s2: room.state.s2 }
+            }));
+          }
+        });
+        room.state.active = false;
+        room.state.p1Vel = 0;
+        room.state.p2Vel = 0;
+        room.state.p1Up = false;
+        room.state.p1Down = false;
+        room.state.p2Up = false;
+        room.state.p2Down = false;
+      }
+    }, 1000);
+  }
+
+  function handleGameBegin(ws, data) {
+    const { roomId } = data;
+    const room = rooms.get(roomId);
+    if (!room || !room.state || room.loopId || room.timerId) return;
+
+    room.players.forEach(client => {
+      client.send(JSON.stringify({
+        type: 'game:start',
+        roomId,
+        duration: 30,
+        playerIndex: room.players.indexOf(client),
+        players: room.players.map(p => ({
+          id: p.user.id,
+          name: p.user.name ?? `Player ${p.user.id}`
+        }))
+      }));
+    });
+
+
+    setTimeout(() => {
+      startGameLoop(roomId, room);
+      startGameTimer(roomId, room, 30);
+    }, 1000);
+  }
+
+
   return {
     handleGameJoin,
     handleGameMove,
+    handleGameBegin,
   };
 }
