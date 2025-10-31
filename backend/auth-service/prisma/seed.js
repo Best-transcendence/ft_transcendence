@@ -1,21 +1,14 @@
 import { PrismaClient } from '@prisma/client';
-import Vault from 'node-vault';
 
 const prisma = new PrismaClient();
 
-// Vault client
-const vault = Vault(
-  {
-    endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
-    token: process.env.VAULT_TOKEN,
-  });
-
-// List of users to seed
+// Test users for auth service
+// NOTE: createdAt and updatedAt are automatically handled by Prisma
 const users = [
-  'yioffe@example.com',
-  'thuy-ngu@example.com',
-  'juan-pma@example.com',
-  'cbouvet@example.com',
+  { email: 'yioffe@example.com', password: 'q' },
+  { email: 'thuy-ngu@example.com', password: 'q' },
+  { email: 'juan-pma@example.com', password: 'q' },
+  { email: 'cbouvet@example.com', password: 'q' },
 ];
 
 async function main() {
@@ -29,18 +22,14 @@ async function main() {
     return;
   }
 
-  // Read all passwords from Vault
-  const vaultSecrets = await vault.read('secret/data/users');
-  const passwords = vaultSecrets.data.data;
-
-  for (const email of users) {
-    const password = passwords[email]; // from Vault
-    if (!password) continue;
-
+  for (const user of users) {
     const result = await prisma.user.upsert({
-      where: { email },
-      update: {}, // Do not overwrite
-      create: { email, password }, // password from Vault
+      where: { email: user.email },
+      update: {}, // No update if user exists
+      create: {
+        email: user.email,
+        password: user.password, // TODO: hash in production!
+      },
     });
     console.log(`👤 Created user: ${result.email}`);
   }
