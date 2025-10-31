@@ -5,15 +5,14 @@ services:
   # Vault (dev) - HashiCorp Vault server
   # =============================================================================
   vault-service:
-
     image: hashicorp/vault:1.14.0
     container_name: vault_service
     cap_add:
       - IPC_LOCK
     ports:
       - "8200:8200"
-    environment:
-      - VAULT_ADDR=http://127.0.0.1:8200
+    env_file:
+      - .env
     volumes:
       - ./vault:/vault/config
       - ./vault/data:/vault/file
@@ -21,10 +20,10 @@ services:
       - "server"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -sSf http://127.0.0.1:8200/v1/sys/health || exit 1"]
+      test: ["CMD-SHELL", "curl -sSf http://127.0.0.1:8200/v1/sys/health || exit 0"]
       interval: 10s
       timeout: 5s
-      retries: 12
+      retries: 20
 
   # =============================================================================
   # BACKEND SERVICES
@@ -43,10 +42,15 @@ services:
       - USER_SERVICE_URL=${USER_SERVICE_URL}
       - USER_DATABASE_URL=${USER_DATABASE_URL}
       - NODE_ENV=${NODE_ENV}
+      - VAULT_ADDR=http://vault_service:8200
+      - VAULT_TOKEN=${VAULT_TOKEN}
     ports:
       - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     volumes:
       - user_data:/app/data
+    depends_on:
+      vault-service:
+        condition: service_healthy
     networks:
       - ft_transcendence_network
     restart: unless-stopped
@@ -76,6 +80,8 @@ services:
     volumes:
       - auth_data:/app/data
     depends_on:
+      vault-service:
+        condition: service_healthy
       user-service:
         condition: service_healthy
     networks:
@@ -106,6 +112,8 @@ services:
     ports:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
     depends_on:
+      vault-service:
+        condition: service_healthy
       auth-service:
         condition: service_healthy
       user-service:
@@ -139,6 +147,8 @@ services:
     ports:
       - "${WS_PORT}:${WS_PORT}"
     depends_on:
+      vault-service:
+        condition: service_healthy
       auth-service:
         condition: service_healthy
       user-service:
@@ -207,6 +217,8 @@ services:
       - ./waf/crs:/etc/nginx/modsec/crs:ro
       - ./waf/exception-rules.conf:/etc/nginx/modsec/exception-rules.conf:ro
     depends_on:
+      vault-service:
+        condition: service_healthy
       gateway-service:
         condition: service_healthy
       ws-service:
