@@ -2,8 +2,8 @@
 set -e
 
 # Fetch secrets from Vault
-SERVER_CRT=$(vault kv get -field=server.crt secret/waf_certs)
-SERVER_KEY=$(vault kv get -field=server.key secret/waf_certs)
+SERVER_CRT=$(vault kv get -field=server.crt secret/data/waf_certs)
+SERVER_KEY=$(vault kv get -field=server.key secret/data/waf_certs)
 
 # Write to certs directory
 mkdir -p /etc/nginx/certs

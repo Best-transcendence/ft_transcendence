@@ -13,12 +13,16 @@ services:
       - "8200:8200"
     env_file:
       - .env
+    environment:
+    - VAULT_TOKEN=${VAULT_TOKEN}
     volumes:
       - ./vault:/vault/config
       - ./vault/data:/vault/file
     command:
       - "server"
     restart: unless-stopped
+    networks:
+      - ft_transcendence_network
     healthcheck:
       test: ["CMD-SHELL", "curl -sSf http://127.0.0.1:8200/v1/sys/health || exit 0"]
       interval: 10s
@@ -42,7 +46,6 @@ services:
       - USER_SERVICE_URL=${USER_SERVICE_URL}
       - USER_DATABASE_URL=${USER_DATABASE_URL}
       - NODE_ENV=${NODE_ENV}
-      - VAULT_ADDR=http://vault_service:8200
       - VAULT_TOKEN=${VAULT_TOKEN}
     ports:
       - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
@@ -75,6 +78,7 @@ services:
       - AUTH_DATABASE_URL=${AUTH_DATABASE_URL}
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - NODE_ENV=${NODE_ENV}
+      - VAULT_TOKEN=${VAULT_TOKEN}
     ports:
       - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
     volumes:
@@ -109,6 +113,7 @@ services:
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - WS_SERVICE_URL=http://ws_service:${WS_PORT}
       - NODE_ENV=${NODE_ENV}
+      - VAULT_TOKEN=${VAULT_TOKEN}
     ports:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
     depends_on:
@@ -144,6 +149,7 @@ services:
       - AUTH_SERVICE_URL=http://auth_service:${AUTH_SERVICE_PORT}
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - NODE_ENV=${NODE_ENV}
+      - VAULT_TOKEN=${VAULT_TOKEN}
     ports:
       - "${WS_PORT}:${WS_PORT}"
     depends_on:
@@ -207,7 +213,7 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      VAULT_ADDR: http://vault_service:8200
+      VAULT_ADDR: http://vault-service:8200
       VAULT_TOKEN: ${VAULT_TOKEN}
     volumes:
       - ./waf/modsec_logs:/var/log/modsec

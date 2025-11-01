@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import fastifyJwt from '@fastify/jwt';
 import fastifyHttpProxy from '@fastify/http-proxy';
 import fastifySwagger from '@fastify/swagger';
-import fastifySwaggerUI from '@fastify/swagJWT_SECRETger-ui';
+import fastifySwaggerUI from '@fastify/swagger-ui';
 import fastifyCors from '@fastify/cors';
 import Vault from 'node-vault';
 
@@ -46,7 +46,7 @@ const vault = Vault(
 let jwtSecret;
 try
 {
-  const secret = await vault.read('secret/jwt');
+  const secret = await vault.read('secret/data/jwt');
   jwtSecret = secret.data.data.JWT_SECRET;
 }
 catch (err)

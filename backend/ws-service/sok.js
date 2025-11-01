@@ -16,7 +16,7 @@ export async function registerWebsocketHandlers(wss, app) {
   let jwtSecret;
   try
   {
-    const secret = await vault.read('secret/jwt');
+    const secret = await vault.read('secret/data/jwt');
     jwtSecret = secret.data.data.JWT_SECRET;
   }
   catch (err)
