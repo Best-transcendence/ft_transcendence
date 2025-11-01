@@ -9,8 +9,14 @@
 // Service imports for API communication and WebSocket connection
 import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
-import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
+import {
+  GamePongRemote,
+  initRemoteGame,
+  leaveRemoteGame,
+} from "./games/Pong2dRemote";
 
+import { sendWSMessage, disconnectSocket } from "./services/ws";
+import { initPresence } from "./services/presence";
 // Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
@@ -54,6 +60,14 @@ async function fetchUser() {
   }
 }
 
+window.addEventListener("beforeunload", () => {
+  try {
+    sendWSMessage("lobby:leave");
+    sendWSMessage("presence:list:request"); // optional: not necessary
+  } catch {}
+  // ensure socket is closed and won't reconnect
+  disconnectSocket();
+});
 /**
  * Protected page wrapper that ensures user authentication before rendering
  *
@@ -124,6 +138,9 @@ export function router() {
     console.log("Tearing down tournament flow");
     teardownTournamentFlow();
   }
+  if (lastPage === "lobby" && page !== "lobby") {
+    sendWSMessage("lobby:leave");
+  }
 
   // Cleanup games when navigating to non-game pages
   const isGamePage =
@@ -157,6 +174,7 @@ export function router() {
         () => LobbyPage(),
         () => {
           initLobby(); // Initialize lobby-specific functionality
+          sendWSMessage("lobby:join");
         }
       );
       break;
@@ -169,7 +187,10 @@ export function router() {
       break;
 
     case "intro":
-      protectedPage(() => GameIntroPage());
+      protectedPage(
+        () => GameIntroPage(),
+        () => sendWSMessage("lobby:join")
+      );
       break;
 
     case "remote":
@@ -218,7 +239,15 @@ export function router() {
       break;
 
     case "friends":
-      protectedPage(() => FriendsPage(), triggerPopup, friendRequest); // Friends management
+      protectedPage(
+        () => FriendsPage(),
+        triggerPopup,
+        friendRequest,
+        () => {
+          initPresence();
+          // attach click handlers...
+        }
+      ); // Friends management
       break;
 
     case "dashboard":

@@ -22,6 +22,8 @@ async function fetchUserName(app, userId) {
 }
 
 //TODO show friends' online status
+
+
 const onlineUsers = new Map();
 
 // TODO delete if you don't use for checking online friends
@@ -66,6 +68,20 @@ function broadcastLobby() {
   }
 }
 
+// presence helpers ---------------------------------------------------------
+function sendPresenceList(ws) {
+  // send array of numeric ids who are online (excluding the recipient)
+  const users = [...onlineUsers.keys()].map((id) => Number(id));
+  ws.send(JSON.stringify({ type: "presence:list", users }));
+}
+
+function broadcastPresenceEvent(eventType, userId) {
+  for (const [, client] of onlineUsers) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ type: eventType, id: Number(userId) }));
+    }
+  }
+}
 export function registerWebsocketHandlers(wss, app) {
   const roomHandlers = registerRoomHandlers(wss, onlineUsers, app);
   const gameHandlers = registerGameHandlers(wss, onlineUsers, app);
@@ -125,6 +141,9 @@ export function registerWebsocketHandlers(wss, app) {
 
     app.log.info({ userId }, 'WS connected');
     ws.send(JSON.stringify({ type: 'welcome', user: ws.user }));
+
+    sendPresenceList(ws);                 // individual snapshot to the new client
+    broadcastPresenceEvent("presence:online", ws.user.id); // inform all others
     broadcastLobby();
 
     ws.on('message', (raw) => {
@@ -142,7 +161,11 @@ export function registerWebsocketHandlers(wss, app) {
         return;
       }
 
-
+      // handle presence snapshot requests immediately
+      if (type === 'presence:list:request' || type === 'presence:list') {
+        sendPresenceList(ws);
+        return;
+      }
       //Lobby presence messages
       if (type === 'lobby:join') {
         lobbyUsers.set(ws.user.id, ws);
@@ -249,6 +272,12 @@ export function registerWebsocketHandlers(wss, app) {
     });
 
     ws.on('close', () => {
+      // announce offline to everyone
+      try {
+        broadcastPresenceEvent("presence:offline", ws.user.id);
+      } catch (err) {
+        app.log.warn({ err }, 'broadcastPresenceEvent error on close');
+      }
       // cleanup both maps
       lobbyUsers.delete(ws.user.id);
       const current = onlineUsers.get(String(ws.user.id));
