@@ -35,11 +35,13 @@ help:
 	@echo "  make status    - Show status of all services"
 	@echo ""
 	@echo "Individual service commands:"
-	@echo "  make up-user   - Start only user-service"
-	@echo "  make up-auth   - Start only auth-service"
-	@echo "  make up-gateway- Start only gateway-service"
-	@echo "  make up-ws     - Start only ws-service"
-	@echo "  make up-frontend- Start only frontend"
+	@echo "  make up-vault    - Start only vault-service"
+	@echo "  make up-user     - Start only user-service"
+	@echo "  make up-auth     - Start only auth-service"
+	@echo "  make up-gateway  - Start only gateway-service"
+	@echo "  make up-ws       - Start only ws-service"
+	@echo "  make up-frontend - Start only frontend"
+	@echo "  make up-waf.     - Start only waf"
 	@echo ""
 
 # Build all images
@@ -53,6 +55,7 @@ up:
 	docker-compose up -d
 	@echo "✅ All services started!"
 	@echo "📋 Services available at:"
+	@echo "  Vault:     http://vault-service:8200"
 	@echo "  Frontend:  http://localhost:3000"
 	@echo "  Gateway:   http://localhost:3003"
 	@echo "  Auth:      http://localhost:3001"
@@ -84,6 +87,18 @@ status:
 	@echo "📊 Service Status:"
 	@docker-compose ps
 
+# Unseal Vault
+unseal:
+	@echo "🔐 Unsealing Vault..."
+	@read -s -p "Enter Unseal Key 1: " key1; echo; \
+	docker exec -it vault_service vault operator unseal $$key1; \
+	read -s -p "Enter Unseal Key 2: " key2; echo; \
+	docker exec -it vault_service vault operator unseal $$key2; \
+	read -s -p "Enter Unseal Key 3: " key3; echo; \
+	docker exec -it vault_service vault operator unseal $$key3
+	@echo "✅ Vault status:"
+	docker exec -it vault_service vault status
+
 # Individual service commands
 up-user:
 	@echo "🚀 Starting user-service..."
@@ -104,3 +119,11 @@ up-ws:
 up-frontend:
 	@echo "🚀 Starting frontend..."
 	docker-compose up -d frontend
+
+up-waf:
+	@echo "🚀 Starting waf..."
+	docker-compose up -d waf
+
+up-vault:
+	@echo "🚀 Starting vault-service..."
+	docker-compose up -d vault-service
