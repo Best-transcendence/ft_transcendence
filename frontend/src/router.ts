@@ -9,7 +9,11 @@
 // Service imports for API communication and WebSocket connection
 import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
-import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
+import {
+  GamePongRemote,
+  initRemoteGame,
+  leaveRemoteGame,
+} from "./games/Pong2dRemote";
 
 // Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
@@ -37,6 +41,8 @@ import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn";
 import { triggerPopup } from "./components/Popups";
 import { friendRequest } from "./components/FriendRequestDiv";
+
+import { autoConnect } from "./services/ws";
 
 // Global user state - centralizes user data across the application
 export let thisUser: any = undefined;
@@ -75,7 +81,7 @@ export async function protectedPage(
   if (thisUser != undefined) {
     // Render the page content
     app.innerHTML = renderer();
-
+    autoConnect();
     // Attach common UI components to all protected pages
     sideBar(); // Navigation sidebar
     logOutBtn(); // Logout button

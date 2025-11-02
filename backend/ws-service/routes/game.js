@@ -1,6 +1,6 @@
 import { rooms } from './rooms.js';
 
-export function registerGameHandlers(wss, onlineUsers, app) {
+export function registerGameHandlers(wss, app) {
   function handleGameJoin(ws, data) {
     const { roomId } = data;
     const room = rooms.get(roomId);
@@ -42,12 +42,10 @@ export function registerGameHandlers(wss, onlineUsers, app) {
 
       resetBall(room.state);
 
-      // Wait 1 second before starting the game loop to allow frontend to load
       if (room.loopId) clearInterval(room.loopId);
       if (room.timerId) clearInterval(room.timerId);
       room.loopId = null;
       room.timerId = null;
-
     }
   }
 
@@ -61,7 +59,6 @@ export function registerGameHandlers(wss, onlineUsers, app) {
 
     const isDown = action === "down";
 
-    // Map input to player movement flags
     if (playerIndex === 0) {
       if (direction === "w") room.state.p1Up = isDown;
       else if (direction === "s") room.state.p1Down = isDown;
@@ -81,7 +78,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     room.loopId = setInterval(() => {
       const state = room.state;
 
-      // Update paddle velocity based on input
+      // Update paddle velocity
       state.p1Vel = applyInput(state.p1Up, state.p1Down, state.p1Vel);
       state.p2Vel = applyInput(state.p2Up, state.p2Down, state.p2Vel);
 
@@ -89,16 +86,17 @@ export function registerGameHandlers(wss, onlineUsers, app) {
       state.p1Y = clamp(state.p1Y + state.p1Vel, 0, maxY);
       state.p2Y = clamp(state.p2Y + state.p2Vel, 0, maxY);
 
-      // Update ball position
+      // Update ball
       state.ballX += state.ballVelX;
       state.ballY += state.ballVelY;
 
-      // Bounce off top/bottom walls
+      // Bounce top/bottom
       if (state.ballY <= 0 || state.ballY >= FIELD - BALL_H) {
         state.ballVelY *= -1;
       }
-      const speedBoost = 1.05; // 5% increase per hit
-      // Left paddle collision
+
+      const speedBoost = 1.05;
+      // Left paddle
       if (
         state.ballX <= PADDLE_W &&
         state.ballY + BALL_H >= state.p1Y &&
@@ -109,7 +107,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         state.ballVelY *= speedBoost;
       }
 
-      // Right paddle collision
+      // Right paddle
       if (
         state.ballX + BALL_W >= FIELD - PADDLE_W &&
         state.ballY + BALL_H >= state.p2Y &&
@@ -120,7 +118,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         state.ballVelY *= speedBoost;
       }
 
-      // Scoring logic
+      // Scoring
       const ballCenterX = state.ballX + BALL_W / 2;
       if (ballCenterX < 0) {
         state.s2++;
@@ -129,17 +127,15 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         state.s1++;
         resetBall(state);
       }
-      if (!room.state.active)
-        resetBall(state);
 
       broadcastGameState(room);
-    }, 1000 / 60); // Run at ~60 FPS
+    }, 1000 / 60);
   }
 
   function applyInput(up, down, vel) {
     if (up) vel -= 0.3;
     if (down) vel += 0.3;
-    if (!up && !down) vel *= 0.9; // Apply friction
+    if (!up && !down) vel *= 0.9;
     return clamp(vel, -1.5, 1.5);
   }
 
@@ -150,8 +146,6 @@ export function registerGameHandlers(wss, onlineUsers, app) {
   function resetBall(state) {
     state.ballX = 50 - 3.3 / 2;
     state.ballY = 50 - 5 / 2;
-
-    // Set slower initial ball velocity
     state.ballVelX = Math.random() > 0.5 ? 0.6 : -0.6;
     state.ballVelY = Math.random() > 0.5 ? 0.4 : -0.4;
   }
@@ -184,10 +178,8 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     room.timerId = setInterval(() => {
       const now = Date.now();
       let remaining = Math.ceil((endTime - now) / 1000);
-
       if (remaining < 0) remaining = 0;
 
-      // Broadcast authoritative timer
       room.players.forEach(client => {
         if (client.readyState === 1) {
           client.send(JSON.stringify({
@@ -203,7 +195,6 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         room.timerId = null;
         room.loopId = null;
 
-        // Decide winner
         let winner = "draw";
         if (room.state.s1 > room.state.s2) winner = "p1";
         else if (room.state.s2 > room.state.s1) winner = "p2";
@@ -217,13 +208,11 @@ export function registerGameHandlers(wss, onlineUsers, app) {
             }));
           }
         });
+
+        // Cleanup
         room.state.active = false;
-        room.state.p1Vel = 0;
-        room.state.p2Vel = 0;
-        room.state.p1Up = false;
-        room.state.p1Down = false;
-        room.state.p2Up = false;
-        room.state.p2Down = false;
+        rooms.delete(roomId);
+        app.log.info(`Room ${roomId} deleted after game end`);
       }
     }, 1000);
   }
@@ -246,17 +235,33 @@ export function registerGameHandlers(wss, onlineUsers, app) {
       }));
     });
 
-
     setTimeout(() => {
       startGameLoop(roomId, room);
       startGameTimer(roomId, room, 30);
     }, 1000);
   }
 
+  function handleGameLeave(ws, data) {
+    const { roomId } = data;
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    // kick the player.
+    room.players = room.players.filter(p => p !== ws);
+
+    // If there is less than 2 cleans all
+    if (room.players.length < 2) {
+      if (room.timerId) clearInterval(room.timerId);
+      if (room.loopId) clearInterval(room.loopId);
+      rooms.delete(roomId);
+      app.log.info(`Room ${roomId} cleaned up after leave`);
+    }
+  }
 
   return {
     handleGameJoin,
     handleGameMove,
     handleGameBegin,
+    handleGameLeave,
   };
 }
