@@ -18,8 +18,22 @@ export function GamePongRemote(): string {
       case "game:ready":
         document.getElementById("startPress")?.classList.remove("hidden");
         break;
+      case "session:kickIntro":
+        window.location.hash = "intro";
+        break;
 
+      case "session:state":
+        if (
+          !msg.inRoom &&
+          (window.location.hash === "#game" ||
+            window.location.hash === "#remote")
+        ) {
+          window.location.hash = "intro";
+        }
+        break;
       case "room:start":
+        currentPlayers = msg.players;
+        window.location.hash = "game";
         initRemoteGame(msg.roomId);
         break;
 
@@ -75,9 +89,30 @@ export function GamePongRemote(): string {
         updateGameState(msg.state);
         break;
 
-      case "game:end":
-        showGameOver(msg.winner);
+      case "game:end": {
+        console.log("game:end", msg);
+        const overlay = document.getElementById("timeUpOverlay");
+        if (overlay) {
+          overlay.classList.remove("hidden");
+          const titleEl = overlay.querySelector("h2");
+          if (titleEl) {
+            titleEl.textContent =
+              msg.type === "game:timeup" ? "Time’s up!" : "Game Over!";
+          }
+          const textEl = overlay.querySelector("p");
+          if (textEl) {
+            textEl.textContent =
+              msg.winner === "you"
+                ? "Opponent disconnected. You win 🥇"
+                : "Game ended";
+          }
+        }
+        setTimeout(() => {
+          window.location.hash = "intro";
+        }, 3000);
+        currentRoomId = null;
         break;
+      }
     }
   });
 
@@ -94,10 +129,10 @@ export function GamePongRemote(): string {
     </div>
 
           <!-- Timer -->
-          ${TimerDisplay()}
 
           <div id="player-cards" class="flex justify-between gap-4 mb-4"></div>
           <div id="player-controls" class="text-sm text-gray-400 mt-2 text-center"></div>
+          ${TimerDisplay()}
 
     <!-- Game section -->
     <div class="flex justify-center w-screen overflow-hidden">
@@ -241,10 +276,10 @@ function updateGameState(state: any) {
   score2.textContent = state.s2.toString();
 }
 
-function showGameOver(winner: string) {
-  alert(`Game Over! Winner: ${winner}`);
-  window.location.hash = "intro";
-}
+// function showGameOver(winner: string) {
+//   alert(`Game Over! Winner: ${winner}`);
+//   window.location.hash = "intro";
+// }
 
 export function leaveRemoteGame() {
   const socket = getSocket();

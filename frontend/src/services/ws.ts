@@ -41,7 +41,11 @@ export function connectSocket(token: string) {
   socket.onclose = (ev) => {
     console.log("WS closed", ev.code, ev.reason);
     socket = null;
+
+    // If was not a manual close send to intro page.
     if (!manualClose) {
+      window.location.hash = "intro";
+
       reconnectTimer = window.setTimeout(() => {
         const saved = localStorage.getItem("jwt");
         if (saved) connectSocket(saved);
