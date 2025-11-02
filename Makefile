@@ -96,8 +96,7 @@ unseal:
 	docker exec -it vault_service vault operator unseal $$key2; \
 	read -s -p "Enter Unseal Key 3: " key3; echo; \
 	docker exec -it vault_service vault operator unseal $$key3
-	@echo "✅ Vault status:"
-	docker exec -it vault_service vault status
+	@echo "✅ Vault should be unlocked"
 
 # Individual service commands
 up-user:
