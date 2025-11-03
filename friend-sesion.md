@@ -64,11 +64,16 @@
 ### Frontend Changes
 - **Friends.ts**: Updated `friendCard` to use dynamic status `<span id="status-${friend.id}">🔴</span>`, added `setupFriends()` for WS subscription and real-time listeners, and added `updateFriendStatuses` and `updateSingleFriendStatus` functions.
 - **router.ts**: Added `setupFriends` call for the friends page route.
+- **ws.ts**: Added `onSocketOpen` for subscribing to WS open events.
+- **Friends.ts**: Modified `setupFriends` to send subscribe only after WS opens, fixing reload issue.
+- **router.ts**: Added `disconnectSocket()` for login page to disconnect WS on navigation away from protected pages.
 
 ## 🧪 Testing Results
 
 - **Load friends page**: Dots show correct initial statuses (🟢 for online, 🔴 for offline).
+- **Reload page**: Statuses update correctly after WS opens (fixed timing issue).
 - **Real-time updates**: When a friend connects/disconnects, the dot updates instantly without page reload.
+- **Browser back**: WS disconnects when navigating to login (non-protected page).
 - **Multiple friends**: All statuses update independently.
 - **Edge cases**: Handles no friends, WS failures (defaults to 🔴), and invalid IDs gracefully.
 - **Debugging**: Added console logs for WS setup and messages; fixed missing import for `sidebarDisplay`.

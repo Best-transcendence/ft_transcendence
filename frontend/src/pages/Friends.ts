@@ -5,7 +5,7 @@ import { sidebarDisplay } from "../components/SideBar"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { friendRequestCard } from "../components/FriendRequestDiv"
 import { confirmPopup } from "../components/Popups"
-import { sendWSMessage, onSocketMessage } from "../services/ws"
+import { sendWSMessage, onSocketMessage, onSocketOpen } from "../services/ws"
 
 // Interface for friend (safer than using "any")
 export interface Friend
@@ -114,11 +114,14 @@ export function FriendsPage()
 export function setupFriends() {
   try {
     console.log('Setting up friends WS');
-    // Send subscribe message for initial statuses
-    if (thisUser && thisUser.friends && thisUser.friends.length > 0) {
-      console.log('Sending friends subscribe', thisUser.friends.map(f => f.id));
-      sendWSMessage('friends:subscribe', { friendIds: thisUser.friends.map(f => f.id) });
-    }
+
+    // Send subscribe message once WS is open
+    onSocketOpen(() => {
+      if (thisUser && thisUser.friends && thisUser.friends.length > 0) {
+        console.log('Sending friends subscribe', thisUser.friends.map(f => f.id));
+        sendWSMessage('friends:subscribe', { friendIds: thisUser.friends.map(f => f.id) });
+      }
+    });
 
     // Listen for status updates
     onSocketMessage((msg) => {

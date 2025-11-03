@@ -8,7 +8,7 @@
 
 // Service imports for API communication and WebSocket connection
 import { getCurrentUser, login, signup } from "./services/api";
-import { connectSocket } from "./services/ws";
+import { connectSocket, disconnectSocket } from "./services/ws";
 import {
   GamePongRemote,
   initRemoteGame,
@@ -153,6 +153,7 @@ export function router() {
   switch (page) {
     // Public routes (no authentication required)
     case "login":
+      disconnectSocket(); // Disconnect WS when leaving protected pages
       app.innerHTML = LoginPage();
       attachLoginListeners(); // Set up login form event listeners
       break;

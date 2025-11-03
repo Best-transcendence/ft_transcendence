@@ -2,6 +2,7 @@ let socket: WebSocket | null = null;
 let reconnectTimer: number | null = null;
 let manualClose = false;
 let listeners: ((msg: any) => void)[] = [];
+let openListeners: (() => void)[] = [];
 
 export function getSocket() {
   return socket;
@@ -23,6 +24,8 @@ export function connectSocket(token: string) {
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
     }
+    // Notify open listeners
+    openListeners.forEach((fn) => fn());
   };
 
   socket.onmessage = (event) => {
@@ -65,6 +68,14 @@ export function onSocketMessage(fn: (msg: any) => void) {
   listeners.push(fn);
   return () => {
     listeners = listeners.filter((l) => l !== fn);
+  };
+}
+
+// Subscribe to open event
+export function onSocketOpen(fn: () => void) {
+  openListeners.push(fn);
+  return () => {
+    openListeners = openListeners.filter((l) => l !== fn);
   };
 }
 
