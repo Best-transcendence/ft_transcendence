@@ -52,7 +52,7 @@ build:
 # Start all services
 up:
 	@echo "🚀 Starting all services..."
-	docker-compose up -d
+	docker compose up -d
 	@echo "✅ All services started!"
 	@echo "📋 Services available at:"
 	@echo "  Vault:     http://vault-service:8200"
@@ -121,8 +121,8 @@ up-frontend:
 
 up-waf:
 	@echo "🚀 Starting waf..."
-	docker-compose up -d waf
+	docker compose up -d waf
 
 up-vault:
 	@echo "🚀 Starting vault-service..."
-	docker-compose up -d vault-service
+	docker compose up -d vault-service
