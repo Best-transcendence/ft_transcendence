@@ -4,6 +4,7 @@ import { fetchUser } from "../router";
 /* Create this object + call the saveMatch function for each type of match.
 type:
 1v1 -> "ONE_VS_ONE"
+Tournament 1v1 -> "TOURNAMENT_1V1"
 Tournament Intermediate -> "TOURNAMENT_INTERMEDIATE"
 Tournament Final -> "TOURNAMENT_FINAL"
 
@@ -16,7 +17,9 @@ Solution -> the user with the highest id is the one saving.
 Recommendations:
 - Check that both players are authenticated before calling saveMatch
 - The winnerId is calculated automatically on the backend based on scores
-- Use TOURNAMENT_FINAL for championship matches, TOURNAMENT_INTERMEDIATE for others
+- Use TOURNAMENT_1V1 for 2-player tournament matches
+- Use TOURNAMENT_FINAL for 4-player tournament championship matches
+- Use TOURNAMENT_INTERMEDIATE for 4-player tournament semi-final matches
 */
 
 export interface MatchObject

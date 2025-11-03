@@ -585,7 +585,7 @@ export default async function (fastify, _opts) {
 		  	  type: 'object',
 		  	  properties:
 				{
-				  type: { type: 'string', enum: ['ONE_VS_ONE', 'TOURNAMENT_INTERMEDIATE', 'TOURNAMENT_FINAL'] },
+				  type: { type: 'string', enum: ['ONE_VS_ONE', 'TOURNAMENT_1V1', 'TOURNAMENT_INTERMEDIATE', 'TOURNAMENT_FINAL'] },
 				  player1Id: { type: 'integer' },
 				  player2Id: { type: 'integer' },
 				  player1Score: { type: 'integer' },
@@ -684,6 +684,16 @@ export default async function (fastify, _opts) {
 
         console.log(`[${request.id}] Player1 profile:`, player1Profile);
         console.log(`[${request.id}] Player2 profile:`, player2Profile);
+
+        // Verify both profiles exist before proceeding
+        if (!player1Profile) {
+          console.error(`[${request.id}] Player1 profile not found for authUserId: ${player1Id}`);
+          return reply.status(400).send({ error: `Player profile not found for user ${player1Id}` });
+        }
+        if (!player2Profile) {
+          console.error(`[${request.id}] Player2 profile not found for authUserId: ${player2Id}`);
+          return reply.status(400).send({ error: `Player profile not found for user ${player2Id}` });
+        }
 
         // retrieve date or create it
         let matchDate = new Date();

@@ -296,15 +296,25 @@ _timeupHandler = () => {
   
   // Save match if both players are authenticated (regardless of who the logged-in user is)
   if (leftPlayer?.isAuthenticated && rightPlayer?.isAuthenticated) {
-    // Determine if this is a final match by checking the current match round
-    const currentMatch = (window as any).tournamentCurrentMatch;
-    const isFinal = currentMatch?.round === 2;
+    // Check tournament mode from seed to determine match type
+    const seed = JSON.parse(localStorage.getItem("tournamentSeed") || "{}");
+    const tournamentMode = seed.mode; // "2" or "4"
     
-    console.log("Current match:", currentMatch);
-    console.log("Is final:", isFinal);
+    let matchType: string;
+    if (tournamentMode === "2") {
+      matchType = "TOURNAMENT_1V1";
+    } else {
+      // 4-player tournament
+      const currentMatch = (window as any).tournamentCurrentMatch;
+      const isFinal = currentMatch?.round === 2;
+      matchType = isFinal ? "TOURNAMENT_FINAL" : "TOURNAMENT_INTERMEDIATE";
+    }
+    
+    console.log("Tournament mode:", tournamentMode);
+    console.log("Match type:", matchType);
     
     const matchData: MatchObject = {
-      type: isFinal ? "TOURNAMENT_FINAL" : "TOURNAMENT_INTERMEDIATE",
+      type: matchType,
       date: new Date().toISOString(),
       player1Id: leftPlayer.authUserId!,
       player2Id: rightPlayer.authUserId!,

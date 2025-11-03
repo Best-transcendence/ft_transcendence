@@ -34,6 +34,7 @@ model UserProfile {
 // Match type enum
 enum MatchType {
   ONE_VS_ONE
+  TOURNAMENT_1V1
   TOURNAMENT_INTERMEDIATE
   TOURNAMENT_FINAL
 }

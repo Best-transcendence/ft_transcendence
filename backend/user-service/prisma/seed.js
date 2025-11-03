@@ -14,7 +14,7 @@ const userProfiles = [
   {
     authUserId: 2,
     name: 'Tina',
-    email: '',
+    email: 'thuy-ngu@example.com',
     profilePicture: '/assets/default-avatar.jpeg',
     bio: 'Love competitive gaming and teamwork!'
   },

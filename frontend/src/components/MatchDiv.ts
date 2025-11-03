@@ -6,6 +6,8 @@ function getMatchTypeDisplay(type: string): string {
   switch (type) {
     case 'ONE_VS_ONE':
       return '1 vs 1 Match';
+    case 'TOURNAMENT_1V1':
+      return '1v1 Tournament';
     case 'TOURNAMENT_INTERMEDIATE':
       return 'Tournament Match';
     case 'TOURNAMENT_FINAL':

@@ -91,9 +91,11 @@ let nameRightEl: HTMLDivElement | null = null;       // Right player name displa
 let roundLabelEl: HTMLDivElement | null = null;     // Round label (e.g., "Round 1", "Final")
 let championEl: HTMLDivElement | null = null;       // Champion banner element
 
-// Current match player names for reference
+// Current match player names and objects for reference
 let currentLeftName = "";
 let currentRightName = "";
+let currentLeftPlayer: Player | undefined;
+let currentRightPlayer: Player | undefined;
 
 /**
  * Creates and mounts the tournament overlay UI
@@ -175,6 +177,8 @@ function showOverlay(left: string, right: string, label: string, leftPlayer?: Pl
   // Store current match information
   currentLeftName = leftPlayer ? getDisplayName(leftPlayer) : left;
   currentRightName = rightPlayer ? getDisplayName(rightPlayer) : right;
+  currentLeftPlayer = leftPlayer;
+  currentRightPlayer = rightPlayer;
   (window as any).tournamentCurrentPlayers = { 
     left, 
     right, 
@@ -452,7 +456,7 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
     if (L === R) {
       if (!inTieBreaker) {
         inTieBreaker = true;
-        showOverlay(currentLeftName, currentRightName, "Tie-breaker");
+        showOverlay(currentLeftName, currentRightName, "Tie-breaker", currentLeftPlayer, currentRightPlayer);
         attachSpaceToStart();   // Space #1 hides overlay; Space #2 starts round (handled by game)
       } else {
         // Still tied in tie-breaker → sudden-death restart (no overlay)
@@ -502,6 +506,7 @@ export function teardownTournamentFlow() {
   bracket = null;
   currentMatch = null;
   currentLeftName = currentRightName = "";
+  currentLeftPlayer = currentRightPlayer = undefined;
 
   inTieBreaker = false;
 }
