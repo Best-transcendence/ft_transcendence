@@ -1,6 +1,16 @@
 # ft_transcendence - Main Makefile
 # School 42 project - Docker management
 
+# Load environment variables from .env file
+ifeq ($(shell test -f .env && echo true),true)
+  LAN_IP := $(shell grep -E '^LAN_IP=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' ')
+  FRONTEND_PORT := $(shell grep -E '^FRONTEND_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' ')
+endif
+
+# Set defaults if not found in .env
+LAN_IP ?= localhost
+FRONTEND_PORT ?= 3000
+
 .PHONY: help build up down logs clean restart status rebuild rebuild-frontend rebuild-all clear-cache
 
 # Default target
@@ -59,11 +69,11 @@ up:
 	docker compose up -d
 	@echo "✅ All services started!"
 	@echo "📋 Services available at:"
-	@echo "  Frontend:  http://localhost:3000"
-	@echo "  Gateway:   http://localhost:3003"
-	@echo "  Auth:      http://localhost:3001"
-	@echo "  User:      http://localhost:3002"
-	@echo "  WebSocket: ws://localhost:4000"
+	@echo "  Frontend:  http://$(LAN_IP):$(FRONTEND_PORT)"
+	@echo "  Gateway:   http://$(LAN_IP):$$(grep -E '^GATEWAY_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' ' || echo 3003)"
+	@echo "  Auth:      http://$(LAN_IP):$$(grep -E '^AUTH_SERVICE_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' ' || echo 3001)"
+	@echo "  User:      http://$(LAN_IP):$$(grep -E '^USER_SERVICE_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' ' || echo 3002)"
+	@echo "  WebSocket: ws://$(LAN_IP):$$(grep -E '^WS_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' ' || echo 4000)"
 
 # Stop all services
 down:
@@ -130,7 +140,7 @@ rebuild-frontend: down clear-cache
 	@echo "Choose ONE method:"
 	@echo "  1. Hard Refresh:     Cmd+Shift+R (Mac) or Ctrl+Shift+F5 (Windows/Linux)"
 	@echo "  2. DevTools:         Right-click refresh → 'Empty Cache and Hard Reload'"
-	@echo "  3. Incognito Mode:   Open http://localhost:3000 in incognito/private window"
+	@echo "  3. Incognito Mode:   Open http://$(LAN_IP):$(FRONTEND_PORT) in incognito/private window"
 	@echo "  4. Disable Cache:    F12 → Network tab → Check 'Disable cache' → Refresh"
 	@echo ""
 
