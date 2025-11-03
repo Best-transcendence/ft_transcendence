@@ -147,62 +147,62 @@
 
 ### `services/ws.ts`
 
-- Mantiene `socket` global.
-- `connectSocket(token)`: abre WS con token.
-- `autoConnect()`: lee `jwt` de `localStorage` y conecta.
-- `onSocketMessage(fn)`: suscripción a mensajes.
-- `disconnectSocket()`: cierre manual.
-- Reconexión automática si no es cierre manual.
+- Maintains global `socket`.
+- `connectSocket(token)`: opens WS with token.
+- `autoConnect()`: reads `jwt` from `localStorage` and connects.
+- `onSocketMessage(fn)`: subscribes to messages.
+- `disconnectSocket()`: manual close.
+- Automatic reconnection if not manual close.
 
-👉 **Clave**: llamar a `autoConnect()` al arrancar la app (en `main.ts` o en `protectedPage` del router).
+👉 **Key**: call `autoConnect()` on app startup (in `main.ts` or in `protectedPage` of router).
 
 ---
 
 ### `router.ts`
 
-- Maneja rutas hash.
-- `protectedPage`: valida usuario → renderiza página.
-- Aquí añadimos `autoConnect()` para que siempre se abra el WS en páginas protegidas.
+- Handles hash routes.
+- `protectedPage`: validates user → renders page.
+- Here we add `autoConnect()` to always open WS on protected pages.
 
 ---
 
 ### `PongRemote.ts` / `pong2d.ts`
 
-- Suscripción a mensajes de juego.
-- Casos manejados: `room:start`, `game:start`, `game:update`, `game:end`, `game:timeup`.
-- Ahora también:
+- Subscribes to game messages.
+- Handled cases: `room:start`, `game:start`, `game:update`, `game:end`, `game:timeup`.
+- Now also:
     - `session:kickIntro` → `window.location.hash = "intro"`.
-    - `session:state` → si no está en sala y estás en `#game`/`#remote`, vuelve al intro.
-- Overlay de fin de partida.
-- Limpieza de handlers de teclado en `leaveRemoteGame`.
+    - `session:state` → if not in room and on `#game`/`#remote`, return to intro.
+- Game end overlay.
+- Cleanup of keyboard handlers in `leaveRemoteGame`.
 
 ---
 
-## 🔑 Problema detectado
+## 🔑 Detected Problem
 
-- El backend sí marca `pendingKickIntro`, pero tras recargar el cliente **no reabría el WebSocket** → nunca llegaba `session:kickIntro`.
-- Solución: **llamar a `autoConnect()` en el arranque** (router o main.ts).
+- The backend does mark `pendingKickIntro`, but after reloading the client **it wouldn't reopen the WebSocket** → `session:kickIntro` never arrived.
+- Solution: **call `autoConnect()` on startup** (router or main.ts).
 
 ---
 
-## 📌 Pendiente para mañana
+## 📌 Pending for Tomorrow
 
-- Confirmar que `autoConnect()` se ejecuta al recargar.
-- Ver en consola:
+- Confirm that `autoConnect()` executes on reload.
+- See in console:
     - `WS open`
     - `WS message: { type: "session:kickIntro" }`
-- Verificar que el frontend redirige al intro.
-- Revisar UX del jugador que se queda (overlay + redirección tras 3s).
+- Verify that the frontend redirects to intro.
+- Review UX for the remaining player (overlay + redirect after 3s).
 
 ---
 
 ## Session 3 - Mon Nov 03 2025
 
-### 🎯 Goals
+### Goals
 - Fix navigation back issue where leaving the game via browser back button caused the game to freeze for the remaining player.
 - Fix overlay display issue where game elements (paddles, ball, scores) were visible behind the win overlay.
 
-### ✅ Changes Implemented
+### Changes Implemented
 
 #### Backend (`ws-service/routes/game.js`)
 - **Modified `handleGameLeave`**: Now sends `game:end` to the remaining player and `session:kickIntro` to the leaver when a player intentionally leaves the game (e.g., navigation back). This ensures both players are properly notified and redirected, preventing the game from freezing.
@@ -213,12 +213,12 @@
 - **Element Hiding**: Added code to hide paddles, ball, and scores (`display: "none"`) when showing `game:end` or `game:timeup` overlays, preventing overlap with the win message.
 - **Cleanup**: Removed redundant hiding code after confirming z-index fix, but re-added for reliability.
 
-### 🚀 Benefits
+### Benefits
 - **Smooth Navigation**: Browser back button now properly ends the game for both players without freezing.
 - **Clean UI**: Win overlays now display cleanly without overlapping game elements.
 - **Consistent Behavior**: Leaving the game (intentional or accidental) now mirrors disconnect handling.
 
-### 📌 Next Steps
+### Next Steps
 - Implement sounds and visual effects for scoring.
 - Add background animations using machine.png assets.
 - Extend fixes to other game modes (AI, tournament).

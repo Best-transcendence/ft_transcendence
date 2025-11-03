@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { registerRoomHandlers } from './rooms.js';
 import { registerGameHandlers } from './game.js';
 import { registerLobbyHandlers, broadcastLobby } from './lobby.js';
+import { registerFriendsHandlers } from './friends.js';
 import {
   addOnlineUser,
   removeOnlineUser,
@@ -15,6 +16,7 @@ export function registerWebsocketHandlers(wss, app) {
   const roomHandlers = registerRoomHandlers(wss, app);
   const gameHandlers = registerGameHandlers(wss, app);
   const lobbyHandlers = registerLobbyHandlers(wss, app);
+  const friendsHandlers = registerFriendsHandlers(wss, app);
 
   wss.on('connection', (ws, req) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
@@ -48,6 +50,12 @@ export function registerWebsocketHandlers(wss, app) {
     ws.user = { id: userId, name: displayName };
 
     addOnlineUser(userId, ws);
+    // Broadcast online status
+    wss.clients.forEach(client => {
+      if (client.readyState === 1) {
+        client.send(JSON.stringify({ type: 'user:online', userId }));
+      }
+    });
     onWsConnected(ws);
     // Hydrate name if missing
     if (!ws.user.name) {
@@ -84,38 +92,41 @@ export function registerWebsocketHandlers(wss, app) {
       // Delegate to rooms/game
       try {
         switch (type) {
-          case 'invite':
-          case 'invite:send':
-            roomHandlers.handleInvite(ws, data);
-            break;
-          case 'invite:accepted':
-            roomHandlers.handleInviteAccepted(ws, data);
-            break;
-          case 'invite:declined':
-            roomHandlers.handleInviteDeclined(ws, data);
-            break;
-          case 'game:join':
-            gameHandlers.handleGameJoin(ws, { ...data, roomId: String(data.roomId) });
-            break;
-          case 'game:leave':
-            gameHandlers.handleGameLeave(ws, data);
-            break;
+        case 'invite':
+        case 'invite:send':
+          roomHandlers.handleInvite(ws, data);
+          break;
+        case 'invite:accepted':
+          roomHandlers.handleInviteAccepted(ws, data);
+          break;
+        case 'invite:declined':
+          roomHandlers.handleInviteDeclined(ws, data);
+          break;
+        case 'game:join':
+          gameHandlers.handleGameJoin(ws, { ...data, roomId: String(data.roomId) });
+          break;
+        case 'game:leave':
+          gameHandlers.handleGameLeave(ws, data);
+          break;
 
-          case 'matchmaking:join':
-            lobbyHandlers['lobby:leave'](ws); // leave lobby before matchmaking
-            roomHandlers.handleMatchmakingJoin(ws);
-            break;
-          case 'matchmaking:leave':
-            roomHandlers.handleMatchmakingLeave(ws);
-            break;
-          case 'game:move':
-            gameHandlers.handleGameMove(ws, { ...data, roomId: String(data.roomId), direction: data.direction });
-            break;
-          case 'game:begin':
-            gameHandlers.handleGameBegin(ws, data);
-            break;
-          default:
-            app.log.warn({ type }, 'Unhandled WS message');
+        case 'matchmaking:join':
+          lobbyHandlers['lobby:leave'](ws); // leave lobby before matchmaking
+          roomHandlers.handleMatchmakingJoin(ws);
+          break;
+        case 'matchmaking:leave':
+          roomHandlers.handleMatchmakingLeave(ws);
+          break;
+        case 'game:move':
+          gameHandlers.handleGameMove(ws, { ...data, roomId: String(data.roomId), direction: data.direction });
+          break;
+        case 'game:begin':
+          gameHandlers.handleGameBegin(ws, data);
+          break;
+        case 'friends:subscribe':
+          friendsHandlers.handleFriendSubscribe(ws, data);
+          break;
+        default:
+          app.log.warn({ type }, 'Unhandled WS message');
         }
       } catch (err) {
         app.log.error({ error: err.message, type }, 'Error handling WS message');
@@ -124,6 +135,12 @@ export function registerWebsocketHandlers(wss, app) {
 
     // ---------------- Cleanup ----------------
     ws.on('close', () => {
+      // Broadcast offline status before cleanup
+      wss.clients.forEach(client => {
+        if (client.readyState === 1) {
+          client.send(JSON.stringify({ type: 'user:offline', userId: ws.user.id }));
+        }
+      });
       lobbyHandlers.cleanup(ws);
       removeOnlineUser(ws.user.id, ws);
       roomHandlers.handleDisconnect(ws);

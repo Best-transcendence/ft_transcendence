@@ -5,6 +5,7 @@ import { sidebarDisplay } from "../components/SideBar"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { friendRequestCard } from "../components/FriendRequestDiv"
 import { confirmPopup } from "../components/Popups"
+import { sendWSMessage, onSocketMessage } from "../services/ws"
 
 // Interface for friend (safer than using "any")
 export interface Friend
@@ -62,7 +63,7 @@ function friendCard(friend: Friend)
 				<div class="mr-3">
 				<h3 class="text-white font-semibold">
 					${ friend.name }
-					<span class="inline-block ml-1 text-sm">🟢</span></h3>
+					<span id="status-${friend.id}" class="inline-block ml-1 text-sm">🔴</span></h3>
 				<p class="text-gray-400 text-sm break-words"
 				style="word-break: break-word; overflow-wrap: break-word;"><i>${ friend.bio }</i></p>
 				</div>
@@ -108,3 +109,48 @@ export function FriendsPage()
 
 	</div>`
 };
+
+// Setup WebSocket for friends status
+export function setupFriends() {
+  try {
+    console.log('Setting up friends WS');
+    // Send subscribe message for initial statuses
+    if (thisUser && thisUser.friends && thisUser.friends.length > 0) {
+      console.log('Sending friends subscribe', thisUser.friends.map(f => f.id));
+      sendWSMessage('friends:subscribe', { friendIds: thisUser.friends.map(f => f.id) });
+    }
+
+    // Listen for status updates
+    onSocketMessage((msg) => {
+      console.log('Friends WS message:', msg);
+      if (msg.type === 'friends:status') {
+        updateFriendStatuses(msg.statuses);
+      } else if (msg.type === 'user:online' || msg.type === 'user:offline') {
+        if (thisUser && thisUser.friends && thisUser.friends.some(f => f.id === msg.userId)) {
+          updateSingleFriendStatus(msg.userId, msg.type === 'user:online');
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error setting up friends WS:', error);
+  }
+}
+
+// Update all friend statuses from subscribe response
+function updateFriendStatuses(statuses: { [key: number]: boolean }) {
+  Object.keys(statuses).forEach(id => {
+    const friendId = Number(id);
+    const statusEl = document.getElementById(`status-${friendId}`);
+    if (statusEl) {
+      statusEl.textContent = statuses[friendId] ? '🟢' : '🔴';
+    }
+  });
+}
+
+// Update single friend status for real-time changes
+function updateSingleFriendStatus(friendId: number, isOnline: boolean) {
+  const statusEl = document.getElementById(`status-${friendId}`);
+  if (statusEl) {
+    statusEl.textContent = isOnline ? '🟢' : '🔴';
+  }
+}

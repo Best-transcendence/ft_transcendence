@@ -30,7 +30,7 @@ import {
   teardownTournamentFlow,
 } from "./games/TournamentFlow";
 import { ProfilePage } from "./pages/ProfilePage";
-import { FriendsPage } from "./pages/Friends";
+import { FriendsPage, setupFriends } from "./pages/Friends";
 import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -224,7 +224,7 @@ export function router() {
       break;
 
     case "friends":
-      protectedPage(() => FriendsPage(), triggerPopup, friendRequest); // Friends management
+      protectedPage(() => FriendsPage(), () => setupFriends(), triggerPopup, friendRequest); // Friends management
       break;
 
     case "dashboard":
