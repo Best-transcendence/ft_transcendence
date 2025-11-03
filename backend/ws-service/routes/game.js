@@ -1,4 +1,5 @@
-import { rooms } from './rooms.js';
+import { WebSocket } from 'ws';
+import { rooms, userRoom } from './rooms.js';
 
 export function registerGameHandlers(wss, app) {
   function handleGameJoin(ws, data) {
@@ -57,14 +58,14 @@ export function registerGameHandlers(wss, app) {
     const playerIndex = room.players.indexOf(ws);
     if (playerIndex === -1) return;
 
-    const isDown = action === "down";
+    const isDown = action === 'down';
 
     if (playerIndex === 0) {
-      if (direction === "w") room.state.p1Up = isDown;
-      else if (direction === "s") room.state.p1Down = isDown;
+      if (direction === 'w') room.state.p1Up = isDown;
+      else if (direction === 's') room.state.p1Down = isDown;
     } else if (playerIndex === 1) {
-      if (direction === "ArrowUp") room.state.p2Up = isDown;
-      else if (direction === "ArrowDown") room.state.p2Down = isDown;
+      if (direction === 'ArrowUp') room.state.p2Up = isDown;
+      else if (direction === 'ArrowDown') room.state.p2Down = isDown;
     }
 
     app.log.info(`${action} ${direction} by player ${ws.user.id} in room ${roomId}`);
@@ -165,7 +166,7 @@ export function registerGameHandlers(wss, app) {
     room.players.forEach(client => {
       if (client.readyState === 1) {
         client.send(JSON.stringify({
-          type: "game:update",
+          type: 'game:update',
           state: normalized,
         }));
       }
@@ -183,7 +184,7 @@ export function registerGameHandlers(wss, app) {
       room.players.forEach(client => {
         if (client.readyState === 1) {
           client.send(JSON.stringify({
-            type: "game:timer",
+            type: 'game:timer',
             remaining
           }));
         }
@@ -195,14 +196,14 @@ export function registerGameHandlers(wss, app) {
         room.timerId = null;
         room.loopId = null;
 
-        let winner = "draw";
-        if (room.state.s1 > room.state.s2) winner = "p1";
-        else if (room.state.s2 > room.state.s1) winner = "p2";
+        let winner = 'draw';
+        if (room.state.s1 > room.state.s2) winner = 'p1';
+        else if (room.state.s2 > room.state.s1) winner = 'p2';
 
         room.players.forEach(client => {
           if (client.readyState === 1) {
             client.send(JSON.stringify({
-              type: "game:timeup",
+              type: 'game:timeup',
               winner,
               scores: { s1: room.state.s1, s2: room.state.s2 }
             }));
@@ -246,16 +247,39 @@ export function registerGameHandlers(wss, app) {
     const room = rooms.get(roomId);
     if (!room) return;
 
-    // kick the player.
+    const originalPlayers = room.players.slice();
+
+    // Remove the leaver
     room.players = room.players.filter(p => p !== ws);
 
-    // If there is less than 2 cleans all
-    if (room.players.length < 2) {
-      if (room.timerId) clearInterval(room.timerId);
-      if (room.loopId) clearInterval(room.loopId);
-      rooms.delete(roomId);
-      app.log.info(`Room ${roomId} cleaned up after leave`);
+    // Send game:end to remaining
+    if (room.players.length > 0) {
+      room.players.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'game:end',
+            winner: 'opponent_left',
+            scores: { s1: room.state?.s1 ?? 0, s2: room.state?.s2 ?? 0 }
+          }));
+        }
+      });
     }
+
+    // Send to leaver
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'session:kickIntro' }));
+    }
+
+    // Clean userRoom for all original
+    for (const player of originalPlayers) {
+      userRoom.set(player.user.id, null);
+    }
+
+    // Cleanup
+    if (room.timerId) clearInterval(room.timerId);
+    if (room.loopId) clearInterval(room.loopId);
+    rooms.delete(roomId);
+    app.log.info(`Room ${roomId} ended by leave`);
   }
 
   return {
