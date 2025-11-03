@@ -13,5 +13,5 @@ RUN chmod +x /vault/config/init-vault.sh
 # Expose Vault port (default port)
 EXPOSE 8200
 
-# Start Vault server by default; init script is for manual/CI bootstrapping
+# Start Vault server by default
 ENTRYPOINT ["vault", "server", "-config=/vault/config/vault.hcl"]
