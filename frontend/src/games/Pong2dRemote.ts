@@ -37,13 +37,13 @@ export function GamePongRemote(): string {
         initRemoteGame(msg.roomId);
         break;
 
-      case "game:start": {
-        resetTimer(msg.duration || 90);
-        document.getElementById("startPress")?.remove();
+       case "game:start": {
+         resetTimer(msg.duration || 90);
+         document.getElementById("startPress")?.remove();
 
-        const { players, playerIndex } = msg;
-        currentPlayers = players;
-        console.log("game:start payload", msg);
+         const { players, playerIndex } = msg;
+         currentPlayers = players;
+         console.log("game:start payload", msg);
 
         setTimeout(() => {
           const playerCardsContainer = document.getElementById("player-cards");
@@ -75,15 +75,26 @@ export function GamePongRemote(): string {
           overlay.classList.remove("hidden");
           const textEl = overlay.querySelector("p");
           if (textEl) {
-            textEl.textContent =
-              msg.winner === "draw"
-                ? "It's a draw 🤝"
-                : msg.winner === "p1"
-                ? `${currentPlayers[0]?.name ?? "Player 1"} wins 🥇`
-                : `${currentPlayers[1]?.name ?? "Player 2"} wins 🥇`;
-          }
-        }
-        break;
+             textEl.textContent =
+               msg.winner === "draw"
+                 ? "It's a draw 🤝"
+                 : msg.winner === "p1"
+                 ? `${currentPlayers[0]?.name ?? "Player 1"} wins 🥇`
+                 : `${currentPlayers[1]?.name ?? "Player 2"} wins 🥇`;
+           }
+         }
+         // Hide game elements to prevent overlap with overlay
+         const paddle1 = document.getElementById("paddle1");
+         if (paddle1) (paddle1 as HTMLElement).style.display = "none";
+         const paddle2 = document.getElementById("paddle2");
+         if (paddle2) (paddle2 as HTMLElement).style.display = "none";
+         const ball = document.getElementById("ball");
+         if (ball) (ball as HTMLElement).style.display = "none";
+         const score1 = document.getElementById("score1");
+         if (score1) (score1 as HTMLElement).style.display = "none";
+         const score2 = document.getElementById("score2");
+         if (score2) (score2 as HTMLElement).style.display = "none";
+         break;
 
       case "game:update":
         updateGameState(msg.state);
@@ -101,15 +112,26 @@ export function GamePongRemote(): string {
           }
           const textEl = overlay.querySelector("p");
           if (textEl) {
-            textEl.textContent =
-              msg.winner === "you"
-                ? "Opponent disconnected. You win 🥇"
-                : "Game ended";
-          }
-        }
-        setTimeout(() => {
-          window.location.hash = "intro";
-        }, 3000);
+             textEl.textContent =
+               msg.winner === "you"
+                 ? "Opponent disconnected. You win 🥇"
+                 : "Game ended";
+           }
+         }
+         // Hide game elements to prevent overlap with overlay
+         const paddle1 = document.getElementById("paddle1");
+         if (paddle1) (paddle1 as HTMLElement).style.display = "none";
+         const paddle2 = document.getElementById("paddle2");
+         if (paddle2) (paddle2 as HTMLElement).style.display = "none";
+         const ball = document.getElementById("ball");
+         if (ball) (ball as HTMLElement).style.display = "none";
+         const score1 = document.getElementById("score1");
+         if (score1) (score1 as HTMLElement).style.display = "none";
+         const score2 = document.getElementById("score2");
+         if (score2) (score2 as HTMLElement).style.display = "none";
+         setTimeout(() => {
+           window.location.hash = "intro";
+         }, 3000);
         currentRoomId = null;
         break;
       }
@@ -153,7 +175,7 @@ export function GamePongRemote(): string {
 
           <!-- Time Up Overlay -->
           <div id="timeUpOverlay"
-            class="absolute inset-0 z-20 hidden"
+            class="absolute inset-0 z-30 hidden"
             style="border-radius: inherit; background: inherit;">
             <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
               <h2 class="text-2xl font-bold text-white">Time’s up!</h2>
@@ -272,6 +294,7 @@ function updateGameState(state: any) {
   } else {
     ball.style.opacity = "0";
   }
+
   score1.textContent = state.s1.toString();
   score2.textContent = state.s2.toString();
 }
