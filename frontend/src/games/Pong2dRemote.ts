@@ -94,7 +94,6 @@ export function GamePongRemote(): string {
          if (score1) (score1 as HTMLElement).style.display = "none";
          const score2 = document.getElementById("score2");
          if (score2) (score2 as HTMLElement).style.display = "none";
-         break;
          const net = document.getElementById("net");
          if (net) (net as HTMLElement).style.display = "none";
          break;
@@ -194,7 +193,8 @@ export function GamePongRemote(): string {
           </div>
 
           <!-- Net -->
-          <div id="net" class="absolute z-19 border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
+          <div id="net"
+            class="absolute z-19 border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
             h-[96%] top-[2%] left-[calc(50%-0.4vw)]"></div>
 
           <!-- Scores -->
