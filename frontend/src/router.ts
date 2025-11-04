@@ -103,7 +103,9 @@ export async function protectedPage(
 
   // Fetch and validate user authentication
   await fetchUser();
-  if (thisUser != undefined) {
+  
+  // Check if user is properly authenticated with valid data
+  if (thisUser && thisUser.id && thisUser.name && thisUser.email) {
     // Render the page content
     const content = await renderer();
     app.innerHTML = content;
@@ -115,7 +117,10 @@ export async function protectedPage(
     // Execute page-specific initialization functions
     postRender?.forEach((fn) => fn());
   } else {
-    console.error("Failed to load user");
+    console.error("Failed to load user - redirecting to login");
+    console.error("User state:", thisUser);
+    // Clear invalid token
+    localStorage.removeItem("jwt");
     window.location.hash = "login"; // Redirect to login if not authenticated
   }
 }
