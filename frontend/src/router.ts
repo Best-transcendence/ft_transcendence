@@ -1,6 +1,6 @@
 /**
  * Application Router and Authentication System
- * 
+ *
  * This module handles client-side routing, user authentication, and page management
  * for the Pong game application. It provides a centralized routing system with
  * protected routes, user session management, and WebSocket connection handling.
@@ -9,26 +9,28 @@
 // Service imports for API communication and WebSocket connection
 import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
-import { GamePongRemote, initRemoteGame } from "./games/Pong2dRemote";
+import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
 
 // Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
-import { GamePong2D } from "./games/Pong2d";
-import { initGame } from "./games/InitGame";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { destroyCurrentGame } from "./games/GameController";
 import { GamePongTournament } from "./games/Tournament";
 import { LobbyPageTournament } from "./pages/TournamentLobby";
 import { initLobbyPageTournament } from "./tournament/InitTournamentLobby";
 import { initGameTournament } from "./games/InitGameTournament";
-import { bootTournamentFlow, teardownTournamentFlow } from "./games/TournamentFlow";
+import {
+  bootTournamentFlow,
+  teardownTournamentFlow,
+} from "./games/TournamentFlow";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { LoadingPage, initLoadingPage } from "./pages/LoadingPage";
 
 // UI component imports for consistent interface elements
 import { sideBar } from "./components/SideBar";
@@ -54,10 +56,10 @@ async function fetchUser() {
 
 /**
  * Protected page wrapper that ensures user authentication before rendering
- * 
+ *
  * This function handles authentication checks and renders pages only for logged-in users.
  * It automatically redirects to login if the user is not authenticated.
- * 
+ *
  * @param renderer - Function that returns the HTML content for the page
  * @param postRender - Optional array of functions to execute after page rendering
  *                    (used for page-specific initialization like event listeners)
@@ -75,24 +77,26 @@ export async function protectedPage(
     app.innerHTML = renderer();
 
     // Attach common UI components to all protected pages
-    sideBar();     // Navigation sidebar
-    logOutBtn();   // Logout button
+    sideBar(); // Navigation sidebar
+    logOutBtn(); // Logout button
 
     // Execute page-specific initialization functions
     postRender?.forEach((fn) => fn());
   } else {
     console.error("Failed to load user");
-    window.location.hash = "login";  // Redirect to login if not authenticated
+    window.location.hash = "login"; // Redirect to login if not authenticated
   }
 }
 
 /**
  * Main application router function
- * 
+ *
  * Handles client-side routing using hash-based navigation (#route).
  * Manages page rendering, authentication, and URL parameter parsing.
  * Supports both public routes (login) and protected routes (authenticated pages).
  */
+let lastPage: string | null = null;
+
 export function router() {
   const app = document.getElementById("app")!;
 
@@ -100,41 +104,51 @@ export function router() {
   const rawHash = window.location.hash.slice(1);
   const [route, query] = rawHash.split("?"); // Split route and query parameters
 
-  const page = route || "login";  // Default to login page if no route specified
+  const page = route || "login"; // Default to login page if no route specified
 
   // Parse query parameters for route-specific data
   const params = new URLSearchParams(query || "");
 
   // Skip routing for asset requests (CSS, JS, images, etc.)
-  if (window.location.pathname.startsWith("/assets/"))
-    return;
+  if (window.location.pathname.startsWith("/assets/")) return;
 
   // Cleanup previous games when navigating away
   console.log("=== ROUTER NAVIGATION ===", "Page:", page);
-  
+
   // UNIFIED GAME CLEANUP: Let game creation functions handle cleanup
   // Each game type (AI, tournament, etc.) will call destroyCurrentGame() when initializing
   // This ensures proper cleanup order and prevents destroying games that haven't been created yet
-  
+
   // Stop tournament flow if navigating away from tournament
   if (page !== "tournament" && page !== "lobbytournament") {
     console.log("Tearing down tournament flow");
     teardownTournamentFlow();
   }
-  
+
   // Cleanup games when navigating to non-game pages
-  const isGamePage = page === "AIopponent" || page === "tournament" || page === "pong" || page === "remote";
+  const isGamePage =
+    page === "AIopponent" ||
+    page === "tournament" ||
+    page === "pong" ||
+    page === "remote";
   if (!isGamePage) {
     console.log("Navigating to non-game page - destroying any active game");
     destroyCurrentGame();
   }
 
+  // If we’re leaving the remote page, clean it up
+  if (lastPage === "remote" && page !== "remote") {
+    console.log("Leaving remote game, cleaning up");
+    leaveRemoteGame();
+  }
+
+  lastPage = page;
   // Route handling - switch between different application pages
   switch (page) {
     // Public routes (no authentication required)
     case "login":
       app.innerHTML = LoginPage();
-      attachLoginListeners();  // Set up login form event listeners
+      attachLoginListeners(); // Set up login form event listeners
       break;
 
     // Protected routes (authentication required)
@@ -142,17 +156,20 @@ export function router() {
       protectedPage(
         () => LobbyPage(),
         () => {
-          initLobby();  // Initialize lobby-specific functionality
+          initLobby(); // Initialize lobby-specific functionality
         }
       );
       break;
 
-    case "intro":
-      protectedPage(() => GameIntroPage());  // Game introduction page
+    case "lobbytournament":
+      protectedPage(
+        () => LobbyPageTournament(),
+        () => initLobbyPageTournament() // Initialize tournament lobby
+      );
       break;
 
-    case "pong2d":
-      protectedPage(() => GamePong2D(), initGame);  // Local Pong game
+    case "intro":
+      protectedPage(() => GameIntroPage());
       break;
 
     case "remote":
@@ -160,20 +177,20 @@ export function router() {
       const roomId = query ? new URLSearchParams(query).get("room") : null;
       if (roomId) localStorage.setItem("roomId", roomId); // Store room ID for game
       if (!roomId) {
-        app.innerHTML = NotFoundPage();  // Show 404 if no room ID provided
+        app.innerHTML = NotFoundPage(); // Show 404 if no room ID provided
         return;
       }
       protectedPage(
         () => GamePongRemote(),
-        () => initRemoteGame(roomId)  // Initialize remote game with room ID
+        () => initRemoteGame(roomId) // Initialize remote game with room ID
       );
       break;
 
     // Tournament system routes
-    case "lobbytournament":
+    case "loading":
       protectedPage(
-        () => LobbyPageTournament(),
-        () => initLobbyPageTournament()  // Initialize tournament lobby
+        () => LoadingPage(),
+        () => initLoadingPage()
       );
       break;
 
@@ -181,8 +198,9 @@ export function router() {
       protectedPage(
         () => GamePongTournament(),
         () => {
-          initGameTournament();  // Initialize tournament game
-          bootTournamentFlow({   // Set up tournament flow management
+          initGameTournament(); // Initialize tournament game
+          bootTournamentFlow({
+            // Set up tournament flow management
             onSpaceStart: () => (window as any).beginTournamentRound?.(),
           });
         }
@@ -191,29 +209,29 @@ export function router() {
 
     // Game mode routes
     case "AIopponent":
-      protectedPage(() => GamePongAIOpponent(), setupAIOpponent);  // AI opponent game
+      protectedPage(() => GamePongAIOpponent(), setupAIOpponent); // AI opponent game
       break;
 
     // User management routes
     case "profile":
-      protectedPage(() => ProfilePage(), triggerPopup);  // User profile page
+      protectedPage(() => ProfilePage(), triggerPopup); // User profile page
       break;
 
     case "friends":
-      protectedPage(() => FriendsPage(), triggerPopup, friendRequest);  // Friends management
+      protectedPage(() => FriendsPage(), triggerPopup, friendRequest); // Friends management
       break;
-    
+
     case "dashboard":
-      protectedPage(() => DashboardPage());  // User dashboard
+      protectedPage(() => DashboardPage()); // User dashboard
       break;
 
     case "history":
-      protectedPage(() => HistoryPage(), matchesEvents);  // Match history page
+      protectedPage(() => HistoryPage(), matchesEvents); // Match history page
       break;
 
     // Fallback for unknown routes
     default:
-      app.innerHTML = NotFoundPage();  // 404 page for invalid routes
+      app.innerHTML = NotFoundPage(); // 404 page for invalid routes
   }
 }
 
@@ -223,7 +241,7 @@ export function router() {
  */
 function attachLoginListeners() {
   const form = document.getElementById("login-form");
-  let isSignupMode = false;  // Toggle between login and signup modes
+  let isSignupMode = false; // Toggle between login and signup modes
 
   // Main form submission handler for both login and signup
   form?.addEventListener("submit", async (e) => {
@@ -268,7 +286,7 @@ function attachLoginListeners() {
         // Handle user login
         user = await login(email, password);
         console.log("Logged in:", user);
-        localStorage.setItem("jwt", user.token);  // Store JWT token for authentication
+        localStorage.setItem("jwt", user.token); // Store JWT token for authentication
 
         console.log("✅ Logged in with token:", user.token);
 
@@ -301,17 +319,15 @@ function attachLoginListeners() {
     }
   });
 
-  // Guest login button - allows access without authentication
-  const guest = document.getElementById("guest-login");
-  guest?.addEventListener("click", () => {
-    window.location.hash = "lobby"; // Guest users go directly to lobby
-  });
-
   // Signup/login mode toggle functionality
   const signupToggle = document.getElementById("signup-toggle");
   const nameField = document.getElementById("name-field");
-  const confirmPasswordField = document.getElementById("confirm-password-field");
-  const submitButton = document.getElementById("submit-button") as HTMLButtonElement | null;
+  const confirmPasswordField = document.getElementById(
+    "confirm-password-field"
+  );
+  const submitButton = document.getElementById(
+    "submit-button"
+  ) as HTMLButtonElement | null;
   const title = document.getElementById("form-title");
 
   /**
@@ -335,7 +351,8 @@ function attachLoginListeners() {
       // Update UI text for login mode
       if (submitButton) submitButton.textContent = "Login";
       if (title) title.textContent = "Sign In";
-      signupToggle.innerHTML = 'Don\'t have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign Up</span>';
+      signupToggle.innerHTML =
+        'Don\'t have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign Up</span>';
     }
   }
 

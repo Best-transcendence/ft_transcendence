@@ -6,6 +6,8 @@
 all:
 	@echo "📦 Installing ws-service dependencies..."
 	npm install
+	@echo "Installing .env dependences"
+	npm install dotenv dotenv-expand
 	@echo "✅ WS service setup complete!"
 	@echo "🚀 Starting ws-service development server..."
 	npm run dev

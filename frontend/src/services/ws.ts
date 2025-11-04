@@ -1,17 +1,16 @@
-// services/ws.ts
 let socket: WebSocket | null = null;
 let reconnectTimer: number | null = null;
 let manualClose = false;
+let listeners: ((msg: any) => void)[] = [];
 
 export function getSocket() {
   return socket;
 }
 
-export function connectSocket(token: string, onMessage?: (msg: any) => void) {
+export function connectSocket(token: string) {
   if (socket) {
     if (socket.readyState === WebSocket.OPEN) return socket;
     if (socket.readyState === WebSocket.CONNECTING) return socket;
-    // closed or closing -> create a new one
   }
 
   manualClose = false;
@@ -30,7 +29,9 @@ export function connectSocket(token: string, onMessage?: (msg: any) => void) {
     try {
       const msg = JSON.parse(event.data);
       console.log("WS message:", msg);
-      if (onMessage) onMessage(msg);
+      // notify all subscribers
+      listeners.forEach((fn) => fn(msg));
+      // still dispatch a DOM event if you like
       window.dispatchEvent(new CustomEvent("ws-message", { detail: msg }));
     } catch (err) {
       console.error("WS: failed to parse message", err);
@@ -43,7 +44,7 @@ export function connectSocket(token: string, onMessage?: (msg: any) => void) {
     if (!manualClose) {
       reconnectTimer = window.setTimeout(() => {
         const saved = localStorage.getItem("jwt");
-        if (saved) connectSocket(saved, onMessage);
+        if (saved) connectSocket(saved);
       }, 1000 + Math.random() * 2000);
     }
   };
@@ -53,6 +54,14 @@ export function connectSocket(token: string, onMessage?: (msg: any) => void) {
   };
 
   return socket;
+}
+
+// Subscribe to messages
+export function onSocketMessage(fn: (msg: any) => void) {
+  listeners.push(fn);
+  return () => {
+    listeners = listeners.filter((l) => l !== fn);
+  };
 }
 
 export function disconnectSocket() {
@@ -67,16 +76,15 @@ export function disconnectSocket() {
   }
 }
 
-export function autoConnect(onMessage?: (msg: any) => void) {
+export function autoConnect() {
   const token = localStorage.getItem("jwt");
-  console.log("autoConnect token:", token);
-  if (token) connectSocket(token, onMessage);
+  if (token) connectSocket(token);
 }
 
 export function sendWSMessage(type: string, payload: any = {}) {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({ type, ...payload }));
   } else {
-    console.warn(" Cannot send WS message: socket not open");
+    console.warn("Cannot send WS message: socket not open");
   }
 }
