@@ -29,44 +29,25 @@ model UserProfile {
   // Friends relationships (many-to-many)
   friends       UserProfile[] @relation("UserFriends") // Who's in my friends list
   friendOf      UserProfile[] @relation("UserFriends") // Whose friendlist I'm in
-
-  // Match history relationships
-  player1Matches Match[] @relation("Player1Matches")
-  player2Matches Match[] @relation("Player2Matches")
-
-  // including Stats model
-  stats     Stats?
 }
 
-  // Match table model
-  model Match {
-  id           Int      @id @default(autoincrement())
-  type         String   // "tournament", "1v1" or "AI"
-  date         DateTime @default(now())
-  player1Id    Int?
-  player2Id    Int?
+// Match type enum
+enum MatchType {
+  ONE_VS_ONE
+  TOURNAMENT_1V1
+  TOURNAMENT_INTERMEDIATE
+  TOURNAMENT_FINAL
+}
+
+// Match table model
+model Match {
+  id           Int        @id @default(autoincrement())
+  type         MatchType  // Match type: 1v1, Tournament Intermediate, or Tournament Final
+  date         DateTime   @default(now())
+  player1Id    Int?       // First player's user ID
+  player2Id    Int?       // Second player's user ID
+  winnerId     Int?       // Winner's user ID (null if draw)
   player1Score Int
   player2Score Int
-  createdAt   DateTime @default(now())
-
-  // Connections with players
-  player1     UserProfile? @relation("Player1Matches", fields: [player1Id], references: [id])
-  player2     UserProfile? @relation("Player2Matches", fields: [player2Id], references: [id])
-}
-
-	//stats dahsboard module
-model Stats {
-  userId            Int         @id
-  user              UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)   // TODO: do we need to have optiont for deleting profile? if the user is deleted delet this row automatically?
-
-  gamesPlayed       Int         @default(0)
-  wins              Int         @default(0)
-  losses            Int         @default(0)
-  draws             Int         @default(0)
-
-  pointsFor         Int         @default(0)   // total points scored
-  pointsAgainst     Int         @default(0)   // total points conceded
-  highestScore      Int         @default(0)
-
-  updatedAt         DateTime    @updatedAt
+  createdAt    DateTime   @default(now())
 }

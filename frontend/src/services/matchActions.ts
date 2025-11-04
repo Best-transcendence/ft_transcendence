@@ -1,35 +1,44 @@
 import { API_URL } from "./config";
+import { fetchUser } from "../router";
 
 /* Create this object + call the saveMatch function for each type of match.
 type:
-1v1 -> "1v1 Match"
-Tournament -> "Tournament Match"
-AI  -> "AI Match"
+1v1 -> "ONE_VS_ONE"
+Tournament 1v1 -> "TOURNAMENT_1V1"
+Tournament Intermediate -> "TOURNAMENT_INTERMEDIATE"
+Tournament Final -> "TOURNAMENT_FINAL"
 
 player:
-when a player is guest OR AI, their id must be "null"
+Only save matches between registered users. Do not save if either player is a guest.
 
 if we implement the websocket we have to be careful not to save 1 match once.
 Solution -> the user with the highest id is the one saving.
 
 Recommendations:
-- using this function after GameStop() (I couldnt implement it myself because players are missing)
-- launching initGame with the type of game that is being played, so that it can be passed
+- Check that both players are authenticated before calling saveMatch
+- The winnerId is calculated automatically on the backend based on scores
+- Use TOURNAMENT_1V1 for 2-player tournament matches
+- Use TOURNAMENT_FINAL for 4-player tournament championship matches
+- Use TOURNAMENT_INTERMEDIATE for 4-player tournament semi-final matches
 */
 
 export interface MatchObject
 {
 	type: string,
 	date: string,
-	player1Id?: number | null,
-	player2Id?: number | null,
+	player1Id: number,
+	player2Id: number,
 	player1Score: number,
 	player2Score: number,
 }
 
 export async function saveMatch(match: any)
 {
-	const token = localStorage.getItem("token");
+	console.log("=== SAVEMATCH DEBUG ===");
+	console.log("Match data:", match);
+	
+	const token = localStorage.getItem("jwt");
+	console.log("Token exists:", !!token);
 
 	const res = await fetch(`${API_URL}/users/me`,
 	{
@@ -46,6 +55,20 @@ export async function saveMatch(match: any)
 		})
 	});
 
-	if (!res.ok) throw new Error("Failed to save match");
-		return res.json();
+	console.log("Response status:", res.status);
+	console.log("Response ok:", res.ok);
+
+	if (!res.ok) {
+		const errorText = await res.text();
+		console.error("Failed to save match:", errorText);
+		throw new Error("Failed to save match");
+	}
+	
+	const result = await res.json();
+	console.log("Match saved successfully:", result);
+	
+	// Refresh user data to update match history and stats
+	await fetchUser();
+	
+	return result;
 }

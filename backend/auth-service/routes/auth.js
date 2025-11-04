@@ -109,6 +109,57 @@ export default async function authRoutes(fastify) {
       // Generate JWT token with user ID payload
       const token = fastify.jwt.sign({ id: user.id });
 
+      // === Bootstrap/verify profile in user-service (ensure profile exists) ===
+      const correlationId = `login-${user.id}-${Date.now()}`;
+      const axios = (await import('axios')).default;
+      const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+
+      try {
+        console.log(`[${correlationId}] Bootstrapping/verifying user profile for authUserId ${user.id}`);
+        
+        // Try to get the user profile first
+        const profileCheckResponse = await axios.get(
+          `${userServiceUrl}/users/public/${user.id}`,
+          { 
+            timeout: 3000,
+            validateStatus: (status) => status < 500 // Accept 404 as valid response
+          }
+        );
+
+        // If profile doesn't exist (404), create it
+        if (profileCheckResponse.status === 404) {
+          console.log(`[${correlationId}] Profile not found, creating new profile`);
+          
+          // Extract username from email as fallback (will be user-editable)
+          const defaultName = user.email.split('@')[0];
+          
+          await axios.post(
+            `${userServiceUrl}/users/bootstrap`,
+            {
+              authUserId: user.id,
+              name: defaultName,
+              email: user.email
+            },
+            {
+              timeout: 5000,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Correlation-ID': correlationId
+              }
+            }
+          );
+          console.log(`[${correlationId}] Successfully created user profile on login`);
+        } else {
+          console.log(`[${correlationId}] Profile already exists, continuing with login`);
+        }
+      } catch (profileError) {
+        // Log error but don't fail login - user can still access the app
+        // Frontend will handle missing profile gracefully with our fix
+        console.error(
+          `[${correlationId}] Failed to bootstrap profile (non-fatal): ${profileError.message}`
+        );
+      }
+
       // Return token and safe user data (no password)
       return {
         token, // JWT token for frontend authentication

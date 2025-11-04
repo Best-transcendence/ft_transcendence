@@ -98,7 +98,9 @@ export function registerWebsocketHandlers(wss, app) {
     let displayName =
       decoded.name ?? decoded.username ?? namesCache.get(String(userId)) ?? null;
 
-    ws.user = { id: userId, name: displayName };
+    // Store user info including token for 1v1 match history saving
+    // The token is needed to authenticate match save requests to user-service
+    ws.user = { id: userId, name: displayName, token: tokenFromQuery };
     onlineUsers.set(String(userId), ws);
 
     // kick off async hydration if name is still missing
