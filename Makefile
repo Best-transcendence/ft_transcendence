@@ -90,10 +90,19 @@ restart: down up
 
 # Clean up everything
 clean:
-	@echo "🧹 Cleaning up all Docker resources..."
-	docker compose down -v --rmi all
-	docker system prune -f
-	@echo "✅ Cleanup complete!"
+	@echo "🧹 Cleaning up ALL Docker resources and databases..."
+	@echo "⚠️  This will remove containers, images, volumes, networks, build cache, and local databases!"
+	docker compose down -v --rmi all 2>/dev/null || true
+	docker system prune -a -f --volumes
+	docker builder prune -a -f
+	@echo "🗑️  Removing local database files..."
+	@rm -f user.db
+	@rm -f backend/auth-service/prisma/auth.db
+	@rm -f backend/user-service/prisma/prisma/user.db
+	@echo "🧹 Removing frontend build artifacts..."
+	@rm -rf frontend/dist
+	@rm -rf frontend/node_modules/.vite
+	@echo "✅ Full cleanup complete! Everything is reset."
 
 # Show status
 status:
