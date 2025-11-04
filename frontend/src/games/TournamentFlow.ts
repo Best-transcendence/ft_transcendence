@@ -295,6 +295,62 @@ function labelFor(m: Match, mode: "2" | "4"): string {
 
 
 /**
+ * Processes game results and advances tournament state using player ID
+ * This is the preferred method that avoids name matching issues
+ * @param winnerId - ID of the winning player
+ * @param winnerName - Name of the winning player (for 2-player tournaments)
+ */
+function acceptGameResultWithPlayer(winnerId: string, winnerName: string) {
+  if (!bracket || !currentMatch) return;
+
+  const seed = loadSeed()!;
+  const m = currentMatch;
+
+  // 2-player tournament: best-of-3 format, play all 3 rounds
+  if (seed.mode === "2" && m.bestOf === 3 && m.round === 1) {
+    if (winnerId === m.playerA.id) m.winsA += 1;
+    else if (winnerId === m.playerB.id) m.winsB += 1;
+
+    const played = m.winsA + m.winsB;
+
+    // Continue to next round if not all 3 games played
+    if (played < 3) {
+      showOverlay(m.playerA.name, m.playerB.name, labelFor2pBo3(played), m.playerA, m.playerB); // Round 2 / Final
+      attachSpaceToStart();
+      return;
+    }
+
+    // After 3rd game, determine champion
+    if (!m.winnerId) m.winnerId = m.winsA > m.winsB ? m.playerA.id : m.playerB.id;
+    bracket.championId = m.winnerId;
+    const champ = bracket.players.find(p => p.id === bracket!.championId)!.name;
+    
+    showChampion(champ);
+    return;
+  }
+
+  // 4-player tournament: single elimination matches
+  reportMatchResult(bracket, m.id, winnerId);
+
+  // Check if tournament is complete
+  if (bracket.championId) {
+    const champ = bracket.players.find(p => p.id === bracket!.championId)!.name;
+    showChampion(champ);
+    return;
+  }
+
+  // Advance to next match
+  const nxt = nextMatch(bracket);
+  if (nxt) {
+    currentMatch = nxt;
+    (window as any).tournamentCurrentMatch = currentMatch; // Update global reference
+    console.log("Updated tournamentCurrentMatch:", currentMatch);
+    showOverlay(nxt.playerA.name, nxt.playerB.name, labelFor(nxt, seed.mode), nxt.playerA, nxt.playerB); // Round 2 or Final
+    attachSpaceToStart();
+  }
+}
+
+/**
  * Processes game results and advances tournament state
  * Called by window.reportTournamentGameResult or timeup events
  * @param winnerName - Name of the winning player
@@ -329,8 +385,10 @@ function acceptGameResult(winnerName: string) {
   }
 
   // 4-player tournament: single elimination matches
+  // Strip "(G)" suffix from winnerName for comparison if present
+  const normalizedWinnerName = winnerName.replace(/\s*\(G\)\s*$/, "");
   const winnerId =
-    winnerName.toLowerCase() === m.playerA.name.toLowerCase()
+    normalizedWinnerName.toLowerCase() === m.playerA.name.toLowerCase()
       ? m.playerA.id
       : m.playerB.id;
 
@@ -467,8 +525,19 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
 
     // We have a winner → clear tie-breaker and advance
     inTieBreaker = false;
-    const winner = L > R ? currentLeftName : currentRightName;
-    acceptGameResult(winner);
+    // Use currentMatch.playerA/playerB directly as the source of truth
+    // This ensures correct winner determination even if currentLeftPlayer/currentRightPlayer are misaligned
+    if (!currentMatch) {
+      console.error("tournamentTimeUp: No currentMatch available");
+      return;
+    }
+    
+    // Determine winner based on scores: L > R means left player (playerA) wins, else right player (playerB) wins
+    // Since showOverlay maps playerA to left and playerB to right, we can use currentMatch directly
+    const winnerId = L > R ? currentMatch.playerA.id : currentMatch.playerB.id;
+    const winnerName = L > R ? currentMatch.playerA.name : currentMatch.playerB.name;
+    
+    acceptGameResultWithPlayer(winnerId, winnerName);
   };
 }
 
