@@ -8,10 +8,6 @@ all:
 	npm install
 	@echo "Installing .env dependences"
 	npm install dotenv dotenv-expand
-	@echo "🔧 Generating Prisma client..."
-	npx prisma generate
-	@echo "🗄️ Running database migrations..."
-	npx prisma migrate dev --name init
 	@echo "🌱 Seeding database..."
 	npm run seed
 	@echo "✅ Auth service setup complete!"
@@ -27,8 +23,8 @@ run:
 clean:
 	@echo "🧹 Cleaning up..."
 	rm -rf node_modules
-	rm -f prisma/auth.db
-	rm -f prisma/*.db
+	rm -f data/auth.db
+	rm -f data/*.db
 	@echo "🐳 Cleaning Docker resources..."
 	docker stop auth_service 2>/dev/null || true
 	docker rm auth_service 2>/dev/null || true

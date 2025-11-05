@@ -16,13 +16,7 @@ npm install
 
 ### Database Setup
 ```bash
-# Generate Prisma client
-npx prisma generate
-
-# Run migrations
-npx prisma migrate dev --name init
-
-# Seed the database
+# Seed the database (creates database and tables automatically)
 npm run seed
 ```
 
@@ -102,22 +96,23 @@ Check if the service is running.
 
 ## 🗃️ Database Schema
 
-```prisma
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
+The service uses SQLite with the following schema:
+
+```sql
+CREATE TABLE User (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  createdAt TEXT DEFAULT (datetime('now')),
+  updatedAt TEXT DEFAULT (datetime('now'))
+);
 ```
 
 ## 🔧 Environment Variables
 
 ```bash
-# Database
-AUTH_DATABASE_URL="file:./prisma/auth.db"
+# Database (SQLite file path)
+AUTH_DATABASE_URL="file:./data/auth.db"
 
 # JWT
 JWT_SECRET="your-jwt-secret"
@@ -159,9 +154,7 @@ This service is part of a microservices architecture:
 
 - `npm run dev` - Start development server
 - `npm run start` - Start production server
-- `npm run seed` - Seed the database
-- `npm run prisma:generate` - Generate Prisma client
-- `npm run prisma:migrate` - Run database migrations
+- `npm run seed` - Seed the database (creates DB and tables if needed)
 
 ## 🔒 Security Notes
 

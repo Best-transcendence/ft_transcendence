@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 // import dotenv from 'dotenv';
 import './env.js';
-import prismaPlugin from './plugins/prisma.js';
+import databasePlugin from './plugins/database.js';
 import authRoutes from './routes/auth.js';
 import fastifyJwt from '@fastify/jwt';
 import fastifySwagger from '@fastify/swagger';
@@ -12,7 +12,10 @@ import fastifyCors from '@fastify/cors';
 // dotenv.config();
 
 // Create Fastify server instance with logging
-const app = Fastify({ logger: true });
+const app = Fastify({ 
+  logger: true,
+  trustProxy: false // Don't trust proxy headers, always use HTTP
+});
 
 // Register Swagger for API documentation
 await app.register(fastifySwagger, {
@@ -22,9 +25,8 @@ await app.register(fastifySwagger, {
       description: 'Authentication microservice for ft_transcendence - handles user login, registration, and JWT token management',
       version: '1.0.0',
     },
-    // We clean the URL from the protocol to avoid issues with Swagger UI
-    host: (process.env.AUTH_SERVICE_URL || 'http://localhost:3001').replace(/^https?:\/\//, ''),
-
+    // Swagger will auto-detect host from request
+    // Schemes allowed for API calls
     schemes: ['http'],
     consumes: ['application/json'],
     produces: ['application/json'],
@@ -49,17 +51,31 @@ await app.register(fastifySwaggerUI, {
     docExpansion: 'full',
     deepLinking: false,
   },
-  staticCSP: true,
+  staticCSP: {
+    'default-src': ['\'self\''],
+    'script-src': ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\''],
+    'style-src': ['\'self\'', '\'unsafe-inline\''],
+    'img-src': ['\'self\'', 'data:', 'https:'],
+    'font-src': ['\'self\'', 'data:'],
+    // Explicitly allow HTTP (no upgrade-insecure-requests)
+  },
   transformSpecificationClone: true,
+  transformSpecification: (swaggerObject, request, _reply) => {
+    // Dynamically set host from request, always use HTTP
+    const host = request.headers.host || 'localhost:3001';
+    swaggerObject.host = host;
+    swaggerObject.schemes = ['http']; // Force HTTP since we don't use HTTPS
+    // Ensure basePath is set correctly
+    if (!swaggerObject.basePath) {
+      swaggerObject.basePath = '';
+    }
+    return swaggerObject;
+  },
 });
 
 // Register CORS plugin
 await app.register(fastifyCors, {
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:3000',  // Frontend
-    process.env.GATEWAY_URL || 'http://localhost:3003',  // Gateway
-    process.env.USER_SERVICE_URL || 'http://localhost:3002'   // User service
-  ],
+  origin: true, // Allow all origins (or specify exact origins in production)
   credentials: true
 });
 
@@ -68,8 +84,8 @@ await app.register(fastifyJwt, {
   secret: process.env.JWT_SECRET || 'super-secret-pass',
 });
 
-// Register Prisma plugin to connect to auth database
-app.register(prismaPlugin);
+// Register database plugin to connect to auth database
+app.register(databasePlugin);
 
 // Register authentication routes with /auth prefix
 app.register(authRoutes, { prefix: '/auth' });
