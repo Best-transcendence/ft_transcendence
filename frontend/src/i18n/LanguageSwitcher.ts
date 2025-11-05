@@ -1,4 +1,4 @@
-import { setLang, getLang } from "./lang";
+import { setLang, getLang } from "./Lang";
 
 export function LanguageSwitcher(): string {
   const current = getLang();

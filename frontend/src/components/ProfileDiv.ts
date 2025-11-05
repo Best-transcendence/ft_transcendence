@@ -1,4 +1,5 @@
 import { thisUser } from "../router"
+import { t } from "../i18n/Lang";
 
 // Centralizes the profile logo button + text
 export function profileDivDisplay()
@@ -14,7 +15,7 @@ export function profileDivDisplay()
 			</div>
 
 				<div>
-					<p id="profile-logo-name" class="font-semibold">Welcome back, ${thisUser.name || "User"} </p>
+					<p id="profile-logo-name" class="font-semibold"> ${t("welcomeBack")} ${thisUser.name || "User"} </p>
 					<p class="text-sm text-gray-500">${thisUser.email || ""}</p>
 				</div>
 			</div>`

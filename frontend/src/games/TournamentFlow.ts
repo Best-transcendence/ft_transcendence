@@ -5,10 +5,11 @@ import {
   createTwoPlayerTournament,
   createFourPlayerTournament,
   reportMatchResult,
-} from "../tournament/engine";
+} from "../tournament/Engine";
 import { myName, ensureMeFirst } from "../tournament/utils"; // reuse shared helpers
 import { resetTimer } from "../components/Timer";
 import { difficulty, resetDifficulty, getDisplayName } from "../tournament/InitTournamentLobby";
+import { t } from "../i18n/Lang";
 
 /**
  * Tournament Flow Controller
@@ -131,16 +132,16 @@ function mountOverlay() {
         <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-white/20"></div>
         <div class="w-1/2 pr-8 flex flex-col items-start">
           <div class="text-xl font-bold text-violet-400 break-words" id="name-left"></div>
-          <div class="mt-2 text-xs text-gray-300">Controls: W • S</div>
+          <div class="mt-2 text-xs text-gray-300">${t("controlsLetter")}</div>
         </div>
         <div class="w-1/2 pl-8 flex flex-col items-end">
           <div class="text-xl font-bold text-violet-400 text-right break-words" id="name-right"></div>
-          <div class="mt-2 text-xs text-gray-300 text-right">Controls: ↑ • ↓</div>
+          <div class="mt-2 text-xs text-gray-300 text-right">${t("controlsArrow")}</div>
         </div>
       </div>
       <div id="champion-banner" class="hidden mt-4 rounded-2xl border border-emerald-300/30 bg-emerald-600/10 text-emerald-200 px-4 py-3 text-center text-lg font-semibold"></div>
       <div class="mt-4 flex justify-center">
-        <div class="text-gray-400 text-sm">Press <span class="text-white font-semibold">SPACE</span> to start</div>
+        <div class="text-gray-400 text-sm">${t("pressSpace")}</div>
       </div>
     </div>
   `;
@@ -206,20 +207,20 @@ function showChampion(name: string) {
   // Rebuild overlay as tournament completion view
   overlay.innerHTML = `
     <div class="relative h-full w-full flex flex-col items-center justify-center px-6 animate-zoomIn">
-      <h2 class="text-3xl font-bold text-white mb-2">Tournament Complete</h2>
-      <div class="text-xl text-emerald-300 font-semibold mb-6">Champion: ${name}</div>
+      <h2 class="text-3xl font-bold text-white mb-2">${t("tournamentComplete")}</h2>
+      <div class="text-xl text-emerald-300 font-semibold mb-6">${t("champion")}: ${name}</div>
 
       <div class="flex gap-3">
         <button id="btn-new-tourney"
           class="px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white
                  border border-violet-400/30 shadow-[0_0_16px_2px_#7037d355]">
-          New Tournament
+          ${t("newTournament")}
         </button>
 
         <button id="btn-back-arcade"
           class="px-5 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-100
                  border border-white/10">
-          Back to Arcade Clash
+          ${t("backToArcade")}
         </button>
       </div>
     </div>
@@ -272,8 +273,8 @@ function nextMatch(b: Bracket): Match | null {
  * @returns {string} Round label
  */
 function labelFor2pBo3(gamesPlayed: number): string {
-  if (gamesPlayed === 0) return "Round 1";
-  if (gamesPlayed === 1) return "Round 2";
+  if (gamesPlayed === 0) return `${t("round")} 1`;
+  if (gamesPlayed === 1) return `${t("round")} 2`;
   return "Final";
 }
 
@@ -288,9 +289,9 @@ function labelFor(m: Match, mode: "2" | "4"): string {
     const played = m.winsA + m.winsB;
     return labelFor2pBo3(played);
   }
-  if (m.round === 1) return m.index === 0 ? "Round 1" : "Round 2";
-  if (m.round === 2) return "Final";
-  return `Round ${m.round}`;
+  if (m.round === 1) return m.index === 0 ? `${t("round")} 1` : `${t("round")} 2`;
+  if (m.round === 2) return `${t("final")}`;
+  return `${t("round")} ${m.round}`;
 }
 
 
@@ -514,7 +515,7 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
     if (L === R) {
       if (!inTieBreaker) {
         inTieBreaker = true;
-        showOverlay(currentLeftName, currentRightName, "Tie-breaker", currentLeftPlayer, currentRightPlayer);
+        showOverlay(currentLeftName, currentRightName, `${t("tieBreaker")}`, currentLeftPlayer, currentRightPlayer);
         attachSpaceToStart();   // Space #1 hides overlay; Space #2 starts round (handled by game)
       } else {
         // Still tied in tie-breaker → sudden-death restart (no overlay)

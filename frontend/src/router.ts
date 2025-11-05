@@ -10,6 +10,7 @@
 import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
 import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
+import { setupLanguageSwitcher } from "./i18n/LanguageSwitcher";
 
 // Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
@@ -18,7 +19,7 @@ import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { destroyCurrentGame } from "./games/GameController";
 import { GamePongTournament } from "./games/Tournament";
-import { LobbyPageTournament } from "./pages/TournamentLobby";
+import { LobbyPageTournament } from "./tournament/TournamentLobby";
 import { initLobbyPageTournament } from "./tournament/InitTournamentLobby";
 import { initGameTournament } from "./games/InitGameTournament";
 import {
@@ -114,6 +115,7 @@ export async function protectedPage(
     sideBar(); // Navigation sidebar
     logOutBtn(); // Logout button
 
+	setupLanguageSwitcher();  // i18n: wire up the language switcher
     // Execute page-specific initialization functions
     postRender?.forEach((fn) => fn());
   } else {
@@ -186,6 +188,7 @@ export function router() {
     case "login":
       app.innerHTML = LoginPage();
       attachLoginListeners(); // Set up login form event listeners
+	  setupLanguageSwitcher();
       break;
 
     // Protected routes (authentication required)

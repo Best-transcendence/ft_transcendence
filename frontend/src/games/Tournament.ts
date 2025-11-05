@@ -3,6 +3,8 @@ import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { TimerDisplay, startTimer } from "../components/Timer";
+import { t } from "../i18n/Lang"
+import { LanguageSwitcher } from "../i18n/LanguageSwitcher"
 
 /**
  * Tournament Game HTML Template Generator
@@ -36,11 +38,15 @@ export function GamePongTournament(): string {
 			flex justify-between items-center
 			mb-10 relative z-3">
 	
-	<!-- Protected pages components (profile, sidebar, logout) -->
-			${ profileDivDisplay() }    <!-- User profile information -->
-			${ sidebarDisplay() }       <!-- Navigation sidebar -->
-			${ LogOutBtnDisplay() }      <!-- Logout button -->
-		</div>
+		<!-- Protected pages components -->
+		${ profileDivDisplay() }
+		${ sidebarDisplay() }
+        <!-- Group Language and Logout on the right -->
+        <div class="flex gap-2 items-center">
+            ${LanguageSwitcher()}
+             ${LogOutBtnDisplay()}
+        </div>
+     </div>
 	
 	<!-- Tournament timer display -->
 	${ TimerDisplay() }
@@ -93,7 +99,7 @@ export function GamePongTournament(): string {
 					<p id="startPress"
 					class="absolute bottom-[5%] left-1/2 -translate-x-1/2 text-center
 					bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
-					Press Space When You Are Ready
+					${t("pressReady")}
 					</p>
 
 	<!-- Game sound effects -->
@@ -108,10 +114,10 @@ export function GamePongTournament(): string {
 		<!-- Game Over Overlay (shown when time runs out) -->
 		<div id="timeUpOverlay" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
 			<div class="bg-gradient-to-br from-violet-600/20 to-purple-600/20 border border-violet-400/30 rounded-2xl p-8 max-w-md text-center">
-				<h2 class="text-3xl font-bold text-white mb-4">Time's Up!</h2>
+				<h2 class="text-3xl font-bold text-white mb-4">${t("timeUp")}</h2>
 				<div id="winnerText" class="text-2xl font-semibold text-emerald-300 mb-6"></div>
 				<button id="continueToResults" class="px-6 py-3 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-500 transition cursor-pointer">
-					Continue
+					${t("continue")}
 				</button>
 			</div>
 		</div>

@@ -1,10 +1,11 @@
 // scr/components/cards/tournament
 
 import { createCard } from './CardCreator'
+import { t } from "../../i18n/Lang";
 
 export const TournamentCard = createCard({
-  title: "Tournament Mode",
+  title: t("tournamentMode"),
   icon: "🏆",
-  description: "Compete in a bracket and crown the champion. Invite friends or guests to join.",
+  description: t("tournamentDescription"),
   hash: "lobbytournament"
 });

@@ -1,8 +1,9 @@
 import { createCard } from './CardCreator'
+import { t } from "../../i18n/Lang";
 
 export const AICard = createCard({
-  title: "Train with AI",
+  title: t("aiCardTitle"),
   icon: "🤖",
-  description: "Practice solo against the computer. Choose your difficulty and sharpen your skills.",
+  description: t("aiCardDescription"),
   hash: "AIopponent"
 });

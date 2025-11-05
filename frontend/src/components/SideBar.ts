@@ -1,4 +1,6 @@
 // Configure sidebar actions
+import { t } from "../i18n/Lang";
+
 export function sideBar()
 {
 	const profileLogo = document.getElementById("profile-logo");
@@ -56,11 +58,11 @@ export function sidebarDisplay()
 		z-40 text-black rounded-tr-2xl rounded-br-2xl">
 
 		<ul class="flex flex-col p-4 gap-4">
-			<li data-action="playpong" class="cursor-pointer hover:text-purple-700">Arcade Clash</li>
-			<li data-action="profile" class="cursor-pointer hover:text-purple-700">Profile</li>
-			<li data-action="friends" class="cursor-pointer hover:text-purple-700">Friends</li>
-			<li data-action="dashboard" class="cursor-pointer hover:text-purple-700">Dashboard</li>
-			<li data-action="history" class="cursor-pointer hover:text-purple-700">Match history</li>
+			<li data-action="playpong" class="cursor-pointer hover:text-purple-700">${t("arcade")}</li>
+			<li data-action="profile" class="cursor-pointer hover:text-purple-700">${t("profile")}</li>
+			<li data-action="friends" class="cursor-pointer hover:text-purple-700">${t("friends")}</li>
+			<li data-action="dashboard" class="cursor-pointer hover:text-purple-700">${t("dashboard")}</li>
+			<li data-action="history" class="cursor-pointer hover:text-purple-700">${t("matchHistory")}</li>
 		</ul>
 
 	</div>`;

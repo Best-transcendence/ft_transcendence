@@ -1,6 +1,6 @@
 // Centralize the logOut button
-import { t } from "../i18n/lang";
 import { disconnectSocket } from "../services/ws";
+import { t } from "../i18n/Lang";
 
 export function logOutBtn()
 {
