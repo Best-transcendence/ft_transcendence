@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 // import dotenv from 'dotenv';
 import './env.js';
-import prismaPlugin from './plugins/prisma.js';
+import databasePlugin from './plugins/database.js';
 import userRoutes from './routes/users.js';
 import fastifyJwt from '@fastify/jwt';
 import fastifySwagger from '@fastify/swagger';
@@ -92,8 +92,8 @@ await app.register(fastifyJwt, {
   secret: process.env.JWT_SECRET || 'super-secret-pass',
 });
 
-// Register Prisma plugin to connect to user database
-app.register(prismaPlugin);
+// Register database plugin to connect to user database
+app.register(databasePlugin);
 
 // Register user routes with /users prefix
 app.register(userRoutes, { prefix: '/users' });
