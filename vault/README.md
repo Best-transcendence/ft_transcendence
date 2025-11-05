@@ -96,13 +96,19 @@ docker exec -it vault_service vault kv put secret/jwt JWT_SECRET='secretjwt'
 
 Create certs, migrate them to secrets, delete them from the repo:
 ```bash
-mkdir -p certs && \
-openssl req -x509 -nodes -days 365 -newkey rsa=2048 \
-  -keyout certs/server.key -out certs/server.crt \
-  -subj "/CN=localhost" && \
+mkdir -p certs
+openssl req -x509 -nodes -days 365 \
+  -newkey rsa:2048 \
+  -keyout certs/server.key \
+  -out certs/server.crt \
+  -subj "/CN=localhost"
+```
+
+```bash
 docker exec -i vault_service vault kv put secret/ssl \
   CRT="$(cat certs/server.crt)" KEY="$(cat certs/server.key)" && \
 rm -r certs
+```
 
 ```
 ### Step 7 — Up the containers
