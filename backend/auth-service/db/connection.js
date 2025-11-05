@@ -43,13 +43,31 @@ const getDatabasePath = () => {
 // Initialize database connection
 export function createDatabase() {
   const dbPath = getDatabasePath();
-  const db = new Database(dbPath);
+  
+  console.log(`📂 Connecting to database at: ${dbPath}`);
+  
+  // Ensure database is opened in read-write mode with full sync
+  const db = new Database(dbPath, { 
+    fileMustExist: false 
+  });
   
   // Enable foreign keys (not needed for auth service, but good practice)
   db.pragma('foreign_keys = ON');
+  db.pragma('journal_mode = WAL'); // Write-Ahead Logging for better concurrency
+  db.pragma('synchronous = FULL'); // Ensure data is written to disk
+  
+  // Increase limits for storing large data
+  db.pragma('max_page_count = 2147483646'); // Maximum pages
+  db.pragma('page_size = 4096'); // 4KB pages
+  
+  // Set a reasonable cache size
+  db.pragma('cache_size = -64000'); // 64MB cache
   
   // Initialize schema if tables don't exist
   initializeSchema(db);
+  
+  console.log('✅ Database connected and schema initialized');
+  console.log(`🔧 Database pragmas - foreign_keys: ${db.pragma('foreign_keys', { simple: true })}, journal_mode: ${db.pragma('journal_mode', { simple: true })}`);
   
   return db;
 }

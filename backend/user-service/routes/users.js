@@ -613,6 +613,8 @@ export default async function (fastify, _opts) {
       const userId = request.user.id;
       const { action, friendId, matchData, ...updateData } = request.body;
 
+      console.log(`[${request.id}] POST /users/me - userId: ${userId}, action: ${action}, updateData:`, JSON.stringify(updateData));
+
       if (action === 'add_friend') //Add a friend
       {
         // Get user profile ID
@@ -708,46 +710,63 @@ export default async function (fastify, _opts) {
         return { message: 'Match created successfully', match };
       }
 
+      // Check if user profile exists
+      const getUserStmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
+      const existingUser = getUserStmt.get(userId);
+
+      if (!existingUser) {
+        return reply.status(404).send({ error: 'User profile not found' });
+      }
+
       // Update user profile
       const updateFields = [];
       const updateValues = [];
-      if (updateData.name) {
+      
+      console.log(`[${request.id}] Checking fields - name: ${updateData.name}, profilePicture: ${updateData.profilePicture?.substring(0, 50)}, bio: ${updateData.bio}`);
+      
+      if (updateData.name !== undefined) {
+        // Check for name uniqueness if name is being updated
+        const checkNameStmt = fastify.db.prepare(
+          'SELECT * FROM UserProfile WHERE name = ? AND authUserId != ?'
+        );
+        const existingName = checkNameStmt.get(updateData.name, userId);
+        if (existingName) {
+          return reply.status(400).send({ error: 'Username already taken' });
+        }
         updateFields.push('name = ?');
         updateValues.push(updateData.name);
       }
-      if (updateData.profilePicture) {
+      if (updateData.profilePicture !== undefined) {
         updateFields.push('profilePicture = ?');
         updateValues.push(updateData.profilePicture);
       }
-      if (updateData.bio) {
+      if (updateData.bio !== undefined) {
         updateFields.push('bio = ?');
         updateValues.push(updateData.bio);
       }
 
       if (updateFields.length > 0) {
-        updateFields.push('updatedAt = datetime("now")');
+        updateFields.push("updatedAt = datetime('now')");
         updateValues.push(userId); // Add userId at the end for WHERE clause
 
-        const updateStmt = fastify.db.prepare(
-          `UPDATE UserProfile SET ${updateFields.join(', ')} WHERE authUserId = ?`
-        );
-        updateStmt.run(...updateValues);
-
-        // Check for name uniqueness if name is being updated
-        if (updateData.name) {
-          const checkNameStmt = fastify.db.prepare(
-            'SELECT * FROM UserProfile WHERE name = ? AND authUserId != ?'
-          );
-          const existingName = checkNameStmt.get(updateData.name, userId);
-          if (existingName) {
-            return reply.status(400).send({ error: 'Username already taken' });
-          }
-        }
+        const sql = `UPDATE UserProfile SET ${updateFields.join(', ')} WHERE authUserId = ?`;
+        console.log(`[${request.id}] Executing SQL:`, sql);
+        console.log(`[${request.id}] With values:`, updateValues);
+        
+        const updateStmt = fastify.db.prepare(sql);
+        const result = updateStmt.run(...updateValues);
+        
+        console.log(`[${request.id}] Update result - changes: ${result.changes}`);
+      } else {
+        console.log(`[${request.id}] No fields to update, returning existing user`);
+        return { user: existingUser };
       }
 
-      // Get updated user
-      const getUserStmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
-      const updatedUser = getUserStmt.get(userId);
+      // Get updated user with fresh query
+      const getUpdatedUserStmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
+      const updatedUser = getUpdatedUserStmt.get(userId);
+      
+      console.log(`[${request.id}] Updated user - profilePicture: ${updatedUser?.profilePicture?.substring(0, 50)}, bio: ${updatedUser?.bio}`);
 
       if (!updatedUser) {
         return reply.status(404).send({ error: 'User profile not found' });
@@ -755,11 +774,24 @@ export default async function (fastify, _opts) {
 
       return { user: updatedUser };
     } catch (err) {
-      // Check for unique constraint violation (SQLite error code 2067)
+      console.error(`[${request.id}] Error in POST /users/me:`, err);
+      fastify.log.error('Profile update error:', err);
+      
+      // JWT verification errors should return 401
+      if (err.message && (err.message.includes('jwt') || err.message.includes('token') || err.message.includes('Unauthorized'))) {
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
+      
+      // Check for unique constraint violation
       if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
         return reply.status(400).send({ error: 'Username already taken' });
       }
-      return reply.status(401).send({ error: 'Unauthorized or update failed' });
+      
+      // Return more specific error for debugging
+      return reply.status(500).send({ 
+        error: 'Failed to update profile',
+        message: err.message 
+      });
     }
   });
 
