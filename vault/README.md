@@ -109,8 +109,6 @@ docker exec -i vault_service vault kv put secret/ssl \
   CRT="$(cat certs/server.crt)" KEY="$(cat certs/server.key)" && \
 rm -r certs
 ```
-
-```
 ### Step 7 — Up the containers
 
 ```bash
