@@ -91,7 +91,7 @@ docker exec -it vault_service vault secrets enable -path=secret kv-v2
 
 Add JWT token to the secrets:
 ```bash
-docker exec -it vault kv put secret/jwt JWT_SECRET='secretjwt'
+docker exec -it vault_service vault kv put secret/jwt JWT_SECRET='secretjwt'
 ```
 
 Create certs, migrate them to secrets, delete them from the repo:
