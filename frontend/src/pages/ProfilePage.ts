@@ -91,43 +91,102 @@ export function ProfilePage()
 	</div>
 	${ inputPopup() }
 
-<!-- Game Statistics -->
-	<div class="bg-slate-900 backdrop-blur-md rounded-2xl w-[100%] max-w-[500px] p-6 shadow-[0_0_30px_10px_#7037d3] mt-6">
-		<div class="grid grid-cols-2 gap-4">
-			<div class="flex justify-between items-center">
-				<span class="text-gray-300 font-medium">Wins</span>
-				<span class="text-green-400 font-semibold">${thisUser.stats?.wins || 0}</span>
-			</div>
+	<!-- Game Statistics -->
+		<!-- Game Statistics (single-stat carousel, starts on Wins) -->
+	<div class="relative flex justify-center items-center w-full mt-6">
 
-			<div class="flex justify-between items-center">
-				<span class="text-gray-300 font-medium">Losses</span>
-				<span class="text-red-400 font-semibold">${thisUser.stats?.losses || 0}</span>
-			</div>
-
-			<div class="flex justify-between items-center">
-				<span class="text-gray-300 font-medium">Draws</span>
-				<span class="text-yellow-400 font-semibold">${thisUser.stats?.draws || 0}</span>
-			</div>
-
-			<div class="flex justify-between items-center">
-				<span class="text-gray-300 font-medium">Games</span>
-				<span class="text-white">${thisUser.stats?.gamesPlayed || 0}</span>
-			</div>
-
-			<div class="flex justify-between items-center">
-				<span class="text-gray-300 font-medium">Best Score</span>
-				<span class="text-white">${thisUser.stats?.highestScore || 0}</span>
-			</div>
-
-			<div class="flex justify-between items-center">
-				<span class="text-gray-300 font-medium">Points For</span>
-				<span class="text-blue-400">${thisUser.stats?.pointsFor || 0}</span>
-			</div>
-
-			<div class="flex justify-between items-center">
-				<span class="text-gray-300 font-medium">Points Against</span>
-				<span class="text-purple-400">${thisUser.stats?.pointsAgainst || 0}</span>
-			</div>
+	<!-- CARD -->
+	<div id="stats-card"
+		class="bg-slate-900 backdrop-blur-md rounded-2xl w-[100%] max-w-[500px]
+				p-6 shadow-[0_0_30px_10px_#7037d3]">
+		<div class="flex justify-between items-center min-h-[70px] px-8">
+		<span id="stat-label" class="text-gray-300 font-medium">Wins</span>
+		<span id="stat-value" class="text-white font-semibold">
+			${thisUser.stats?.wins ?? 0}
+		</span>
 		</div>
-	</div>`;
+	</div>
+	</div>
+
+	<!--  Arrows as FIXED (not inside the card wrapper) -->
+	<button id="stats-prev"
+	type="button"
+	class="fixed text-3xl text-gray-400 hover:text-white hidden z-40"
+	aria-label="Previous">‹</button>
+
+	<button id="stats-next"
+	type="button"
+	class="fixed text-3xl text-gray-400 hover:text-white z-40"
+	aria-label="Next">›</button>`;
+}
+
+type UserStats = {
+  wins?: number;
+  losses?: number;
+  draws?: number;
+  gamesPlayed?: number;
+  highestScore?: number;
+  pointsFor?: number;
+  pointsAgainst?: number;
+};
+
+export function profileStatsEvents() {
+  const stats = (thisUser?.stats ?? {}) as UserStats;
+
+  const items: { label: string; value: number }[] = [
+    { label: "Wins",           value: stats.wins || 0 },
+    { label: "Losses",         value: stats.losses || 0 },
+    { label: "Draws",          value: stats.draws || 0 },
+    { label: "Games",          value: stats.gamesPlayed || 0 },
+    { label: "Best Score",     value: stats.highestScore || 0 },
+    { label: "Points For",     value: stats.pointsFor || 0 },
+    { label: "Points Against", value: stats.pointsAgainst || 0 },
+  ];
+
+  let i = 0;
+  const labelEl = document.getElementById("stat-label");
+  const valueEl = document.getElementById("stat-value");
+  const prevBtn = document.getElementById("stats-prev") as HTMLButtonElement | null;
+  const nextBtn = document.getElementById("stats-next") as HTMLButtonElement | null;
+  const cardEl  = document.getElementById("stats-card");
+
+function placeArrows() {
+  if (!cardEl || !prevBtn || !nextBtn) return;
+  const rect = cardEl.getBoundingClientRect();
+
+  const gap = 8;      // px gap between arrow and card edge
+  const arrowW = 18;  // approx width of ‹ ›
+
+  // vertical center of card (not viewport), adjusted slightly up
+  const y = rect.top + rect.height / 2 - 20;
+
+  // left arrow
+  prevBtn.style.top = `${y}px`;
+  prevBtn.style.left = `${Math.max(0, rect.left - gap - arrowW)}px`;
+
+  // right arrow
+  nextBtn.style.top = `${y}px`;
+  nextBtn.style.left = `${rect.right + gap}px`;
+}
+
+  function render() {
+    if (!labelEl || !valueEl) return;
+    labelEl.textContent = items[i].label;
+    valueEl.textContent = String(items[i].value);
+
+    // show/hide like your history page
+    prevBtn?.classList.toggle("hidden", i === 0);
+    nextBtn?.classList.toggle("hidden", i === items.length - 1);
+
+    // reposition arrows for current layout
+    placeArrows();
+  }
+
+  prevBtn?.addEventListener("click", () => { if (i > 0) { i--; render(); } });
+  nextBtn?.addEventListener("click", () => { if (i < items.length - 1) { i++; render(); } });
+
+  // Keep arrows stuck to the card on resize
+  window.addEventListener("resize", placeArrows, { passive: true });
+
+  render(); // show Wins first + place arrows
 }

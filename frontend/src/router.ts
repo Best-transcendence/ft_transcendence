@@ -26,7 +26,7 @@ import {
   bootTournamentFlow,
   teardownTournamentFlow,
 } from "./games/TournamentFlow";
-import { ProfilePage } from "./pages/ProfilePage";
+import { ProfilePage, profileStatsEvents } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents, resetHistoryPageState } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
@@ -254,7 +254,7 @@ export function router() {
 
     // User management routes
     case "profile":
-      protectedPage(() => ProfilePage(), triggerPopup); // User profile page
+      protectedPage(() => ProfilePage(), profileStatsEvents, triggerPopup); // User profile page
       break;
 
     case "friends":
