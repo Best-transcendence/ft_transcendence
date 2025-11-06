@@ -134,13 +134,13 @@ export function profileStatsEvents() {
   const stats = (thisUser?.stats ?? {}) as UserStats;
 
   const items: { label: string; value: number }[] = [
-    { label: "Wins",           value: stats.wins || 0 },
-    { label: "Losses",         value: stats.losses || 0 },
-    { label: "Draws",          value: stats.draws || 0 },
-    { label: "Games",          value: stats.gamesPlayed || 0 },
-    { label: "Best Score",     value: stats.highestScore || 0 },
-    { label: "Points For",     value: stats.pointsFor || 0 },
-    { label: "Points Against", value: stats.pointsAgainst || 0 },
+	{ label: t("wins"),          value: stats.wins || 0 },
+	{ label: t("losses"),        value: stats.losses || 0 },
+	{ label: t("draws"),         value: stats.draws || 0 },
+	{ label: t("gamesPlayed"),   value: stats.gamesPlayed || 0 },
+	{ label: t("bestScore"),     value: stats.highestScore || 0 },
+	{ label: t("pointsFor"),     value: stats.pointsFor || 0 },
+	{ label: t("pointsAgainst"), value: stats.pointsAgainst || 0 },
   ];
 
   let i = 0;
