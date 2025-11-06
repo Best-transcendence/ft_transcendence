@@ -1,13 +1,13 @@
 // ./components/cards/NameCard.ts
 const EMOJIS = ["⚡","🚀","🐉","🦊","🐱","🐼","🐧","🐸","🦄","👾","⭐","🌟","🍀"];
 
-export function safeEmojiForId(idStr: string) {
+function safeEmojiForId(idStr: string) {
   const n = Number(idStr);
   const idx = Number.isFinite(n) ? n % EMOJIS.length : 0;
   return EMOJIS[Math.abs(idx)];
 }
 
-export function escapeHTML(s: string) {
+function escapeHTML(s: string) {
   return String(s)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")

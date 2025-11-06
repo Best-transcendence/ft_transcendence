@@ -215,7 +215,7 @@ export function registerGameHandlers(wss, app) {
         rooms.delete(roomId);
         app.log.info(`Room ${roomId} deleted after game end`);
       }
-    }, 1000);
+    }, 7000);
   }
 
   function handleGameBegin(ws, data) {
@@ -239,7 +239,7 @@ export function registerGameHandlers(wss, app) {
     setTimeout(() => {
       startGameLoop(roomId, room);
       startGameTimer(roomId, room, 30);
-    }, 1000);
+    }, 5000);
   }
 
   function handleGameLeave(ws, data) {

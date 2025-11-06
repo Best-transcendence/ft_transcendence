@@ -4,7 +4,7 @@ import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { addTheme } from "../components/Theme";
 import { TimerDisplay, resetTimer } from "../components/Timer";
-import { renderPlayerCard } from "../components/cards/NameCard";
+import { renderPlayerCard } from "../components/cards/RemotePlayerCard";
 
 import { onSocketMessage } from "../services/ws";
 
@@ -134,7 +134,6 @@ export function GamePongRemote(): string {
          if (score2) (score2 as HTMLElement).style.display = "none";
          const net = document.getElementById("net");
          if (net) (net as HTMLElement).style.display = "none";
-         break;
          setTimeout(() => {
            window.location.hash = "intro";
          }, 3000);
@@ -157,10 +156,10 @@ export function GamePongRemote(): string {
     </div>
 
           <!-- Timer -->
-
-          <div id="player-cards" class="flex justify-between gap-4 mb-4"></div>
-          <div id="player-controls" class="text-sm text-gray-400 mt-2 text-center"></div>
           ${TimerDisplay()}
+
+    <!-- Player Cards -->
+    <div id="player-cards" class="flex justify-center gap-4 mb-4"></div>
 
     <!-- Game section -->
     <div class="flex justify-center w-screen overflow-hidden">
@@ -172,27 +171,44 @@ export function GamePongRemote(): string {
           class="absolute inset-0 w-full h-full object-contain"
           alt="Arcade machine" />
 
-        <!-- Game window -->
-        <div class="absolute z-10 backdrop-blur-sm relative"
-          style="top: 6.1%; left: 24.1%; width: 51%; height: 59.2%;
-          background: var(--game-area-background);
-          border: 9px solid var(--color-frame);
-          border-radius: 1rem;">
-
+         <!-- Game window -->
+         <div class="absolute z-10 backdrop-blur-sm relative"
+           style="top: 6.1%; left: 24.1%; width: 51%; height: 59.2%;
+           background: var(--game-area-background);
+           border: 9px solid var(--color-frame);
+           border-radius: 1rem;">
+<!-- Player Cards Overlay -->
+     <div id="playerCardsOverlay"
+     class="absolute inset-0 bg-black/80 flex items-center justify-center z-30 hidden">
+       <div class="bg-gradient-to-br from-violet-600/20 to-purple-600/20 border border-violet-400/30 rounded-2xl p-8 max-w-md text-center">
+         <h2 id="round-label" class="text-2xl font-bold text-white mb-4"></h2>
+         <div class="relative mt-6 w-full h-full flex items-center justify-between px-6">
+           <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-white/20"></div>
+           <div class="w-1/2 pr-8 flex flex-col items-start">
+             <div class="text-xl font-bold text-violet-400 break-words" id="name-left"></div>
+             <div class="mt-2 text-xs text-gray-300">Controls: W • S</div>
+           </div>
+           <div class="w-1/2 pl-8 flex flex-col items-end">
+             <div class="text-xl font-bold text-violet-400 text-right break-words" id="name-right"></div>
+             <div class="mt-2 text-xs text-gray-300 text-right">Controls: ↑ • ↓</div>
+           </div>
+         </div>
+         <div class="mt-4 flex justify-center">
+           <div class="text-gray-300 text-lg text-center">Press <kbd class="px-2 py-1 bg-slate-700 rounded text-sm">SPACE</kbd> to Start the Game</div>
+         </div>
+       </div>
+     </div>
           <!-- Time Up Overlay -->
-          <div id="timeUpOverlay"
-            class="absolute inset-0 z-30 hidden"
-            style="border-radius: inherit; background: inherit;">
-            <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
-              <h2 class="text-2xl font-bold text-white">Time’s up!</h2>
-              <p class="text-lg text-gray-200 mt-2 mb-6">Result</p>
-              <button id="overlayExit"
-                class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
-                Back to Arcade Clash
-              </button>
-            </div>
-          </div>
-
+     <div id="timeUpOverlay" class="hidden absolute inset-0 bg-black/80 flex items-center justify-center z-50">
+       <div class="bg-gradient-to-br from-violet-600/20 to-purple-600/20 border border-violet-400/30 rounded-2xl p-8 max-w-md text-center">
+         <h2 class="text-2xl font-bold text-white mb-4">Time’s up!</h2>
+         <p class="text-lg text-gray-200 mt-2 mb-6">Result</p>
+         <button id="overlayExit"
+           class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
+           Back to Arcade Clash
+         </button>
+       </div>
+     </div>
           <!-- Net -->
           <div id="net" class="absolute z-19 border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
             h-[96%] top-[2%] left-[calc(50%-0.4vw)]"></div>
@@ -213,21 +229,21 @@ export function GamePongRemote(): string {
           <div id="ball"
             class="absolute z-20 h-[5%] w-[3.3%] bg-[rgba(255,255,255,0.9)] rounded-[30%] left-[48.3%] top-[47.5%]"></div>
 
-          <!-- Start text -->
-          <p id="startPress"
-            class="absolute z-20 bottom-[5%] left-1/2 -translate-x-1/2 text-center
-            bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
-            Press Space To Start The Game
-          </p>
+           <!-- Start text -->
+           <p id="startPress"
+             class="absolute z-20 bottom-[5%] left-1/2 -translate-x-1/2 text-center
+             bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
+             Press Space When You Are Ready
+           </p>
 
           <!-- Audio -->
           <audio id="paddleSound" src="/assets/paddle.wav"></audio>
           <audio id="lossSound" src="/assets/loss.wav"></audio>
           <audio id="wallSound" src="/assets/wall.wav"></audio>
-        </div>
-      </div>
-    </div>
-  `;
+         </div>
+       </div>
+     </div>
+   `;
 }
 let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
 let keyupHandler: ((e: KeyboardEvent) => void) | null = null;
@@ -239,15 +255,41 @@ export function initRemoteGame(roomId: string) {
 
   socket?.send(JSON.stringify({ type: "game:join", roomId }));
 
-  // remove old handlers if they exist
   if (keydownHandler) document.removeEventListener("keydown", keydownHandler);
   if (keyupHandler) document.removeEventListener("keyup", keyupHandler);
 
+  // handle keys
   keydownHandler = (e: KeyboardEvent) => {
     if (e.code === "Space") {
-      socket?.send(JSON.stringify({ type: "game:begin", roomId }));
-      document.getElementById("startPress")?.remove();
+      const startPress = document.getElementById("startPress");
+      if (startPress && !startPress.classList.contains("hidden")) {
+        socket?.send(JSON.stringify({ type: "game:begin", roomId }));
+        startPress.remove();
+
+        // 🎉 Mostrar overlay de nombres de jugadores
+        const overlay = document.getElementById("playerCardsOverlay");
+        if (overlay && currentPlayers[0] && currentPlayers[1]) {
+          const nameLeftEl = overlay.querySelector("#name-left");
+          const nameRightEl = overlay.querySelector("#name-right");
+          const roundLabelEl = overlay.querySelector("#round-label");
+
+          if (nameLeftEl && nameRightEl && roundLabelEl) {
+            nameLeftEl.textContent = currentPlayers[0].name;
+            nameRightEl.textContent = currentPlayers[1].name;
+            roundLabelEl.textContent = "Players Ready";
+          }
+
+          overlay.classList.remove("hidden");
+
+          // hide after 3 sec
+          setTimeout(() => {
+            overlay.classList.add("hidden");
+          }, 3000);
+        }
+      }
     }
+
+    // movement of the player
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
       if (socket?.readyState === WebSocket.OPEN) {
         socket.send(
@@ -262,6 +304,7 @@ export function initRemoteGame(roomId: string) {
     }
   };
 
+  // 🕹️ Handler de teclas soltadas
   keyupHandler = (e: KeyboardEvent) => {
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
       socket?.send(
