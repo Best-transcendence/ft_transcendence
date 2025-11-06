@@ -7,7 +7,8 @@
     "tailwindcss": "^4.1.13"
   },
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+	"dev": "vite --host"
   },
   "dependencies": {
     "node-vault": "^0.10.9"

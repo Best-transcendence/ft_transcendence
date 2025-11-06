@@ -1,5 +1,5 @@
 import Fastify from 'fastify';
-import dotenv from 'dotenv';
+import './env.js';
 import prismaPlugin from './plugins/prisma.js';
 import userRoutes from './routes/users.js';
 import fastifyJwt from '@fastify/jwt';
@@ -8,11 +8,16 @@ import fastifySwaggerUI from '@fastify/swagger-ui';
 import fastifyCors from '@fastify/cors';
 import Vault from 'node-vault';
 
-// Load environment variables from local .env file
-dotenv.config();
-
 // Create Fastify server instance with logging
-const app = Fastify({ logger: true });
+const app = Fastify({
+  logger: true,
+  ajv: false,
+  // Critical fix — keep full objects in responses
+  serializerOpts: {
+    removeAdditional: false,
+    skipNull: false
+  }
+});
 
 // Register Swagger for API documentation
 await app.register(fastifySwagger, {
@@ -53,6 +58,7 @@ await app.register(fastifySwaggerUI, {
 });
 
 // Register CORS plugin
+// TODO check if those URL need change according to user's IP
 await app.register(fastifyCors, {
   origin: [
     'http://localhost:3000',  // Frontend

@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
-import dotenv from 'dotenv';
+// import dotenv from 'dotenv';
+import './env.js';
 import fastifyJwt from '@fastify/jwt';
 import fastifyHttpProxy from '@fastify/http-proxy';
 import fastifySwagger from '@fastify/swagger';
@@ -8,7 +9,7 @@ import fastifyCors from '@fastify/cors';
 import Vault from 'node-vault';
 
 // Load environment variables from centralized .env file
-dotenv.config();
+// dotenv.config();
 
 // Create Fastify server instance with logging
 const app = Fastify({
@@ -26,11 +27,12 @@ const app = Fastify({
 });
 
 // Register CORS plugin
+// TODO check if those URL need change according to user's IP
 await app.register(fastifyCors, {
   origin: [
-    `http://${process.env.HOST || 'localhost'}:${process.env.FRONTEND_PORT || 3000}`,  // Frontend
-    `http://${process.env.HOST || 'localhost'}:${process.env.AUTH_SERVICE_PORT || 3001}`,  // Auth service
-    `http://${process.env.HOST || 'localhost'}:${process.env.USER_SERVICE_PORT || 3002}`   // User service
+    `http://${process.env.LAN_IP || 'localhost'}:${process.env.FRONTEND_PORT || 3000}`,  // Frontend
+    `http://${process.env.LAN_IP || 'localhost'}:${process.env.AUTH_SERVICE_PORT || 3001}`,  // Auth service
+    `http://${process.env.LAN_IP || 'localhost'}:${process.env.USER_SERVICE_PORT || 3002}`   // User service
   ],
   credentials: true
 });
@@ -239,7 +241,7 @@ app.register(async function (fastify) {
     prefix: '/users',
     rewritePrefix: '/users',
     // Only handle specific methods to avoid generic route generation
-    methods: ['GET'],
+    methods: ['GET', 'POST'],
     // Add Swagger metadata for documentation
     schema: {
       tags: ['User Management'],

@@ -41,6 +41,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	globalScorePlayer = 0;
 	globalGameRunning = false;
 	globalAnimationFrameId = null;
+	(window as any).globalAnimationFrameId = null;
 	
 	// --- AI CONFIGURATION (Left Paddle) ---
 	// The AI uses a finite state machine with difficulty-based parameters
@@ -143,7 +144,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	// --- GAME STATE VARIABLES ---
 	let running = false; // Whether the game is currently running
 	let animationFrameId = 0; // ID of current animation frame
-	let aiIntervalId: NodeJS.Timeout | null = null; // AI update interval timer
+	let aiIntervalId: number | null = null; // AI update interval timer
 	let lastTime = 0; // Last frame time for consistent timing
 	const targetFPS = 120; // Target frames per second
 	const frameTime = 1000 / targetFPS; // Time per frame in milliseconds
@@ -245,6 +246,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		resetBall();
 		animationFrameId = requestAnimationFrame(loop);
 		globalAnimationFrameId = animationFrameId;
+		(window as any).globalAnimationFrameId = animationFrameId;
 	}
 
 	/**
@@ -267,6 +269,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 			console.log("Cancelling global animation frame:", globalAnimationFrameId);
 			cancelAnimationFrame(globalAnimationFrameId);
 			globalAnimationFrameId = null;
+			(window as any).globalAnimationFrameId = null;
 		}
 		
 		console.log("Running after stop:", running);
@@ -338,6 +341,8 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		}
 		
 		animationFrameId = requestAnimationFrame(loop);
+		globalAnimationFrameId = animationFrameId;
+		(window as any).globalAnimationFrameId = animationFrameId;
 	}
 
 	/**
@@ -491,40 +496,25 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		
 		// Only check scoring if ball hasn't already scored this round
 		if (ballScored) {
-			console.log("Ball already scored, skipping check");
 			return;
 		}
 
 		// --- SCORING LOGIC ---
 		// Left side - ball exits left, AI (left paddle) missed, so PLAYER scores
 		if (ballX + BALL_W < 0) {
-			console.log("=== PLAYER SCORES (AI missed) === Instance:", myInstanceId);
-			console.log("ballX:", ballX, "ballX + BALL_W:", ballX + BALL_W);
-			console.log("Current scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
-			console.log("Game running:", running);
-			
 			ballScored = true; // Prevent multiple scoring
 			globalScorePlayer++; // Player scores because AI missed
 			score2.textContent = globalScorePlayer.toString();
 			lastScorer = "player"; // Track who scored for next serve direction
-			console.log("New scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
-			console.log("=== END PLAYER SCORES ===");
 			//playSound(lossSfx);
 			resetBall();
 		} 
 		// Right side - ball exits right, Player (right paddle) missed, so AI scores
 		else if (ballX > FIELD) {
-			console.log("=== AI SCORES (Player missed) === Instance:", myInstanceId);
-			console.log("ballX:", ballX, "FIELD:", FIELD);
-			console.log("Current scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
-			console.log("Game running:", running);
-			
 			ballScored = true; // Prevent multiple scoring
 			globalScoreAI++; // AI scores because Player missed
 			score1.textContent = globalScoreAI.toString();
 			lastScorer = "ai"; // Track who scored for next serve direction
-			console.log("New scores: AI=", globalScoreAI, "Player=", globalScorePlayer);
-			console.log("=== END AI SCORES ===");
 			//playSound(lossSfx);
 			resetBall();
 		}
@@ -680,6 +670,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 			console.log("Cancelling global animation frame:", globalAnimationFrameId);
 			cancelAnimationFrame(globalAnimationFrameId);
 			globalAnimationFrameId = null;
+			(window as any).globalAnimationFrameId = null;
 		}
 		
 		// Clear AI update interval

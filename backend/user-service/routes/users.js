@@ -1,4 +1,73 @@
 // User management routes for user service
+
+// Calculate user statistics from match history
+async function calculateUserStats(prisma, userId) {
+  console.log(`[calculateUserStats] Starting calculation for userId: ${userId}`);
+
+  const allMatches = await prisma.match.findMany({
+    where: {
+      OR: [{ player1Id: userId }, { player2Id: userId }]
+    }
+  });
+
+  console.log(`[calculateUserStats] Found ${allMatches.length} matches for user ${userId}`);
+  console.log('[calculateUserStats] Raw matches:', JSON.stringify(allMatches, null, 2));
+
+  if (!allMatches || allMatches.length === 0) {
+    console.log('[calculateUserStats] No matches found, returning default values');
+    return {
+      gamesPlayed: 0,
+      wins: 0,
+      losses: 0,
+      draws: 0,
+      pointsFor: 0,
+      pointsAgainst: 0,
+      highestScore: 0
+    };
+  }
+
+  const stats = {
+    gamesPlayed: allMatches.length,
+    wins: 0,
+    losses: 0,
+    draws: 0,
+    pointsFor: 0,
+    pointsAgainst: 0,
+    highestScore: 0
+  };
+
+  console.log('[calculateUserStats] Initial stats:', JSON.stringify(stats));
+
+  for (const match of allMatches) {
+    const isPlayer1 = match.player1Id === userId;
+
+    // Convert BigInt to Number if needed
+    const playerScore = Number(isPlayer1 ? match.player1Score : match.player2Score);
+    const opponentScore = Number(isPlayer1 ? match.player2Score : match.player1Score);
+
+    console.log(`[calculateUserStats] Match ${match.id}: playerScore=${playerScore}, opponentScore=${opponentScore}, winnerId=${match.winnerId}, isPlayer1=${isPlayer1}`);
+
+    stats.pointsFor += playerScore;
+    stats.pointsAgainst += opponentScore;
+    stats.highestScore = Math.max(stats.highestScore, playerScore);
+
+    if (match.winnerId === userId) {
+      stats.wins++;
+      console.log(`[calculateUserStats] Match ${match.id}: WIN`);
+    } else if (match.winnerId === null || match.winnerId === 0) {
+      stats.draws++;
+      console.log(`[calculateUserStats] Match ${match.id}: DRAW`);
+    } else if (match.winnerId) {
+      stats.losses++;
+      console.log(`[calculateUserStats] Match ${match.id}: LOSS`);
+    }
+  }
+
+  console.log('[calculateUserStats] Final calculated stats:', JSON.stringify(stats));
+  return stats;
+}
+
+
 export default async function (fastify, _opts) {
 
   // GET /users - Get all user profiles
@@ -39,6 +108,64 @@ export default async function (fastify, _opts) {
         // Don't expose authUserId, matchHistory, stats to public
       }
     });
+  });
+
+  fastify.get('/public/:authUserId', {
+    schema: {
+      tags: ['User Management'],
+      summary: 'Public user lookup by auth user id',
+      description: 'Returns a public profile subset for the given auth user id',
+
+      // params must be a JSON-Schema object
+      params: {
+        type: 'object',
+        properties: {
+          authUserId: { type: 'integer' }
+        },
+        required: ['authUserId'],
+        additionalProperties: false
+      },
+
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            authUserId: { type: 'integer' },
+            name: { type: 'string' },
+            profileId: { type: 'integer' },
+            profilePicture: { type: 'string', nullable: true }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: { error: { type: 'string' } }
+        }
+      }
+    }
+  }, async (req, reply) => {
+    const authUserId = Number(req.params.authUserId);
+    if (!authUserId || Number.isNaN(authUserId)) {
+      return reply.code(400).send({ error: 'Invalid authUserId' });
+    }
+
+    const user = await fastify.prisma.userProfile.findUnique({
+      where: { authUserId },
+      select: {
+        authUserId: true,
+        name: true,
+        id: true,
+        profilePicture: true
+      }
+    });
+
+    if (!user) return reply.code(404).send({ error: 'Not found' });
+
+    return {
+      authUserId: user.authUserId,
+      name: user.name,
+      profileId: user.id,
+      profilePicture: user.profilePicture
+    };
   });
 
   // POST /users/bootstrap - Create or update user profile (called by auth-service)
@@ -214,8 +341,6 @@ export default async function (fastify, _opts) {
 
   // GET /users/me - Get current user profile
   fastify.get('/me', {
-    // Everything in schema is public information only, for documentation purposes (Swagger).
-    // We have to add it for each endpoint we create.
     schema: {
       tags: ['User Management'],
       summary: 'Get Current User Profile',
@@ -279,7 +404,19 @@ export default async function (fastify, _opts) {
 						}
 					}
 				},
-                stats: { type: 'object' },
+                stats: {
+                  type: 'object',
+                  additionalProperties: true, // ✅  allow all keys and keep numbers even if types mismatch slightly
+                  properties: {
+                    gamesPlayed: { type: ['integer', 'number', 'null'] },
+                    wins: { type: ['integer', 'number', 'null'] },
+                    losses: { type: ['integer', 'number', 'null'] },
+                    draws: { type: ['integer', 'number', 'null'] },
+                    pointsFor: { type: ['integer', 'number', 'null'] },
+                    pointsAgainst: { type: ['integer', 'number', 'null'] },
+                    highestScore: { type: ['integer', 'number', 'null'] }
+                  },
+                },
                 createdAt: { type: 'string', format: 'date-time' },
                 updatedAt: { type: 'string', format: 'date-time' }
               }
@@ -310,48 +447,120 @@ export default async function (fastify, _opts) {
 			{
 			  select: { id: true, name: true, profilePicture: true, bio: true },
 			  orderBy: { name: 'asc'}
-			},
-		  player1Matches:
-			{
-			  include:
-				{
-				  player1: { select: { id: true, name: true, profilePicture: true } },
-				  player2: { select: { id: true, name: true, profilePicture: true } }
-				},
-			  orderBy: { date: 'desc' }
-			},
-		  player2Matches:
-			{
-			  include:
-				{
-				  player1: { select: { id: true, name: true, profilePicture: true } },
-				  player2: { select: { id: true, name: true, profilePicture: true } }
-				},
-			  orderBy: { date: 'desc' }
 			}
 		}
       });
 
-      if (user.friendOf) // sorts friends name alphabetically
-        user.friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-
-      if (user) //combine all matches + sorts by date
-      {
-        const allMatches =
-		[
-		  ...user.player1Matches,
-		  ...user.player2Matches
-		].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        user.matches = allMatches;
-        delete user.player1Matches;
-        delete user.player2Matches;
-      }
       if (!user) {
         return reply.status(404).send({ error: 'User profile not found' });
       }
 
-      return { user };
+      if (user.friendOf) // sorts friends name alphabetically
+        user.friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+      // Fetch all matches where user participated (without Prisma relations)
+      const allMatches = await fastify.prisma.match.findMany({
+        where: {
+          OR: [
+            { player1Id: user.id },
+            { player2Id: user.id }
+          ]
+        },
+        orderBy: { date: 'desc' }
+      });
+
+      // Fetch player details for each match
+      const matchesWithPlayers = await Promise.all(
+        allMatches.map(async (match) => {
+          const player1 = match.player1Id
+            ? await fastify.prisma.userProfile.findUnique({
+              where: { id: match.player1Id },
+              select: { id: true, name: true, profilePicture: true }
+            })
+            : null;
+
+          const player2 = match.player2Id
+            ? await fastify.prisma.userProfile.findUnique({
+              where: { id: match.player2Id },
+              select: { id: true, name: true, profilePicture: true }
+            })
+            : null;
+
+          return {
+            ...match,
+            player1,
+            player2
+          };
+        })
+      );
+
+      user.matches = matchesWithPlayers;
+
+      // Calculate stats on-the-fly
+      console.log(`[${request.id}] About to calculate stats for user ${user.id}`);
+      const stats = await calculateUserStats(fastify.prisma, user.id);
+      console.log(`[${request.id}] Calculated stats:`, stats);
+      console.log('DEBUG final stats before sending:', JSON.stringify(stats));
+
+      // Create stats object manually to avoid any serialization issues
+      const manualStats = {
+        gamesPlayed: stats.gamesPlayed || 0,
+        wins: stats.wins || 0,
+        losses: stats.losses || 0,
+        draws: stats.draws || 0,
+        pointsFor: stats.pointsFor || 0,
+        pointsAgainst: stats.pointsAgainst || 0,
+        highestScore: stats.highestScore || 0
+      };
+      console.log(`[${request.id}] Manual stats:`, manualStats);
+
+      // Create a clean user object without circular references
+      const cleanUser = {
+        id: user.id,
+        authUserId: user.authUserId,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        profilePicture: user.profilePicture,
+        bio: user.bio,
+        friends: user.friends,
+        friendOf: user.friendOf,
+        matches: matchesWithPlayers,
+        stats: manualStats
+      };
+      console.log(`[${request.id}] Final clean user stats:`, cleanUser.stats);
+
+      // Create a completely clean stats object to avoid any serialization issues
+      const cleanStats = {
+        gamesPlayed: Number(manualStats.gamesPlayed) || 0,
+        wins: Number(manualStats.wins) || 0,
+        losses: Number(manualStats.losses) || 0,
+        draws: Number(manualStats.draws) || 0,
+        pointsFor: Number(manualStats.pointsFor) || 0,
+        pointsAgainst: Number(manualStats.pointsAgainst) || 0,
+        highestScore: Number(manualStats.highestScore) || 0
+      };
+
+      cleanUser.stats = cleanStats;
+      console.log(`[${request.id}] Clean stats object:`, cleanStats);
+      console.log(`[${request.id}] Final user with stats:`, JSON.stringify(cleanUser, null, 2));
+
+      // Log the final response before sending
+      console.log(`[${request.id}] Final response user stats:`, cleanUser.stats);
+      console.log(`[${request.id}] Final response JSON:`, JSON.stringify({ user: cleanUser }, null, 2));
+      console.log('🟣 FINAL STATS CHECK:', stats);
+      console.log(`[${request.id}] DEBUG: calculateUserStats result before sending:`, JSON.stringify(manualStats));
+
+      // Clean up any non-serializable types (like BigInt, Decimal, etc.)
+      const safeUser = JSON.parse(JSON.stringify(cleanUser));
+
+      // Debug log before sending
+      console.log(`[${request.id}] 🧩 Safe user before sending:`, safeUser.stats);
+      console.log(`[${request.id}] 🧩 Final response JSON:`, JSON.stringify({ user: safeUser }, null, 2));
+
+      return { user: safeUser };
+
     } catch (_err) {
       return reply.status(401).send({ error: 'Unauthorized' });
     }
@@ -376,7 +585,8 @@ export default async function (fastify, _opts) {
 		  	  type: 'object',
 		  	  properties:
 				{
-				  type: { type: 'string', enum: ['tournament', '1v1', 'AI'] },
+				  type: { type: 'string', enum: ['ONE_VS_ONE', 'TOURNAMENT_1V1', 'TOURNAMENT_INTERMEDIATE', 'TOURNAMENT_FINAL'] },
+				  player1Id: { type: 'integer' },
 				  player2Id: { type: 'integer' },
 				  player1Score: { type: 'integer' },
 				  player2Score: { type: 'integer' },
@@ -388,9 +598,11 @@ export default async function (fastify, _opts) {
       },
       response: {
         200: {
-          description: 'Updated user profile',
+          description: 'Updated user profile or match created',
           type: 'object',
           properties: {
+            message: { type: 'string' },
+            match: { type: 'object' },
             user: {
               type: 'object',
               properties: {
@@ -459,11 +671,29 @@ export default async function (fastify, _opts) {
 
       if (action === 'create_match')
       {
-        const { type, player2Id, player1Score, player2Score, _winnerId, date } = matchData;
-        const currentUser = await fastify.prisma.userProfile.findUnique(
-          {
-            where: { authUserId: userId }
-          });
+        console.log(`[${request.id}] Creating match with data:`, matchData);
+        const { type, player1Id, player2Id, player1Score, player2Score, _winnerId, date } = matchData;
+
+        // Get both player profiles
+        const player1Profile = await fastify.prisma.userProfile.findUnique({
+          where: { authUserId: player1Id }
+        });
+        const player2Profile = await fastify.prisma.userProfile.findUnique({
+          where: { authUserId: player2Id }
+        });
+
+        console.log(`[${request.id}] Player1 profile:`, player1Profile);
+        console.log(`[${request.id}] Player2 profile:`, player2Profile);
+
+        // Verify both profiles exist before proceeding
+        if (!player1Profile) {
+          console.error(`[${request.id}] Player1 profile not found for authUserId: ${player1Id}`);
+          return reply.status(400).send({ error: `Player profile not found for user ${player1Id}` });
+        }
+        if (!player2Profile) {
+          console.error(`[${request.id}] Player2 profile not found for authUserId: ${player2Id}`);
+          return reply.status(400).send({ error: `Player profile not found for user ${player2Id}` });
+        }
 
         // retrieve date or create it
         let matchDate = new Date();
@@ -472,9 +702,11 @@ export default async function (fastify, _opts) {
 
         let finalWinnerId = null; // In case of draw
         if (player1Score > player2Score)
-          finalWinnerId = currentUser.id;
+          finalWinnerId = player1Profile.id;
         else if (player1Score < player2Score)
-          finalWinnerId = player2Id;
+          finalWinnerId = player2Profile.id;
+
+        console.log(`[${request.id}] Match details - player1Id: ${player1Profile.id}, player2Id: ${player2Profile.id}, scores: ${player1Score}-${player2Score}, winnerId: ${finalWinnerId}`);
 
         const match = await fastify.prisma.match.create(
           {
@@ -482,13 +714,15 @@ export default async function (fastify, _opts) {
 				{
 				  type,
 				  date: matchDate,
-				  player1Id: currentUser.id,
-				  player2Id,
+				  player1Id: player1Profile.id,
+				  player2Id: player2Profile.id,
 				  player1Score,
 				  player2Score,
 				  winnerId: finalWinnerId
 				}
           });
+
+        console.log(`[${request.id}] Match created successfully:`, match);
         return { message: 'Match created successfully', match };
       }
 

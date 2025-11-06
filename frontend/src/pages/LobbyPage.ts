@@ -1,10 +1,13 @@
-import { connectSocket } from "../services/ws";
+import { connectSocket, onSocketMessage, sendWSMessage } from "../services/ws";
 import { addTheme } from "../components/Theme";
 import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { thisUser } from "../router";
-import { triggerInvitePopup } from "../components/remote-popup";
+import {
+  triggerInvitePopup,
+  closeInvitePopup,
+} from "../components/RemotePopup";
 
 const EMOJIS = [
   "⚡",
@@ -21,9 +24,18 @@ const EMOJIS = [
   "🌟",
   "🍀",
 ];
-function emojiForId(id: number) {
+export function emojiForId(id: number) {
   const index = id % EMOJIS.length;
   return EMOJIS[index];
+}
+
+function escapeHTML(s: string) {
+  return s
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 export function LobbyPage() {
@@ -56,7 +68,8 @@ export async function initLobby() {
   const selfId = String(thisUser?.id ?? "");
   usersContainer.innerHTML = `<p class="text-gray-400">Waiting for online users…</p>`;
 
-  const socket = connectSocket(token, (msg) => {
+  const socket = connectSocket(token);
+  const unsuscribe = onSocketMessage((msg) => {
     switch (msg.type) {
       case "user:list": {
         const list = Array.isArray(msg.users) ? msg.users : [];
@@ -71,15 +84,30 @@ export async function initLobby() {
           .map((u: any) => {
             const id = String(u?.id ?? "");
             const idNum = Number(id) || 0;
-            const label = `${emojiForId(idNum)} - ${id}`;
+
+            // prefer username; fallback to "Player {id}"
+            const rawName = (u?.name ?? "").trim();
+            const displayName = rawName ? escapeHTML(rawName) : `Player ${id}`;
+
+            // small avatar circle with emoji
+            const avatar = emojiForId(idNum);
+
             return `
-            <div class="bg-slate-900 backdrop-blur-md rounded-lg shadow-[0_0_30px_10px_#7037d3] p-4 flex items-center justify-between">
-              <span class="text-gray-300 font-medium">${label}</span>
-              <button class="invite-btn px-3 py-1 text-sm rounded bg-purple-600 text-white hover:bg-purple-700"
-                      data-user-id="${id}">
-                Invite
-              </button>
-            </div>`;
+			<div class="bg-slate-900 backdrop-blur-md rounded-lg shadow-[0_0_30px_10px_#7037d3] p-4 flex items-center justify-between">
+				<div class="flex items-center gap-3">
+				<div class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 text-lg">
+					${avatar}
+				</div>
+				<div class="flex flex-col">
+					<span class="text-gray-200 font-medium">${displayName}</span>
+					<span class="text-gray-500 text-xs">ID: ${id}</span>
+				</div>
+				</div>
+				<button class="invite-btn px-3 py-1 text-sm rounded bg-purple-600 text-white hover:bg-purple-700"
+						data-user-id="${id}">
+				Invite
+				</button>
+			</div>`;
           })
           .join("");
 
@@ -118,6 +146,46 @@ export async function initLobby() {
         break;
     }
   });
+
+  // tell server: joined lobby
+  // tell server: joined lobby
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ type: "lobby:join" }));
+    socket.send(JSON.stringify({ type: "user:list:request" }));
+  } else {
+    socket.addEventListener(
+      "open",
+      () => {
+        socket.send(JSON.stringify({ type: "lobby:join" }));
+        socket.send(JSON.stringify({ type: "user:list:request" }));
+      },
+      { once: true }
+    );
+  }
+
+  // LEAVE lobby when navigating away from lobby route
+  const leaveIfNotLobby = () => {
+    const hash = window.location.hash.replace(/^#/, "");
+    const route = hash.split("?")[0];
+    if (route !== "lobby") {
+      try {
+        socket.send(JSON.stringify({ type: "lobby:leave" }));
+      } catch {}
+      closeInvitePopup(); //  hide any open invite popup
+      window.removeEventListener("hashchange", leaveIfNotLobby);
+      window.removeEventListener("beforeunload", onUnload);
+    }
+  };
+  window.addEventListener("hashchange", leaveIfNotLobby);
+
+  // LEAVE on tab close/refresh
+  const onUnload = () => {
+    try {
+      socket.send(JSON.stringify({ type: "lobby:leave" }));
+    } catch {}
+    closeInvitePopup(); // close on refresh
+  };
+  window.addEventListener("beforeunload", onUnload);
 
   // proactively request list
   try {
