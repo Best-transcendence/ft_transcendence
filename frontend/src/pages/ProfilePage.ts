@@ -78,7 +78,7 @@ export function ProfilePage()
 
 <!-- Email -->
 		<div class="flex justify-between items-center">
-			<span class="text-gray-300 font-medium"${t("email")}</span>
+			<span class="text-gray-300 font-medium">${t("email")}</span>
 			<span class="text-white">${thisUser.email}</span>
 		</div>
 
@@ -129,9 +129,5 @@ export function ProfilePage()
 				<span class="text-purple-400">${thisUser.stats?.pointsAgainst || 0}</span>
 			</div>
 		</div>
-	</div>
-
-	<!-- Bottom spacing for proper scrolling -->
-	<div class="h-20"></div>
-	`;
+	</div>`;
 }
