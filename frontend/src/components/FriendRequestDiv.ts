@@ -2,7 +2,7 @@ import { protectedPage } from "../router"
 import { Friend, FriendsPage } from "../pages/Friends"
 import { removeFriend, addFriend } from "../services/friendsActions"
 import { triggerPopup } from "../components/Popups"
-import { t } from "../i18n/Lang";
+import { t } from "../services/lang/LangEngine";
 
 export function friendRequest()
 {
@@ -64,7 +64,7 @@ export function friendRequestCard(friend: Friend)
 
 		<div class="bg-gray-300 backdrop-blur-md rounded-2xl p-4 h-[140px] relative overflow-hidden">
 		<div class="flex items-start gap-4 absolute left-5 top-5 ">
-			<img src=${ friend.profilePicture }  alt="${t("friendAvatarAlt")}" class="w-24 h-24 rounded-full">
+			<img src=${ friend.profilePicture }  alt="Friend Avatar" class="w-24 h-24 rounded-full">
 				<div class="mr-3">
 				<h3 class="text-purple-700 font-semibold text-left">
 					${ friend.name }</h3>

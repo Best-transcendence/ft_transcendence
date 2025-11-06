@@ -2,12 +2,13 @@
 
 import { editProfilePicture, uploadProfilePicture, editName, editBio } from "../services/userActions"
 import { removeFriend } from "../services/friendsActions"
+import { t } from "../services/lang/LangEngine";
 
 // Buttons configurations
 const buttonConfigs =
 [
-	{ buttonId: "edit-name-button", popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Name", placeholder: "Enter name", len: "13"},
-	{ buttonId: "edit-bio-button",  popupId: "input-popup", handler: initInputPopup, options: "button", title: "Edit Bio", placeholder: "Enter bio", len: "60" },
+	{ buttonId: "edit-name-button", popupId: "input-popup", handler: initInputPopup, options: "button", title: t("editNameTitle"), placeholder: t("enterNamePlaceholder"), len: "13"},
+	{ buttonId: "edit-bio-button",  popupId: "input-popup", handler: initInputPopup, options: "button", title: t("editBioTitle"), placeholder: t("enterBioPlaceholder"), len: "60" },
 	{ buttonId: "edit-pic-button",  popupId: "profile-popup", handler: initProfilePopup, options: "li" },
 	{ buttonId: "friend-button", popupId: "confirm-popup", handler: initConfirmPopup, options: "button"},
 ];
@@ -156,11 +157,11 @@ export function inputPopup(): string
 		placeholder-gray-600"
 		type="text"
 		maxlength="13"
-		placeholder="Name" />
+		placeholder="${t("enterNamePlaceholder")}" />
 
 		<div class="flex justify-end gap-3 mt-6">
-			<button data-action="cancel" class="px-4 py-2 text-black hover:text-purple-700 cursor-pointer">Cancel</button>
-			<button data-action="save" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">Save</button>
+			<button data-action="cancel" class="px-4 py-2 text-black hover:text-purple-700 cursor-pointer">${t("cancel")}</button>
+			<button data-action="save" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">${t("save")}</button>
 		</div>
 	</div>`;
 }
@@ -183,10 +184,11 @@ export function profilePopup(): string
 		transform: translate(-50%, -50%); z-index: 50;">
 
 	<ul class="flex flex-col p-4 gap-4">
-		<li data-action="edit" class="cursor-pointer hover:text-purple-700">Edit picture</li>
-		<li data-action="remove" class="cursor-pointer hover:text-purple-700">Remove picture</li>
-		<li data-action="cancel" class="cursor-pointer hover:text-purple-700">Cancel</li>
+		<li data-action="edit" class="cursor-pointer hover:text-purple-700">${t("editPicture")}</li>
+		<li data-action="remove" class="cursor-pointer hover:text-purple-700">${t("removePicture")}</li>
+		<li data-action="cancel" class="cursor-pointer hover:text-purple-700">${t("cancel")}</li>
 	</ul>
+
 
 	<input type="file" id="profile-pic-input" accept="image/*" style="display:none" />
 
@@ -210,11 +212,11 @@ export function confirmPopup(): string
 		style="display: none; position: fixed; top: 50%; left: 50%;
 		transform: translate(-50%, -50%); z-index: 50;">
 
-		<h3 class="text-lg font-semibold text-gray-800 mb-8">Are you sure?<br></h3>
+		<h3 class="text-lg font-semibold text-gray-800 mb-8">${t("areYouSure")}<br></h3>
 
 		<div class="flex justify-end gap-3 mt-6">
-			<button data-action="cancel" class="px-4 py-2 text-black hover:text-purple-700 cursor-pointer">Cancel</button>
-			<button data-action="confirm" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">Confirm</button>
+			<button data-action="cancel" class="px-4 py-2 text-black hover:text-purple-700 cursor-pointer">${t("cancel")}</button>
+			<button data-action="confirm" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">${t("confirm")}</button>
 		</div>
 
 	</div>`;

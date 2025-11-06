@@ -5,8 +5,8 @@ import { sidebarDisplay } from "../components/SideBar"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { friendRequestCard } from "../components/FriendRequestDiv"
 import { confirmPopup } from "../components/Popups"
-import { t } from "../i18n/Lang";
-import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
+import { t } from "../services/lang/LangEngine";
+import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 // Interface for friend (safer than using "any")
 export interface Friend
@@ -60,7 +60,7 @@ function friendCard(friend: Friend)
 	return `
 	<div class="bg-slate-900 backdrop-blur-md rounded-2xl p-4 shadow-[0_0_30px_10px_#7037d3] h-[170px] relative overflow-hidden">
 		<div class="flex items-start gap-4 absolute left-5 top-5">
-			<img src=${ friend.profilePicture }  alt="${t("friendAvatarAlt")}" class="w-24 h-24 rounded-full">
+			<img src=${ friend.profilePicture }  alt="Friend Avatar" class="w-24 h-24 rounded-full">
 				<div class="mr-3">
 				<h3 class="text-white font-semibold">
 					${ friend.name }

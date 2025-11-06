@@ -1,5 +1,5 @@
 import { createCard } from './CardCreator'
-import { t } from "../../i18n/Lang";
+import { t } from "../../services/lang/LangEngine";
 
 export const AICard = createCard({
   title: t("aiCardTitle"),

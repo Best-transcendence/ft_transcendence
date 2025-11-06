@@ -5,11 +5,11 @@ import {
   createTwoPlayerTournament,
   createFourPlayerTournament,
   reportMatchResult,
-} from "../tournament/Engine";
+} from "../tournament/TournamentEngine";
 import { myName, ensureMeFirst } from "../tournament/utils"; // reuse shared helpers
 import { resetTimer } from "../components/Timer";
 import { difficulty, resetDifficulty, getDisplayName } from "../tournament/InitTournamentLobby";
-import { t } from "../i18n/Lang";
+import { t } from "../services/lang/LangEngine";
 
 /**
  * Tournament Flow Controller

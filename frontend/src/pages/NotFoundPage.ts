@@ -1,5 +1,5 @@
 import { addTheme } from "../components/Theme";
-import { t } from "../i18n/Lang";
+import { t } from "../services/lang/LangEngine";
 
 export function NotFoundPage() {
   return `

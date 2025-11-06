@@ -1,5 +1,5 @@
 // Configure sidebar actions
-import { t } from "../i18n/Lang";
+import { t } from "../services/lang/LangEngine";
 
 export function sideBar()
 {

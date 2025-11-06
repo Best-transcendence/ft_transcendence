@@ -1,6 +1,6 @@
 import { thisUser } from "../router"
 import { formatDate } from "../utils"
-import { t } from "../i18n/Lang";
+import { t } from "../services/lang/LangEngine";
 
 // Map database enum values to human-readable titles
 function getMatchTypeDisplay(type: string): string {
@@ -85,7 +85,7 @@ function playerCard(match: any, player: any, score: number)
 				${ winstatus }
 			<div class="relative mb-4">
 				${ crown }
-				<img src="${player.profilePicture}" alt="${t("playerAvatarAlt")}" class="w-[6vw] h-[6vw] min-w-12 min-h-12 max-w-24 max-h-24 rounded-full mx-auto">
+				<img src="${player.profilePicture}" alt="Player Avatar" class="w-[6vw] h-[6vw] min-w-12 min-h-12 max-w-24 max-h-24 rounded-full mx-auto">
 			</div>
 		<h4 class="text-purple-600 font-semibold text-lg mb-2">${player.name}</h4>
 		<div class="text-2xl font-bold text-gray-200">${ score }</div>

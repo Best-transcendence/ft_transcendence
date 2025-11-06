@@ -4,8 +4,8 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { addTheme } from "../components/Theme";
 import { ModeCards } from "../components/cards/ModeCards";
 import { autoConnect } from "../services/ws";
-import { t } from "../i18n/Lang";
-import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
+import { t } from "../services/lang/LangEngine";
+import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 // Adapted function now that data extraction has been centralized
 export function GameIntroPage(): string {

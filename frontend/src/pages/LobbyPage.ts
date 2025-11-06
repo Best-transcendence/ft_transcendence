@@ -3,8 +3,8 @@ import { addTheme } from "../components/Theme";
 import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
-import { t } from "../i18n/Lang";
-import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
+import { t } from "../services/lang/LangEngine";
+import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 import { thisUser } from "../router";
 import {

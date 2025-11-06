@@ -10,8 +10,8 @@
 import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
 import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
-import { setupLanguageSwitcher } from "./i18n/LanguageSwitcher";
-import { t } from "./i18n/Lang";
+import { setupLanguageSwitcher } from "./services/lang/LanguageSwitcher";
+import { t } from "./services/lang/LangEngine";
 // Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";

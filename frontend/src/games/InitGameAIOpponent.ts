@@ -1,7 +1,7 @@
 import { thisUser } from "../router";
 import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
-import { t } from "../i18n/Lang";
+import { t } from "../services/lang/LangEngine";
 
 // Global variables for scores and game state
 let globalScoreAI = 0;
@@ -9,7 +9,7 @@ let globalScorePlayer = 0;
 let globalAnimationFrameId: number | null = null;
 let globalGameRunning = false;
 let currentInstanceId = 0; // Track which instance is active
-import { t } from "../i18n/Lang";
+import { t } from "../services/lang/LangEngine";
 
 /*
  * AI Opponent Implementation

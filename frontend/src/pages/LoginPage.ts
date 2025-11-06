@@ -1,5 +1,5 @@
-import { t } from "../i18n/Lang";
-import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
+import { t } from "../services/lang/LangEngine";
+import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 import { addTheme } from "../components/Theme";
 
 export function LoginPage() {

@@ -1,5 +1,5 @@
 import { thisUser } from "../router"
-import { t } from "../i18n/Lang";
+import { t } from "../services/lang/LangEngine";
 
 // Centralizes the profile logo button + text
 export function profileDivDisplay()

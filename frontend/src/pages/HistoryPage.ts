@@ -5,8 +5,8 @@ import { profileDivDisplay } from "../components/ProfileDiv"
 import { sidebarDisplay } from "../components/SideBar"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { matchCard, noHistory } from "../components/MatchDiv"
-import { t } from "../i18n/Lang";
-import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
+import { t } from "../services/lang/LangEngine";
+import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 // Track current match index (reset to 0 on fresh page load)
 let currentMatch = 0;

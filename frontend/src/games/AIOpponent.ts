@@ -18,8 +18,8 @@ import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { TimerDisplay, startTimer, resetTimer } from "../components/Timer";
 import { createAIGame, destroyAIGame, isGameRunning } from "./AIGameController";
-import { t } from "../i18n/Lang"; // ✅
-import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
+import { t } from "../services/lang/LangEngine"; // ✅
+import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 /**
  * Generates the HTML template for the AI opponent game page

@@ -5,8 +5,8 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { profilePopup , inputPopup } from "../components/Popups"
 import { thisUser, fetchUser } from "../router"
 import { addTheme } from "../components/Theme"
-import { t } from "../i18n/Lang";
-import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
+import { t } from "../services/lang/LangEngine";
+import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 // Manages Profile page display
 export function ProfilePage()
@@ -42,7 +42,7 @@ export function ProfilePage()
 			style="position: relative;
 				display: inline-block; inline-block; width: 11vw; height: 11vw; min-width: 120px; min-height: 120px;">
 		<img id="profile-picture" src="${thisUser.profilePicture}"
-				alt="${t("profilePictureAlt")}"
+				alt="Profile Picture"
 				class="rounded-full"
 				style="width: 100%; height: 100%;"/>
 				<button id="edit-pic-button"

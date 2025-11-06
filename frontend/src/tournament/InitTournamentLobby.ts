@@ -1,4 +1,4 @@
-import { Player } from "./Engine";
+import { Player } from "./TournamentEngine";
 import {
   Mode,
   myName,
@@ -10,7 +10,7 @@ import {
   currentMax,
 } from "./utils";
 import { verifyUserForTournament } from "../services/api"; 
-import { t } from "../i18n/Lang";
+import { t } from "../services/lang/LangEngine";
 
 /**
  * Tournament Lobby Initialization and Management
