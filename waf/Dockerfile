@@ -1,27 +1,20 @@
 FROM owasp/modsecurity:nginx
 
-# Copy volumes
+# Install Vault CLI
+RUN apt-get update && apt-get install -y wget unzip \
+    && wget https://releases.hashicorp.com/vault/1.14.0/vault_1.14.0_linux_amd64.zip \
+    && unzip vault_1.14.0_linux_amd64.zip \
+    && mv vault /usr/local/bin/ \
+    && rm vault_1.14.0_linux_amd64.zip
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY modsecurity.conf /etc/nginx/modsec/modsecurity.conf
 COPY crs/ /etc/nginx/modsec/crs/
 COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Make entrypoint executable and ensure log dirs
-RUN chmod +x /entrypoint.sh && mkdir -p /var/log/modsec /var/log/nginx
+# You no longer copy certs from build context
+# COPY certs/ /etc/nginx/certs/
 
-# Install Vault CLI
-# Install Vault CLI
-# Install tools and Vault binary (download official release)
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget unzip ca-certificates && \
-    VAULT_VERSION=1.14.0 && \
-    wget -q "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip" -O /tmp/vault.zip && \
-    unzip /tmp/vault.zip -d /usr/local/bin && \
-    chmod +x /usr/local/bin/vault && \
-    rm -rf /tmp/vault.zip && \
-    apt-get remove -y wget unzip && apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
+CMD ["/entrypoint.sh"]
 
-EXPOSE 80 443
-
-ENTRYPOINT ["/entrypoint.sh"]

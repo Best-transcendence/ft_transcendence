@@ -212,6 +212,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    env_file:
+      - .env
     environment:
       VAULT_ADDR: http://vault-service:8200
       VAULT_TOKEN: ${VAULT_TOKEN}
