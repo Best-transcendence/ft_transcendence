@@ -1,30 +1,19 @@
 import { t } from "../i18n/Lang";
 import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
+import { addTheme } from "../components/Theme";
 
 export function LoginPage() {
   return `
-    <div class="relative flex items-center justify-center min-h-screen text-white overflow-hidden
-      bg-[radial-gradient(ellipse_at_bottom,_rgba(255,165,0,0.35)_0%,_transparent_40%),radial-gradient(circle_at_80%_20%,_rgba(122,44,208,0.3)_0%,_transparent_30%),linear-gradient(180deg,_#140533_0%,_#3c1282_50%,_#0a0f3d_100%)]">
 
-      <!-- Bubble Layer -->
-      <div class="absolute inset-0 pointer-events-none">
-        <!-- Bubble 1 -->
-        <div class="absolute w-12 h-12 bg-purple-400/30 rounded-full blur-lg top-20 left-10"></div>
-        <!-- Bubble 2 -->
-        <div class="absolute w-16 h-16 bg-purple-300/40 rounded-full blur-lg top-1/3 right-16"></div>
-        <!-- Bubble 3 -->
-        <div class="absolute w-8 h-8 bg-orange-300/30 rounded-full blur-md bottom-24 left-1/4"></div>
-        <!-- Bubble 4 -->
-        <div class="absolute w-10 h-10 bg-blue-400/30 rounded-full blur-md top-40 right-1/3"></div>
-      </div>
-
-    <div class="fixed top-2 right-6 z-50">
-        ${LanguageSwitcher()}
-      </div>
-
+    ${ addTheme() }
+	
+	<div class="fixed top-10 right-6 z-50">
+      		${LanguageSwitcher()}
+   		</div>
 
       <!-- Login Card -->
-	   <div class="relative z-10 bg-slate-900 backdrop-blur-md p-8 rounded-2xl w-96 text-center shadow-[0_0_30px_10px_#7037d3]">
+ 		<div class="flex items-center justify-center min-h-screen text-center">
+      <div class="relative z-10 bg-slate-900 backdrop-blur-md p-8 rounded-2xl w-96 shadow-[0_0_30px_10px_#7037d3]">
 		<!-- Title -->
         <h1 id="form-title" class="text-2xl font-heading font-bold mb-6 text-white">
 			${t("signIn")}
@@ -92,10 +81,10 @@ export function LoginPage() {
         <!-- Sign Up Button -->
         <button
           id="signup-toggle"
-          class="mt-4 text-sm cursor-pointer bg-transparent border-none text-gray-300"
-        >
-        </button>
-      </div>
-    </div>
+          class="mt-4 text-sm cursor-pointer bg-transparent border-none text-gray-300">
+          </button>
+		</div>
+	   </div>
+	</div>
   `;
 }
