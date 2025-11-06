@@ -18,9 +18,10 @@ export function LoginPage() {
         <div class="absolute w-10 h-10 bg-blue-400/30 rounded-full blur-md top-40 right-1/3"></div>
       </div>
 
-	<div class="absolute top-4 right-4 flex gap-2 items-center">
-		${LanguageSwitcher()}
-	</div>
+    <div class="fixed top-2 right-6 z-50">
+        ${LanguageSwitcher()}
+      </div>
+
 
       <!-- Login Card -->
 	   <div class="relative z-10 bg-slate-900 backdrop-blur-md p-8 rounded-2xl w-96 text-center shadow-[0_0_30px_10px_#7037d3]">
