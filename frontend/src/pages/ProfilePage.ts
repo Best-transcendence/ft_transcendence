@@ -5,6 +5,8 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { profilePopup , inputPopup } from "../components/Popups"
 import { thisUser, fetchUser } from "../router"
 import { addTheme } from "../components/Theme"
+import { t } from "../i18n/Lang";
+import { LanguageSwitcher } from "../i18n/LanguageSwitcher";
 
 // Manages Profile page display
 export function ProfilePage()
@@ -14,22 +16,23 @@ export function ProfilePage()
 		${ addTheme() }
 
 <!-- Header with user info -->
-		<div class="w-full
-			flex justify-between items-center
-			mb-10">
+		<div class="w-full flex justify-between items-center mb-10">
 
-<!-- Protected pages components -->
-			${ profileDivDisplay() }
-			${ sidebarDisplay() }
-			${ LogOutBtnDisplay() }
-
-		</div>
+	<!-- Protected pages components -->
+		${ profileDivDisplay() }
+		${ sidebarDisplay() }
+        <!-- Group Language and Logout on the right -->
+        <div class="flex gap-2 items-center">
+            ${LanguageSwitcher()}
+             ${LogOutBtnDisplay()}
+        </div>
+     </div>
 
 <!-- Title -->
 	<div flex items-center>
 		<h1 class="text-4xl text-gray-200 text-center font-heading font-bold mb-1">Profile</h1>
 		<p class="text-lg text-gray-400 max-w-xl text-center mb-16">
-			Get to know yourself, Clasher!
+			${t("profileSubtitle")}
 		</p>
 	</div>
 
@@ -39,7 +42,7 @@ export function ProfilePage()
 			style="position: relative;
 				display: inline-block; inline-block; width: 11vw; height: 11vw; min-width: 120px; min-height: 120px;">
 		<img id="profile-picture" src="${thisUser.profilePicture}"
-				alt="Profile picture"
+				alt="${t("profilePictureAlt")}"
 				class="rounded-full"
 				style="width: 100%; height: 100%;"/>
 				<button id="edit-pic-button"
@@ -68,20 +71,20 @@ export function ProfilePage()
 
 <!-- Username -->
 		<div class="flex justify-between items-center">
-			<span class="text-gray-300 font-medium">Username</span>
+			<span class="text-gray-300 font-medium">${t("username")}</span>
 			<span id="profile-name-card" class="text-white">${thisUser.name}</span>
 
 		</div>
 
 <!-- Email -->
 		<div class="flex justify-between items-center">
-			<span class="text-gray-300 font-medium">Email</span>
+			<span class="text-gray-300 font-medium"${t("email")}</span>
 			<span class="text-white">${thisUser.email}</span>
 		</div>
 
 <!-- Join Date -->
 		<div class="flex justify-between items-center">
-			<span class="text-gray-300 font-medium">Member Since</span>
+			<span class="text-gray-300 font-medium">${t("memberSince")}</span>
 			<span class="text-white">${formatDate(thisUser.createdAt || new Date().toISOString(), "M")}</span>
 		</div>
 

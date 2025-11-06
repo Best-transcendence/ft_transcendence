@@ -2,6 +2,7 @@ import { protectedPage } from "../router"
 import { Friend, FriendsPage } from "../pages/Friends"
 import { removeFriend, addFriend } from "../services/friendsActions"
 import { triggerPopup } from "../components/Popups"
+import { t } from "../i18n/Lang";
 
 export function friendRequest()
 {
@@ -56,14 +57,14 @@ export function friendRequestCard(friend: Friend)
 	style="position: fixed; top: 50%; left: 50%;
 	transform: translate(-50%, -50%); z-index: 50;">
 
-		<h3 class="text-lg font-semibold text-gray-800 mb-2">You have a friend request</h3>
+		<h3 class="text-lg font-semibold text-gray-800 mb-2">${t("friendRequestTitle")}</h3>
 		<p class=" text-sm text-gray-500 max-w-l text-center mb-10">
-			Is this a popularity contest?
+			${t("friendRequestSubtitle")}
 		</p>
 
 		<div class="bg-gray-300 backdrop-blur-md rounded-2xl p-4 h-[140px] relative overflow-hidden">
 		<div class="flex items-start gap-4 absolute left-5 top-5 ">
-			<img src=${ friend.profilePicture }  alt="Friend Avatar" class="w-24 h-24 rounded-full">
+			<img src=${ friend.profilePicture }  alt="${t("friendAvatarAlt")}" class="w-24 h-24 rounded-full">
 				<div class="mr-3">
 				<h3 class="text-purple-700 font-semibold text-left">
 					${ friend.name }</h3>
@@ -74,8 +75,8 @@ export function friendRequestCard(friend: Friend)
 		</div>
 
 		<div class="flex justify-end gap-3 mt-6">
-			<button data-action="decline" class="px-4 py-2 text-black hover:text-purple-700 cursor-pointer">Decline</button>
-			<button data-action="accept" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">Accept</button>
+			<button data-action="decline" class="px-4 py-2 text-black hover:text-purple-700 cursor-pointer"${t("decline")}</button>
+			<button data-action="accept" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">${t("accept")}</button>
 		</div>
 	</div>`;
 }

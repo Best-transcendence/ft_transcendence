@@ -11,7 +11,7 @@ import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
 import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
 import { setupLanguageSwitcher } from "./i18n/LanguageSwitcher";
-
+import { t } from "./i18n/Lang";
 // Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
@@ -383,18 +383,21 @@ function attachLoginListeners() {
       nameField?.classList.remove("hidden");
       confirmPasswordField?.classList.remove("hidden");
       // Update UI text for signup mode
-      if (submitButton) submitButton.textContent = "Register";
-      if (title) title.textContent = "Sign Up";
-      signupToggle.innerHTML = `Already have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign In</span>`;
+      if (submitButton) submitButton.textContent = t("register");
+      if (title) title.textContent = t("signUp");
+      signupToggle.innerHTML = `${t("alreadyHaveAccount")} <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">${t("signIn")}</span>`;
     } else {
       // Hide signup fields for login mode
       nameField?.classList.add("hidden");
       confirmPasswordField?.classList.add("hidden");
       // Update UI text for login mode
-      if (submitButton) submitButton.textContent = "Login";
-      if (title) title.textContent = "Sign In";
-      signupToggle.innerHTML =
-        'Don\'t have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign Up</span>';
+      if (submitButton) submitButton.textContent = t("login");
+      if (title) title.textContent = t("signIn");
+      signupToggle.innerHTML = `
+		${t("dontHaveAccount")}
+		<span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">
+			${t("signUp")}
+		</span>`;
     }
   }
 
