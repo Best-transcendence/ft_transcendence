@@ -45,9 +45,10 @@ export function registerWebsocketHandlers(wss, app) {
       return;
     }
 
-    // Attach user info
-    let displayName = decoded.name ?? decoded.username ?? getUserName(userId) ?? null;
-    ws.user = { id: userId, name: displayName };
+    // Store user info including token for 1v1 match history saving
+    // The token is needed to authenticate match save requests to user-service
+    ws.user = { id: userId, name: displayName, token: tokenFromQuery };
+    onlineUsers.set(String(userId), ws);
 
     addOnlineUser(userId, ws);
     // Broadcast online status

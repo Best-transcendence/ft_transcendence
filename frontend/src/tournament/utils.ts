@@ -32,7 +32,12 @@ export function myName(): string {
  */
 export function myPlayer(): Player {
   const name = myName() || "Me";
-  return { id: "me", name };
+  return { 
+    id: "me", 
+    name,
+    isAuthenticated: true,
+    authUserId: thisUser?.authUserId || thisUser?.id || 0
+  };
 }
 
 // Player array manipulation utilities

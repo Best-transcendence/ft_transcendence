@@ -46,7 +46,17 @@ export async function getCurrentUser() {
   });
 
   if (!res.ok) throw new Error("Unauthorized");
-  return await res.json(); // { user }
+  const data = await res.json(); // { user, userStats }
+  console.log("=== API RESPONSE DEBUG ===");
+  console.log("Raw response:", data);
+  console.log("Raw response keys:", Object.keys(data));
+  console.log("User object:", data.user);
+  console.log("User keys:", data.user ? Object.keys(data.user) : 'no user');
+  console.log("User stats:", data.user?.stats);
+  console.log("User stats type:", typeof data.user?.stats);
+  console.log("User stats keys:", data.user?.stats ? Object.keys(data.user.stats) : 'undefined');
+  console.log("Full user JSON:", JSON.stringify(data.user, null, 2));
+  return data;
 }
 //_____________________________________________________________________
 
@@ -123,6 +133,11 @@ export async function verifyUserForTournament(email: string, password: string) {
   }
 
   const profileData = await profileRes.json();
+  
+  // Verify profile actually exists in user-service
+  if (!profileData.user || !profileData.user.id) {
+    throw new Error("User profile not found in system. Please contact support.");
+  }
   
   // Return user data with proper name from user-service
   return {

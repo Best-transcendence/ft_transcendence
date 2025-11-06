@@ -223,7 +223,7 @@ app.register(async function (fastify) {
     prefix: '/users',
     rewritePrefix: '/users',
     // Only handle specific methods to avoid generic route generation
-    methods: ['GET'],
+    methods: ['GET', 'POST'],
     // Add Swagger metadata for documentation
     schema: {
       tags: ['User Management'],

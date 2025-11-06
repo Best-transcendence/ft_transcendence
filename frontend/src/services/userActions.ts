@@ -37,7 +37,7 @@ export async function editProfilePicture(newPicUrl: string)
 
 	const token = localStorage.getItem("jwt");
 
-	await fetch(`${API_URL}/users/me`,
+	const response = await fetch(`${API_URL}/users/me`,
 	{
 		method: 'POST',
 		body: JSON.stringify({ profilePicture: newPicUrl }),
@@ -48,16 +48,29 @@ export async function editProfilePicture(newPicUrl: string)
 		}
 	});
 
+	if (!response.ok) {
+		console.error("Failed to update profile picture");
+		return;
+	}
+
+	const result = await response.json();
+	
+	// Update thisUser immediately with the response from the server
+	if (result.user && result.user.profilePicture) {
+		thisUser.profilePicture = result.user.profilePicture;
+	} else {
+		// Fallback: use the value we sent if server doesn't return it
+		thisUser.profilePicture = newPicUrl;
+	}
+
+	// Update DOM elements
 	const img = document.querySelector<HTMLImageElement>("img#profile-picture"); //changes picture
-	if (img)
-		img.src = newPicUrl;
+	if (img && thisUser.profilePicture)
+		img.src = thisUser.profilePicture;
 
 	const imglogo = document.querySelector<HTMLImageElement>("#profile-logo-img"); //changes logoo
-	if (imglogo)
-		imglogo.src = newPicUrl;
-
-	const data = await getCurrentUser();
-	thisUser.profilePicture = data.user.profilePicture;
+	if (imglogo && thisUser.profilePicture)
+		imglogo.src = thisUser.profilePicture;
 }
 
 // Updates name + throws error if duplicate
