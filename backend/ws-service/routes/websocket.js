@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { WebSocket } from 'ws';
 import { registerRoomHandlers } from './rooms.js';
 import { registerGameHandlers } from './game.js';
+import { registerFriendsHandlers } from './friends.js';
 
 const namesCache = new Map(); // userId(string) name
 
@@ -69,6 +70,7 @@ function broadcastLobby() {
 export function registerWebsocketHandlers(wss, app) {
   const roomHandlers = registerRoomHandlers(wss, onlineUsers, app);
   const gameHandlers = registerGameHandlers(wss, onlineUsers, app);
+  const friendsHandlers = registerFriendsHandlers(wss, app);
 
   wss.on('connection', (ws, req) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
@@ -102,6 +104,13 @@ export function registerWebsocketHandlers(wss, app) {
     // The token is needed to authenticate match save requests to user-service
     ws.user = { id: userId, name: displayName, token: tokenFromQuery };
     onlineUsers.set(String(userId), ws);
+
+    // Broadcast online status
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'user:online', userId }));
+      }
+    });
 
     // kick off async hydration if name is still missing
     if (!ws.user.name) {
@@ -237,13 +246,16 @@ export function registerWebsocketHandlers(wss, app) {
             gameHandlers.handleGameBegin(ws, data);
             break;
 
-          case "lobby:leave":
-            lobbyUsers.delete(ws.user.id);
-            broadcastLobby();
-            break;
+           case "lobby:leave":
+             lobbyUsers.delete(ws.user.id);
+             broadcastLobby();
+             break;
+           case 'friends:subscribe':
+             friendsHandlers.handleFriendSubscribe(ws, data);
+             break;
 
-          default:
-            app.log.warn({ type }, 'Unhandled WS message');
+           default:
+             app.log.warn({ type }, 'Unhandled WS message');
         }
       } catch (err) {
         app.log.error({ error: err.message, type }, 'Error handling WS message');
@@ -251,6 +263,13 @@ export function registerWebsocketHandlers(wss, app) {
     });
 
     ws.on('close', () => {
+      // Broadcast offline status before cleanup
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: 'user:offline', userId: ws.user.id }));
+        }
+      });
+
       // cleanup both maps
       lobbyUsers.delete(ws.user.id);
       const current = onlineUsers.get(String(ws.user.id));
