@@ -82,70 +82,85 @@ async function main() {
     data: { friends: { connect: [{ authUserId: 1 }, { authUserId: 2 }, { authUserId: 3 }] } }
   });
 
-  // Retrieve user IDs for stats and matches
+  // Retrieve user IDs for match creation
   const yulia = await prisma.userProfile.findUnique({ where: { authUserId: 1 } });
   const tina = await prisma.userProfile.findUnique({ where: { authUserId: 2 } });
   const juan = await prisma.userProfile.findUnique({ where: { authUserId: 3 } });
+  const camille = await prisma.userProfile.findUnique({ where: { authUserId: 4 } });
 
-  // 
-  const users = await prisma.userProfile.findMany({ select: { id: true } });
-  for (const u of users) {
-    await prisma.stats.upsert({
-      where: { userId: u.id },
-      update: {},
-      create: { userId: u.id }, // defaults (0s)
-    });
-  }
-
-  // Sample match data
+  // Sample match data with varied outcomes
   const sampleMatches = [
     {
-      type: 'Tournament Match',
+      type: 'TOURNAMENT_INTERMEDIATE',
       player1Id: tina.id,
       player2Id: yulia.id,
       player1Score: 5,
       player2Score: 3,
+      winnerId: tina.id,  // Tina wins
       date: new Date('2025-10-01T15:45:00Z')
     },
     {
-      type: '1v1 Match',
+      type: 'ONE_VS_ONE',
       player1Id: juan.id,
       player2Id: tina.id,
       player1Score: 2,
       player2Score: 5,
+      winnerId: tina.id,  // Tina wins
       date: new Date('2025-09-28T10:30:00Z')
     },
     {
-      type: '1v1 Match',
+      type: 'ONE_VS_ONE',
       player1Id: yulia.id,
       player2Id: juan.id,
-      player1Score: 0,
-      player2Score: 0,
+      player1Score: 3,
+      player2Score: 3,
+      winnerId: null,  // Draw
       date: new Date('2025-09-18T11:38:00Z')
     },
     {
-      type: 'AI Match',
-      player1Id: tina.id,
-      player2Id: null,
-      player1Score: 7,
-      player2Score: 3,
-      date: new Date('2025-10-06T12:00:00Z'),
+      type: 'TOURNAMENT_FINAL',
+      player1Id: camille.id,
+      player2Id: yulia.id,
+      player1Score: 5,
+      player2Score: 2,
+      winnerId: camille.id,  // Camille wins
+      date: new Date('2025-10-06T12:00:00Z')
     },
     {
-      type: '1v1 Match',
-      player1Id: null,
-      player2Id: yulia.id,
-      player1Score: 4,
+      type: 'ONE_VS_ONE',
+      player1Id: juan.id,
+      player2Id: camille.id,
+      player1Score: 5,
+      player2Score: 4,
+      winnerId: juan.id,  // Juan wins
+      date: new Date('2025-10-07T14:20:00Z')
+    },
+    {
+      type: 'TOURNAMENT_INTERMEDIATE',
+      player1Id: yulia.id,
+      player2Id: tina.id,
+      player1Score: 5,
+      player2Score: 1,
+      winnerId: yulia.id,  // Yulia wins
+      date: new Date('2025-10-08T16:30:00Z')
+    },
+    {
+      type: 'ONE_VS_ONE',
+      player1Id: camille.id,
+      player2Id: juan.id,
+      player1Score: 2,
       player2Score: 5,
-      date: new Date('2025-10-06T13:00:00Z'),
+      winnerId: juan.id,  // Juan wins
+      date: new Date('2025-10-09T10:15:00Z')
     }
   ];
 
   for (const matchData of sampleMatches) {
-    await prisma.match.create({ data: matchData });
+    const match = await prisma.match.create({ data: matchData });
+    console.log(`🎮 Created match: ${match.type} (${match.player1Score}-${match.player2Score})`);
   }
 
-  console.log('✅ User service seed completed successfully');
+  console.log(`✅ User service seed completed successfully (${sampleMatches.length} matches created)`);
 }
 
 main()

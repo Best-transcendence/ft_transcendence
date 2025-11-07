@@ -26,6 +26,8 @@
 
 # Development Roadmap
 
+CHECK: IV.4 Security concerns - in Progress Camille, Yulia
+
 | #  | Workstream                                       | Must come after | Can run in parallel with | Type / Priority  | Status / Notes                                                                 |
 | -- | ------------------------------------------------ | --------------- | ------------------------ | ---------------- | ------------------------------------------------------------------------------ |
 | 0  | **Project Foundations** (Tournament system)      | —               | —                        | —                | ✅ Completed                                                                   |
@@ -33,11 +35,13 @@
 | 2  | **Database (SQLight + Prisma)**                  | 0               | —                        | Minor            | ✅ DONE                                                                        |
 | 3  | **Frontend framework (TS + Tailwind/R)**         | 0               | 1                        | Minor            | ✅ DONE                                                                        |
 | 4  | **Microservices architecture**                   | —               | 2                        | MAJOR            | ✅ DONE                                                                        |
-| 5  | **DevOps: log management**                       | 1               | 8, 10                    | MAJOR            | ✅ DONE                                                                        |
-| 6  | **Standard User Management**                     | 1, 2            | 4, 7, 3                  | MAJOR            | 🔧 In progress — Friend button, online status, input validation, match history |
+| 5  | **DevOps: log management**                       | 1               | 8, 10                    | MAJOR            | 🔧 In progress — Yulia                                                                        |
+| 6  | **Standard User Management**                     | 1, 2            | 4, 7, 3                  | MAJOR            | 🔧 In progress - Friend status
+validation, match history |
 | 7  | **WAF + Vault (secrets mgmt)**                   | 5               | 8, 9, 10                 | MAJOR            | 🔧 In progress — Camille                                                       |
 | 8  | **Auth: JWT + 2FA**                              | 2               | 5, 10                    | MAJOR            | 🧍 Assigned: Camille — Not started                                             |
-| 9  | **Multiple languages (i18n)**                    | 3               | 6, 7, 8, 9               | Minor            | ✅ DONE                                                                        |
+| 9  | **Multiple languages (i18n)**                    | 3               | 6, 7, 8, 9               | Minor            | 🔧 In progress - Save in the user database (?)
+|
 | 10 | **Accessibility features**                       | 3               | 6, 7, 8, 9, 10           | Minor            | 🧍 Assigned: Tina - Not started                                                |
 | 11 | **AI opponent**                                  | 1, 2, 8         | 13                       | MAJOR            | ✅ DONE                                                                        |
 | 12 | **User & game stats dashboards**                 | 2, 5, 8, 9      | 12                       | Minor            | 🧍 Assigned: Yulia(?) — In progress                                            |
