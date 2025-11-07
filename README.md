@@ -51,7 +51,7 @@ git push
 
 - **Frontend**: Next.js 13+ with TypeScript, Server-Side Rendering
 - **Backend**: NodeJS with JWT authentication and 2FA
-- **Database**: SQLite with Prisma ORM
+- **Database**: SQLite
 - **Game Engine**: HTML5 Canvas with WebSocket synchronization
 - **DevOps**: Docker, Nginx, HTTPS/WSS
 - **Real-time**: WebSocket for chat and live game updates
@@ -70,7 +70,7 @@ git push
 
 - Environment variables stored in `.env` (gitignored)
 - Input validation and XSS protection
-- SQL injection prevention via Prisma ORM
+- SQL
 - HTTPS/WSS encryption across all services
 - 42 School evaluation compliance
 
