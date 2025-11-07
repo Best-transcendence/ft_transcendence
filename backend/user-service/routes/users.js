@@ -1,14 +1,11 @@
 // User management routes for user service
 
 // Calculate user statistics from match history
-async function calculateUserStats(prisma, userId) {
+function calculateUserStats(db, userId) {
   console.log(`[calculateUserStats] Starting calculation for userId: ${userId}`);
-
-  const allMatches = await prisma.match.findMany({
-    where: {
-      OR: [{ player1Id: userId }, { player2Id: userId }]
-    }
-  });
+  
+  const getMatchesStmt = db.prepare('SELECT * FROM Match WHERE player1Id = ? OR player2Id = ?');
+  const allMatches = getMatchesStmt.all(userId, userId);
 
   console.log(`[calculateUserStats] Found ${allMatches.length} matches for user ${userId}`);
   console.log('[calculateUserStats] Raw matches:', JSON.stringify(allMatches, null, 2));
@@ -97,17 +94,10 @@ export default async function (fastify, _opts) {
       }
     }
   }, async (_req, _reply) => {
-    return await fastify.prisma.userProfile.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        profilePicture: true,
-        bio: true,
-        createdAt: true
-        // Don't expose authUserId, matchHistory, stats to public
-      }
-    });
+    const getProfilesStmt = fastify.db.prepare(
+      'SELECT id, name, email, profilePicture, bio, createdAt FROM UserProfile'
+    );
+    return getProfilesStmt.all();
   });
 
   fastify.get('/public/:authUserId', {
@@ -148,15 +138,10 @@ export default async function (fastify, _opts) {
       return reply.code(400).send({ error: 'Invalid authUserId' });
     }
 
-    const user = await fastify.prisma.userProfile.findUnique({
-      where: { authUserId },
-      select: {
-        authUserId: true,
-        name: true,
-        id: true,
-        profilePicture: true
-      }
-    });
+    const getUserStmt = fastify.db.prepare(
+      'SELECT id, authUserId, name, profilePicture FROM UserProfile WHERE authUserId = ?'
+    );
+    const user = getUserStmt.get(authUserId);
 
     if (!user) return reply.code(404).send({ error: 'Not found' });
 
@@ -255,14 +240,10 @@ export default async function (fastify, _opts) {
       }
 
 	  // Name uniqueness check
-      const existingNameUser = await fastify.prisma.userProfile.findFirst(
-        {
-          where:
-		{
-		  name: name,
-		  NOT: { authUserId: authUserId } // Exclude current -> for name update
-		}
-        });
+      const checkNameStmt = fastify.db.prepare(
+        'SELECT * FROM UserProfile WHERE name = ? AND authUserId != ?'
+      );
+      const existingNameUser = checkNameStmt.get(name, authUserId);
 
       // Check for existing users to prevent duplicates
       if (existingNameUser)
@@ -274,22 +255,20 @@ export default async function (fastify, _opts) {
       console.log(`[${correlationId}] Bootstrap request for authUserId: ${authUserId}, name: ${name}, email: ${email}`);
 
       // Check if user profile already exists
-      const existingProfile = await fastify.prisma.userProfile.findUnique({
-        where: { authUserId }
-      });
+      const getExistingStmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
+      const existingProfile = getExistingStmt.get(authUserId);
 
       if (existingProfile) {
         // Update existing profile with latest data from auth-service
         console.log(`[${correlationId}] Updating existing profile for authUserId: ${authUserId}`);
 
-        const updatedProfile = await fastify.prisma.userProfile.update({
-          where: { authUserId },
-          data: {
-            name,
-            email,
-            updatedAt: new Date()
-          }
-        });
+        const updateProfileStmt = fastify.db.prepare(
+          'UPDATE UserProfile SET name = ?, email = ?, updatedAt = datetime("now") WHERE authUserId = ?'
+        );
+        updateProfileStmt.run(name, email, authUserId);
+
+        // Get updated profile
+        const updatedProfile = getExistingStmt.get(authUserId);
 
         console.log(`[${correlationId}] Successfully updated profile for authUserId: ${authUserId}`);
         return reply.status(200).send({
@@ -304,17 +283,20 @@ export default async function (fastify, _opts) {
         // Create new user profile
         console.log(`[${correlationId}] Creating new profile for authUserId: ${authUserId}`);
 
-        const newProfile = await fastify.prisma.userProfile.create({
-          data: {
-            authUserId,
-            name,
-            email,
-            //matchHistory: {}, // Initialize as empty object
-            //stats: {}, // Initialize as empty object
-            profilePicture: '/assets/default-avatar.jpeg', // Sets default profile pic
-            bio: 'Hi, I\'m playing Arcade Clash'
-          }
-        });
+        const insertProfileStmt = fastify.db.prepare(
+          'INSERT INTO UserProfile (authUserId, name, email, profilePicture, bio) VALUES (?, ?, ?, ?, ?)'
+        );
+        const result = insertProfileStmt.run(
+          authUserId,
+          name,
+          email,
+          '/assets/default-avatar.jpeg',
+          'Hi, I\'m playing Arcade Clash'
+        );
+
+        // Get created profile
+        const getNewProfileStmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE id = ?');
+        const newProfile = getNewProfileStmt.get(Number(result.lastInsertRowid));
 
         console.log(`[${correlationId}] Successfully created profile for authUserId: ${authUserId}`);
         return reply.status(201).send({
@@ -438,67 +420,56 @@ export default async function (fastify, _opts) {
       await request.jwtVerify();
 
       // Find user profile by authUserId from JWT token
-      const user = await fastify.prisma.userProfile.findUnique({
-        where: { authUserId: request.user.id },
-        include:
-		{
-		  friends: { select: { id: true },},
-		  friendOf:
-			{
-			  select: { id: true, name: true, profilePicture: true, bio: true },
-			  orderBy: { name: 'asc'}
-			}
-		}
-      });
+      const getUserStmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
+      const user = getUserStmt.get(request.user.id);
 
       if (!user) {
         return reply.status(404).send({ error: 'User profile not found' });
       }
 
-      if (user.friendOf) // sorts friends name alphabetically
-        user.friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+      // Get friendOf (users who have this user in their friends list - incoming friend requests)
+      const getFriendOfStmt = fastify.db.prepare(`
+        SELECT up.id, up.name, up.profilePicture, up.bio 
+        FROM _UserFriends uf_rel
+        JOIN UserProfile up ON uf_rel.userProfileId = up.id
+        WHERE uf_rel.friendId = ?
+        ORDER BY up.name ASC
+      `);
+      const friendOf = getFriendOfStmt.all(user.id);
 
-      // Fetch all matches where user participated (without Prisma relations)
-      const allMatches = await fastify.prisma.match.findMany({
-        where: {
-          OR: [
-            { player1Id: user.id },
-            { player2Id: user.id }
-          ]
-        },
-        orderBy: { date: 'desc' }
-      });
+      // Get friends list (users this user has in their friends list - outgoing friend requests) - just IDs
+      const getFriendsIdsStmt = fastify.db.prepare(`
+        SELECT friendId as id FROM _UserFriends WHERE userProfileId = ?
+      `);
+      const friends = getFriendsIdsStmt.all(user.id);
+
+      // Sort friends alphabetically
+      friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+      // Fetch all matches where user participated
+      const getMatchesStmt = fastify.db.prepare(`
+        SELECT * FROM Match 
+        WHERE player1Id = ? OR player2Id = ?
+        ORDER BY date DESC
+      `);
+      const allMatches = getMatchesStmt.all(user.id, user.id);
 
       // Fetch player details for each match
-      const matchesWithPlayers = await Promise.all(
-        allMatches.map(async (match) => {
-          const player1 = match.player1Id
-            ? await fastify.prisma.userProfile.findUnique({
-              where: { id: match.player1Id },
-              select: { id: true, name: true, profilePicture: true }
-            })
-            : null;
+      const getPlayerStmt = fastify.db.prepare('SELECT id, name, profilePicture FROM UserProfile WHERE id = ?');
+      const matchesWithPlayers = allMatches.map((match) => {
+        const player1 = match.player1Id ? getPlayerStmt.get(match.player1Id) : null;
+        const player2 = match.player2Id ? getPlayerStmt.get(match.player2Id) : null;
 
-          const player2 = match.player2Id
-            ? await fastify.prisma.userProfile.findUnique({
-              where: { id: match.player2Id },
-              select: { id: true, name: true, profilePicture: true }
-            })
-            : null;
-
-          return {
-            ...match,
-            player1,
-            player2
-          };
-        })
-      );
-
-      user.matches = matchesWithPlayers;
+        return {
+          ...match,
+          player1,
+          player2
+        };
+      });
 
       // Calculate stats on-the-fly
       console.log(`[${request.id}] About to calculate stats for user ${user.id}`);
-      const stats = await calculateUserStats(fastify.prisma, user.id);
+      const stats = calculateUserStats(fastify.db, user.id);
       console.log(`[${request.id}] Calculated stats:`, stats);
       console.log('DEBUG final stats before sending:', JSON.stringify(stats));
 
@@ -524,8 +495,8 @@ export default async function (fastify, _opts) {
         updatedAt: user.updatedAt,
         profilePicture: user.profilePicture,
         bio: user.bio,
-        friends: user.friends,
-        friendOf: user.friendOf,
+        friends: friends,
+        friendOf: friendOf,
         matches: matchesWithPlayers,
         stats: manualStats
       };
@@ -642,29 +613,48 @@ export default async function (fastify, _opts) {
       const userId = request.user.id;
       const { action, friendId, matchData, ...updateData } = request.body;
 
+      console.log(`[${request.id}] POST /users/me - userId: ${userId}, action: ${action}, updateData:`, JSON.stringify(updateData));
+
       if (action === 'add_friend') //Add a friend
       {
-        await fastify.prisma.userProfile.update(
-          {
-            where: { authUserId: userId },
-            data: { friends: { connect: { id: friendId } } }
-          });
-        return { message: `${ friendId } added to ${ userId }friendlist` };
+        // Get user profile ID
+        const getUserStmt = fastify.db.prepare('SELECT id FROM UserProfile WHERE authUserId = ?');
+        const userProfile = getUserStmt.get(userId);
+        if (!userProfile) {
+          return reply.status(404).send({ error: 'User profile not found' });
+        }
+
+        // Check if friendId is a valid profile
+        const getFriendProfileStmt = fastify.db.prepare('SELECT id, name FROM UserProfile WHERE id = ?');
+        const friendProfile = getFriendProfileStmt.get(friendId);
+        if (!friendProfile) {
+          return reply.status(404).send({ error: 'Friend profile not found' });
+        }
+
+        // Insert friend relationship
+        const insertFriendStmt = fastify.db.prepare(
+          'INSERT OR IGNORE INTO _UserFriends (userProfileId, friendId) VALUES (?, ?)'
+        );
+        insertFriendStmt.run(userProfile.id, friendId);
+        
+        return { message: `${ friendId } added to ${ userId } friendlist` };
       }
 
       if (action === 'remove_friend') //Remove from both lists to break link completely
       {
-        await fastify.prisma.userProfile.update(
-          {
-            where: { authUserId: userId },
-            data: { friends: { disconnect: { id: friendId } } }
-          });
+        // Get user profile ID
+        const getUserStmt = fastify.db.prepare('SELECT id FROM UserProfile WHERE authUserId = ?');
+        const userProfile = getUserStmt.get(userId);
+        if (!userProfile) {
+          return reply.status(404).send({ error: 'User profile not found' });
+        }
 
-        await fastify.prisma.userProfile.update(
-          {
-            where: { id: friendId },
-            data: { friends: { disconnect: { authUserId: userId } } }
-          });
+        // Remove friend relationship (both directions)
+        const deleteFriendStmt = fastify.db.prepare(
+          'DELETE FROM _UserFriends WHERE userProfileId = ? AND friendId = ?'
+        );
+        deleteFriendStmt.run(userProfile.id, friendId);
+        deleteFriendStmt.run(friendId, userProfile.id);
 
         return { message: `${ friendId } and ${ userId } are broken off` };
       }
@@ -675,12 +665,10 @@ export default async function (fastify, _opts) {
         const { type, player1Id, player2Id, player1Score, player2Score, _winnerId, date } = matchData;
 
         // Get both player profiles
-        const player1Profile = await fastify.prisma.userProfile.findUnique({
-          where: { authUserId: player1Id }
-        });
-        const player2Profile = await fastify.prisma.userProfile.findUnique({
-          where: { authUserId: player2Id }
-        });
+        const getPlayer1Stmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
+        const player1Profile = getPlayer1Stmt.get(player1Id);
+        const getPlayer2Stmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
+        const player2Profile = getPlayer2Stmt.get(player2Id);
 
         console.log(`[${request.id}] Player1 profile:`, player1Profile);
         console.log(`[${request.id}] Player2 profile:`, player2Profile);
@@ -696,9 +684,9 @@ export default async function (fastify, _opts) {
         }
 
         // retrieve date or create it
-        let matchDate = new Date();
+        let matchDate = new Date().toISOString();
         if (date)
-          matchDate = new Date(date);
+          matchDate = new Date(date).toISOString();
 
         let finalWinnerId = null; // In case of draw
         if (player1Score > player2Score)
@@ -708,39 +696,109 @@ export default async function (fastify, _opts) {
 
         console.log(`[${request.id}] Match details - player1Id: ${player1Profile.id}, player2Id: ${player2Profile.id}, scores: ${player1Score}-${player2Score}, winnerId: ${finalWinnerId}`);
 
-        const match = await fastify.prisma.match.create(
-          {
-            data:
-				{
-				  type,
-				  date: matchDate,
-				  player1Id: player1Profile.id,
-				  player2Id: player2Profile.id,
-				  player1Score,
-				  player2Score,
-				  winnerId: finalWinnerId
-				}
-          });
+        const insertMatchStmt = fastify.db.prepare(
+          'INSERT INTO Match (type, date, player1Id, player2Id, player1Score, player2Score, winnerId) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        );
+        const result = insertMatchStmt.run(
+          type,
+          matchDate,
+          player1Profile.id,
+          player2Profile.id,
+          player1Score,
+          player2Score,
+          finalWinnerId
+        );
 
+        // Get created match
+        const getMatchStmt = fastify.db.prepare('SELECT * FROM Match WHERE id = ?');
+        const match = getMatchStmt.get(Number(result.lastInsertRowid));
+        
         console.log(`[${request.id}] Match created successfully:`, match);
         return { message: 'Match created successfully', match };
       }
 
-      const updatedUser = await fastify.prisma.userProfile.update(
-        {
-          where: { authUserId: userId },
-          data: updateData
-        });
+      // Check if user profile exists
+      const getUserStmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
+      const existingUser = getUserStmt.get(userId);
+
+      if (!existingUser) {
+        return reply.status(404).send({ error: 'User profile not found' });
+      }
+
+      // Update user profile
+      const updateFields = [];
+      const updateValues = [];
+      
+      console.log(`[${request.id}] Checking fields - name: ${updateData.name}, profilePicture: ${updateData.profilePicture?.substring(0, 50)}, bio: ${updateData.bio}`);
+      
+      if (updateData.name !== undefined) {
+        // Check for name uniqueness if name is being updated
+        const checkNameStmt = fastify.db.prepare(
+          'SELECT * FROM UserProfile WHERE name = ? AND authUserId != ?'
+        );
+        const existingName = checkNameStmt.get(updateData.name, userId);
+        if (existingName) {
+          return reply.status(400).send({ error: 'Username already taken' });
+        }
+        updateFields.push('name = ?');
+        updateValues.push(updateData.name);
+      }
+      if (updateData.profilePicture !== undefined) {
+        updateFields.push('profilePicture = ?');
+        updateValues.push(updateData.profilePicture);
+      }
+      if (updateData.bio !== undefined) {
+        updateFields.push('bio = ?');
+        updateValues.push(updateData.bio);
+      }
+
+      if (updateFields.length > 0) {
+        updateFields.push('updatedAt = datetime(\'now\')');
+        updateValues.push(userId); // Add userId at the end for WHERE clause
+
+        const sql = `UPDATE UserProfile SET ${updateFields.join(', ')} WHERE authUserId = ?`;
+        console.log(`[${request.id}] Executing SQL:`, sql);
+        console.log(`[${request.id}] With values:`, updateValues);
+        
+        const updateStmt = fastify.db.prepare(sql);
+        const result = updateStmt.run(...updateValues);
+        
+        console.log(`[${request.id}] Update result - changes: ${result.changes}`);
+      } else {
+        console.log(`[${request.id}] No fields to update, returning existing user`);
+        return { user: existingUser };
+      }
+
+      // Get updated user with fresh query
+      const getUpdatedUserStmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
+      const updatedUser = getUpdatedUserStmt.get(userId);
+      
+      console.log(`[${request.id}] Updated user - profilePicture: ${updatedUser?.profilePicture?.substring(0, 50)}, bio: ${updatedUser?.bio}`);
+
+      if (!updatedUser) {
+        return reply.status(404).send({ error: 'User profile not found' });
+      }
 
       return { user: updatedUser };
     } catch (err) {
-      if (err.code === 'P2025') { // Prisma not found error
-        return reply.status(404).send({ error: 'User profile not found' });
+      console.error(`[${request.id}] Error in POST /users/me:`, err);
+      fastify.log.error('Profile update error:', err);
+      
+      // JWT verification errors should return 401
+      if (err.message && (err.message.includes('jwt') || err.message.includes('token') || err.message.includes('Unauthorized'))) {
+        return reply.status(401).send({ error: 'Unauthorized' });
       }
-	  if (err.code === 'P2002'){
-        return reply.status(400).send({ error: 'Username already taken'});
-	  }
-      return reply.status(401).send({ error: 'Unauthorized or update failed' });
+      
+      // Check for unique constraint violation
+      if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        return reply.status(400).send({ error: 'Username already taken' });
+      }
+      
+      // Return more specific error for debugging
+      return reply.status(500).send({ 
+        error: 'Failed to update profile',
+        message: err.message 
+      });
     }
   });
 

@@ -32,7 +32,7 @@
 - [ ] Create basic folder structure:
   ```
   /frontend/          # Next.js + TypeScript
-  /backend/           # NestJS + Prisma
+  /backend/           # Fastify + SQLite
   /game/             # Pong game logic
   /docker/           # Container configurations
   ```
@@ -66,9 +66,9 @@
 - [ ] **Set up proxy configuration** in `/proxy/nginx.conf`
 - [ ] **Verify cross-service communication** works
 
-#### Backend Tasks (NestJS + Postgres + Prisma)
-- [ ] **Initialize NestJS project** in `/backend/`
-- [ ] **Set up Prisma ORM** with PostgreSQL
+#### Backend Tasks (Fastify + SQLite)
+- [ ] **Initialize Fastify project** in `/backend/`
+- [ ] **Set up SQLite database** with better-sqlite3
 - [ ] **Create health check endpoint** (`/api/health`)
 - [ ] **Configure basic CORS** and security middleware
 - [ ] **Set up development database** schema

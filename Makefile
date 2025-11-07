@@ -98,13 +98,38 @@ clean:
 	docker compose down -v --rmi all 2>/dev/null || true
 	docker system prune -a -f --volumes
 	docker builder prune -a -f
-	@echo "🗑️  Removing local database files..."
-	@rm -f user.db
-	@rm -f backend/auth-service/prisma/auth.db
-	@rm -f backend/user-service/prisma/prisma/user.db
+	@echo "🗑️  Removing local database files (new structure)..."
+	@rm -f backend/user-service/data/*.db
+	@rm -f backend/user-service/data/*.db-journal
+	@rm -f backend/auth-service/data/*.db
+	@rm -f backend/auth-service/data/*.db-journal
+	@rm -f backend/ws-service/data/*.db
+	@rm -f backend/ws-service/data/*.db-journal
+	@rm -f *.db
+	@rm -f *.db-journal
+	@echo "🗑️  Removing Prisma leftovers (if any)..."
+	@rm -rf backend/auth-service/prisma
+	@rm -rf backend/user-service/prisma
+	@rm -rf backend/prisma
+	@find backend -type d -name "prisma" -exec rm -rf {} + 2>/dev/null || true
+	@find backend -type f -path "*/prisma/*.db" -delete 2>/dev/null || true
+	@find backend -type f -path "*/prisma/*.db-journal" -delete 2>/dev/null || true
+	@rm -rf prisma
+	@rm -rf generated/prisma
 	@echo "🧹 Removing frontend build artifacts..."
 	@rm -rf frontend/dist
 	@rm -rf frontend/node_modules/.vite
+	@rm -rf frontend/.vite
+	@rm -rf frontend/.cache
+	@echo "🧹 Removing backend build artifacts..."
+	@find backend -type d -name "dist" -exec rm -rf {} + 2>/dev/null || true
+	@find backend -type f -name "*.tsbuildinfo" -delete 2>/dev/null || true
+	@find backend -type d -name ".cache" -exec rm -rf {} + 2>/dev/null || true
+	@find backend -type d -path "*/node_modules/.cache" -exec rm -rf {} + 2>/dev/null || true
+	@echo "🧹 Removing logs..."
+	@find backend -type f -name "*.log" -delete 2>/dev/null || true
+	@rm -f *.log
+	@rm -rf logs
 	@echo "✅ Full cleanup complete! Everything is reset."
 
 # Show status
