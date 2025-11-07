@@ -1,6 +1,7 @@
 import { thisUser } from "../router";
 import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
+import { t } from "../services/lang/LangEngine";
 
 // Global variables for scores and game state
 let globalScoreAI = 0;
@@ -8,6 +9,7 @@ let globalScorePlayer = 0;
 let globalAnimationFrameId: number | null = null;
 let globalGameRunning = false;
 let currentInstanceId = 0; // Track which instance is active
+import { t } from "../services/lang/LangEngine";
 
 /*
  * AI Opponent Implementation
@@ -191,11 +193,11 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		if (overlay) {
 			// Determine winner based on final scores
 			if (globalScoreAI > globalScorePlayer) {
-				winnerText!.textContent = "AI won 🤖";
+				winnerText!.textContent = t("aiWon");
 			} else if (globalScorePlayer > globalScoreAI) {
-				winnerText!.textContent = "You won 🥇";
+				winnerText!.textContent = t("youWon");
 			} else {
-				winnerText!.textContent = "It's a tie! 🤝";
+				winnerText!.textContent = t("itsATie");
 			}
 			overlay.classList.remove("hidden");
 		}

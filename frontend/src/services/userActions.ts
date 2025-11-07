@@ -115,7 +115,7 @@ export async function editName(newName: string)
 
 		const nameLogo = document.querySelector<HTMLElement>("#profile-logo-name"); //changes logoo
 		if (nameLogo)
-			nameLogo.textContent = `Welcome back, ${newName}`;
+			nameLogo.textContent = `${t("welcomeBack")} ${newName}`;
 
 		const data = await getCurrentUser();
 		thisUser.name = data.user.name;

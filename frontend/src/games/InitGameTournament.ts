@@ -45,7 +45,7 @@ export function initGameTournament(): void {
     console.log("=== TOURNAMENT GAME ALREADY INITIALIZED - SKIPPING ===");
     return;
   }
-  
+
   console.log("=== INITIALIZING TOURNAMENT GAME ===");
   _initialized = true;
   

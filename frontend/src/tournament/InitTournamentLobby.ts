@@ -1,4 +1,4 @@
-import { Player } from "./engine";
+import { Player } from "./TournamentEngine";
 import {
   Mode,
   myName,
@@ -10,6 +10,7 @@ import {
   currentMax,
 } from "./utils";
 import { verifyUserForTournament } from "../services/api"; 
+import { t } from "../services/lang/LangEngine";
 
 /**
  * Tournament Lobby Initialization and Management
@@ -194,13 +195,13 @@ async function addAuthenticatedPlayer(email: string, password: string) {
     
     // Prevent adding current user
     if (userData.id === myPlayer().id) {
-      showErrorMessage("You cannot add yourself to the tournament");
+      showErrorMessage(t("errorSelfAdd"));
       return;
     }
 
     // Prevent duplicate authenticated users by authUserId
     if (players.some(p => p.authUserId === userData.id)) {
-      showErrorMessage("This user is already in the tournament");
+      showErrorMessage(t("errorUserAlreadyIn"));
       return;
     }
 
@@ -223,11 +224,11 @@ async function addAuthenticatedPlayer(email: string, password: string) {
     byId<HTMLInputElement>("user-password").value = "";
     
   } catch (error) {
-    console.error("Authentication failed:", error);
+    console.error(`${t("authFailedPrefix")}`, error);
     if (error instanceof Error) {
       showErrorMessage(error.message);
     } else {
-      showErrorMessage("Authentication failed. Please try again.");
+      showErrorMessage(t("authFailedGeneric"));
     }
   }
 }
@@ -325,7 +326,7 @@ function createStackedVsBlock(top: string, bottom: string, highlight = false) {
   topName.className = `font-bold text-lg ${baseColor} ${highlightGlow}`;
 
   const vs = document.createElement("div");
-  vs.textContent = "vs";
+  vs.textContent = t("vs");
   vs.className = "text-gray-400 my-1 text-sm";
 
   const bottomName = document.createElement("div");
@@ -379,7 +380,7 @@ function renderMatchmakerPreview() {
 
   const participantsTitle = document.createElement("div");
   participantsTitle.className = "text-sm text-gray-300 mb-2";
-  participantsTitle.textContent = "Participants";
+  participantsTitle.textContent = t("participants");
   participantsCard.appendChild(participantsTitle);
 
   // Player chips display
@@ -407,7 +408,7 @@ function renderMatchmakerPreview() {
   } else {
     const none = document.createElement("div");
     none.className = "text-base text-gray-100";
-    none.textContent = "No participants yet.";
+    none.textContent = t("participantsNone");
     chips.appendChild(none);
   }
   participantsCard.appendChild(chips);
@@ -415,8 +416,7 @@ function renderMatchmakerPreview() {
   // User instruction hint
   const hint = document.createElement("div");
   hint.className = "text-xs text-gray-400 mt-3";
-  hint.textContent =
-    "You will see your matchups once you reach the required players and press Matchmaking!";
+  hint.textContent = t("participantsHint");
   participantsCard.appendChild(hint);
 
   // Stop rendering if not enough players
@@ -432,13 +432,13 @@ function renderMatchmakerPreview() {
     if (playerSlice.length >= 2) {
       const [a, b] = playerSlice;
       if (paired) {
-        grid.appendChild(makeRoundCard("Round 1", getDisplayName(a!), getDisplayName(b!)));
-        grid.appendChild(makeRoundCard("Round 2", getDisplayName(a!), getDisplayName(b!)));
-        grid.appendChild(makeRoundCard("Final Round", getDisplayName(a!), getDisplayName(b!), true));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 1`, getDisplayName(a!), getDisplayName(b!)));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 2`, getDisplayName(a!), getDisplayName(b!)));
+        grid.appendChild(makeRoundCard(t("finalRound"), getDisplayName(a!), getDisplayName(b!), true));
       } else {
-        grid.appendChild(makeRoundCard("Round 1", "?", "?"));
-        grid.appendChild(makeRoundCard("Round 2", "?", "?"));
-        grid.appendChild(makeRoundCard("Final Round", "?", "?", true));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 1`, "?", "?"));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 2`, "?", "?"));
+        grid.appendChild(makeRoundCard(t("finalRound"), "?", "?", true));
       }
     }
   } else {
@@ -449,19 +449,19 @@ function renderMatchmakerPreview() {
         const [s1a, s1b] = plannedPairs[0]!;
         const [s2a, s2b] = plannedPairs[1]!;
 
-        grid.appendChild(makeRoundCard("Round 1", getDisplayName(s1a), getDisplayName(s1b)));
-        grid.appendChild(makeRoundCard("Round 2", getDisplayName(s2a), getDisplayName(s2b)));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 1`, getDisplayName(s1a), getDisplayName(s1b)));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 2`, getDisplayName(s2a), getDisplayName(s2b)));
       }
     } else {
-      grid.appendChild(makeRoundCard("Round 1", "?", "?"));
-      grid.appendChild(makeRoundCard("Round 2", "?", "?"));
+      grid.appendChild(makeRoundCard(`${t("roundLabel")} 1`, "?", "?"));
+      grid.appendChild(makeRoundCard(`${t("roundLabel")} 2`, "?", "?"));
     }
 
-    grid.appendChild(makeRoundCard("Final Round", "?", "?", true));
+    grid.appendChild(makeRoundCard(t("finalRound"), "?", "?", true));
 
     const note = document.createElement("div");
     note.className = "text-xs text-gray-300 mt-1";
-    note.textContent = "Winners of Round 1 and Round 2 will be selected in the Final!";
+    note.textContent = t("winnersNote");
     host.appendChild(note);
   }
 
@@ -473,7 +473,7 @@ function renderMatchmakerPreview() {
     cta.className =
       "px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white " +
       "border border-violet-400/30 shadow-[0_0_16px_2px_#7037d355]";
-    cta.textContent = "Let's start 🕹️";
+    cta.textContent = t("letsStart");
     cta.onclick = () => startTournamentAndGo();
     ctaWrap.appendChild(cta);
     host.appendChild(ctaWrap);
@@ -577,18 +577,18 @@ export function initLobbyPageTournament() {
     const name = guestInput.value.trim();
     
     if (!name) {
-      showErrorMessage("Please enter a guest username");
+      showErrorMessage(t("guestUsernameRequired"));
       return;
     }
     
     // Validate username: only letters, max 12 characters
     if (!/^[A-Za-z]+$/.test(name)) {
-      showErrorMessage("Username must contain only letters");
+      showErrorMessage(t("usernameLettersOnly"));
       return;
     }
     
     if (name.length > 12) {
-      showErrorMessage("Username must be 12 characters or less");
+      showErrorMessage(t("usernameMaxLen"));
       return;
     }
     
@@ -605,12 +605,12 @@ export function initLobbyPageTournament() {
     const password = userPasswordInput.value;
     
     if (!email || !password) {
-      showErrorMessage("Please enter both email and password");
+      showErrorMessage(t("credentialsRequired"));
       return;
     }
     
     if (!email.includes('@') || !email.includes('.')) {
-      showErrorMessage("Please enter a valid email address");
+      showErrorMessage(t("invalidEmail"));
       return;
     }
     
@@ -622,34 +622,19 @@ export function initLobbyPageTournament() {
   mode4.onchange = () => { if (mode4.checked) setMode("4"); };
 
   // Difficulty selection with info update
-  const difficultyEasy = byId<HTMLInputElement>("difficulty-easy");
+    const difficultyEasy = byId<HTMLInputElement>("difficulty-easy");
   const difficultyMedium = byId<HTMLInputElement>("difficulty-medium");
   const difficultyHard = byId<HTMLInputElement>("difficulty-hard");
   const difficultyInfo = byId<HTMLSpanElement>("difficulty-info");
-  
-  const difficultyDescriptions = {
-    easy: "8s · Slower ball speed", // TODO: Change back to 40s
-    medium: "30s · Normal ball speed",
-    hard: "20s · Faster ball speed"
-  };
-  
+
   difficultyEasy.onchange = () => { 
-    if (difficultyEasy.checked) {
-      difficulty = "easy";
-      difficultyInfo.textContent = difficultyDescriptions.easy;
-    }
+    if (difficultyEasy.checked) { difficulty = "easy"; difficultyInfo.textContent = t("difficultyInfoEasy"); }
   };
   difficultyMedium.onchange = () => { 
-    if (difficultyMedium.checked) {
-      difficulty = "medium";
-      difficultyInfo.textContent = difficultyDescriptions.medium;
-    }
+    if (difficultyMedium.checked) { difficulty = "medium"; difficultyInfo.textContent = t("difficultyInfoMedium"); }
   };
   difficultyHard.onchange = () => { 
-    if (difficultyHard.checked) {
-      difficulty = "hard";
-      difficultyInfo.textContent = difficultyDescriptions.hard;
-    }
+    if (difficultyHard.checked) { difficulty = "hard"; difficultyInfo.textContent = t("difficultyInfoHard"); }
   };
 
   // Matchmaking button - generates tournament pairs
