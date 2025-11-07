@@ -27,13 +27,48 @@ const app = Fastify({
 });
 
 // Register CORS plugin
-// TODO check if those URL need change according to user's IP
+// Build origin array to support both localhost and LAN_IP with HTTP and HTTPS
+const buildOrigins = () => {
+  const origins = [];
+  const lanIp = process.env.LAN_IP;
+  const frontendPort = process.env.FRONTEND_PORT || 3000;
+  const authServicePort = process.env.AUTH_SERVICE_PORT || 3001;
+  const userServicePort = process.env.USER_SERVICE_PORT || 3002;
+  
+  // Add localhost origins (HTTP and HTTPS)
+  origins.push(`http://localhost:${frontendPort}`);
+  origins.push(`https://localhost:${frontendPort}`);
+  origins.push(`http://localhost:${authServicePort}`);
+  origins.push(`https://localhost:${authServicePort}`);
+  origins.push(`http://localhost:${userServicePort}`);
+  origins.push(`https://localhost:${userServicePort}`);
+  
+  // Add LAN_IP origins if set (HTTP and HTTPS)
+  if (lanIp) {
+    origins.push(`http://${lanIp}:${frontendPort}`);
+    origins.push(`https://${lanIp}:${frontendPort}`);
+    origins.push(`http://${lanIp}:${authServicePort}`);
+    origins.push(`https://${lanIp}:${authServicePort}`);
+    origins.push(`http://${lanIp}:${userServicePort}`);
+    origins.push(`https://${lanIp}:${userServicePort}`);
+  }
+  
+  // Also add any explicit URLs from env if they differ
+  if (process.env.FRONTEND_URL && !origins.includes(process.env.FRONTEND_URL)) {
+    origins.push(process.env.FRONTEND_URL);
+  }
+  if (process.env.AUTH_SERVICE_URL && !origins.includes(process.env.AUTH_SERVICE_URL)) {
+    origins.push(process.env.AUTH_SERVICE_URL);
+  }
+  if (process.env.USER_SERVICE_URL && !origins.includes(process.env.USER_SERVICE_URL)) {
+    origins.push(process.env.USER_SERVICE_URL);
+  }
+  
+  return origins;
+};
+
 await app.register(fastifyCors, {
-  origin: [
-    `http://${process.env.LAN_IP || 'localhost'}:${process.env.FRONTEND_PORT || 3000}`,  // Frontend
-    `http://${process.env.LAN_IP || 'localhost'}:${process.env.AUTH_SERVICE_PORT || 3001}`,  // Auth service
-    `http://${process.env.LAN_IP || 'localhost'}:${process.env.USER_SERVICE_PORT || 3002}`   // User service
-  ],
+  origin: buildOrigins(),
   credentials: true
 });
 
