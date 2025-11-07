@@ -116,11 +116,11 @@ export default async function authRoutes(fastify) {
 
       try {
         console.log(`[${correlationId}] Bootstrapping/verifying user profile for authUserId ${user.id}`);
-        
+
         // Try to get the user profile first
         const profileCheckResponse = await axios.get(
           `${userServiceUrl}/users/public/${user.id}`,
-          { 
+          {
             timeout: 3000,
             validateStatus: (status) => status < 500 // Accept 404 as valid response
           }
@@ -129,10 +129,10 @@ export default async function authRoutes(fastify) {
         // If profile doesn't exist (404), create it
         if (profileCheckResponse.status === 404) {
           console.log(`[${correlationId}] Profile not found, creating new profile`);
-          
+
           // Extract username from email as fallback (will be user-editable)
           const defaultName = user.email.split('@')[0];
-          
+
           await axios.post(
             `${userServiceUrl}/users/bootstrap`,
             {
@@ -219,7 +219,7 @@ export default async function authRoutes(fastify) {
 
       // Normalize and validate lowercase only
       const normalizedEmail = email.toLowerCase();
-	
+
       // Normalize to avoid e.g.: É Á...
       const nName  = name.normalize('NFC');
       const nEmail = email.normalize('NFC');
@@ -270,7 +270,7 @@ export default async function authRoutes(fastify) {
       }
 
       const existingEmail = await fastify.prisma.user.findUnique({
-        where: { email: normalizedEmail } 
+        where: { email: normalizedEmail }
       });
       if (existingEmail) {
         return reply.status(400).send({ error: 'User with this email already exists' });

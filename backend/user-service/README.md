@@ -114,15 +114,15 @@ model UserProfile {
   email       String   // Duplicated from auth-service for performance
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Profile information
   profilePicture String?  // URL to profile picture
   bio           String?   // User bio/description
-  
+
   // Friends relationships (many-to-many)
   friends       UserProfile[] @relation("UserFriends")
   friendOf      UserProfile[] @relation("UserFriends")
-  
+
   // Game data
   matchHistory  Json?     // Game match history (empty object initially)
   stats         Json?     // User statistics (empty object initially)
@@ -136,7 +136,7 @@ model UserProfile {
 USER_DATABASE_URL="file:./prisma/user.db"
 
 # JWT (shared with auth-service)
-JWT_SECRET="your-jwt-secret"
+JWT_SECRET= fetched from `vault-service`
 
 # Service
 USER_SERVICE_PORT=3002
@@ -227,25 +227,25 @@ async function testUserService() {
         password: 'q'
       })
     });
-    
+
     const { token } = await loginResponse.json();
     console.log('✅ Login successful, token:', token);
-    
+
     // Step 2: Get public profiles
     const profilesResponse = await fetch('http://localhost:3002/users');
     const profiles = await profilesResponse.json();
     console.log('✅ Public profiles:', profiles);
-    
+
     // Step 3: Get my profile
     const myProfileResponse = await fetch('http://localhost:3002/users/me', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const myProfile = await myProfileResponse.json();
     console.log('✅ My profile:', myProfile);
-    
+
   } catch (error) {
     console.error('❌ Test failed:', error);
   }

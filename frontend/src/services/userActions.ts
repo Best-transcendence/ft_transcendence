@@ -54,7 +54,7 @@ export async function editProfilePicture(newPicUrl: string)
 	}
 
 	const result = await response.json();
-	
+
 	// Update thisUser immediately with the response from the server
 	if (result.user && result.user.profilePicture) {
 		thisUser.profilePicture = result.user.profilePicture;

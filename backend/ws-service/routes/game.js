@@ -3,24 +3,24 @@ import { rooms } from './rooms.js';
 export function registerGameHandlers(wss, onlineUsers, app) {
   /**
    * Saves a remote 1v1 match to the user-service database
-   * 
+   *
    * This function implements race condition prevention by ensuring only the player
    * with the higher user ID saves the match. Since both players' browsers might
    * trigger save attempts simultaneously, this deterministic approach guarantees
    * only one match record is created.
-   * 
+   *
    * The match is saved with type "ONE_VS_ONE" and includes both players' scores.
    * The winner is automatically calculated by the backend based on score comparison.
-   * 
+   *
    * @param {Object} player1 - WebSocket connection object for first player (must have higher ID)
    * @param {Object} player1.user - User object containing id and token
    * @param {Object} player2 - WebSocket connection object for second player
    * @param {Object} player2.user - User object containing id
    * @param {number} score1 - Score achieved by player1
    * @param {number} score2 - Score achieved by player2
-   * 
+   *
    * @returns {Promise<void>} Resolves when save completes (or is skipped)
-   * 
+   *
    * @example
    * // Player 10 vs Player 5: Player 10 saves
    * await saveRemoteMatch(player10, player5, 5, 3);
@@ -275,7 +275,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         let winner = "draw";
         if (room.state.s1 > room.state.s2) winner = "p1";
         else if (room.state.s2 > room.state.s1) winner = "p2";
-        
+
         app.log.info(`Game ended in room ${roomId}: ${winner} (${room.state.s1}-${room.state.s2})`);
 
         room.players.forEach(client => {
@@ -297,15 +297,15 @@ export function registerGameHandlers(wss, onlineUsers, app) {
 
         /**
          * Save match to history when game ends
-         * 
+         *
          * This saves the match result to the database for both players' match history.
          * Race condition prevention is implemented by:
          * 1. Sorting players by ID (higher ID first)
          * 2. Only the higher ID player's code path actually saves (checked in saveRemoteMatch)
-         * 
+         *
          * Score mapping ensures that scores are correctly associated with the sorted
          * player order, regardless of which player was p1 or p2 during gameplay.
-         * 
+         *
          * Match type: "ONE_VS_ONE"
          * - Only saves matches between authenticated users (no guests in 1v1 remote)
          * - Winner is calculated automatically by backend based on scores
@@ -313,17 +313,17 @@ export function registerGameHandlers(wss, onlineUsers, app) {
          */
         if (room.players.length === 2) {
           const [p1, p2] = room.players;
-          
+
           // Sort players so higher ID is first (required for race condition prevention)
           const sortedPlayers = [p1, p2].sort((a, b) => b.user.id - a.user.id);
           const [higherIdPlayer, lowerIdPlayer] = sortedPlayers;
-          
+
           // Map scores to sorted players
           // Note: p1 is always player1, p2 is always player2 in game state (room.state.s1/s2)
           // We need to map these to match the sorted player order
           const score1 = higherIdPlayer === p1 ? room.state.s1 : room.state.s2;
           const score2 = higherIdPlayer === p1 ? room.state.s2 : room.state.s1;
-          
+
           await saveRemoteMatch(higherIdPlayer, lowerIdPlayer, score1, score2);
         }
       }

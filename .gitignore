@@ -100,3 +100,5 @@ frontend/.vite
 
 # Notes
 /perso
+vault/data/
+vault/file/

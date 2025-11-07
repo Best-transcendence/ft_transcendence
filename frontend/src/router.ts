@@ -59,7 +59,7 @@ export interface User {
   friends?: any[];
   friendOf?: any[];
   matches?: any[];
-  stats?: UserStats;   // ✅ tell TS that stats exists
+  stats?: UserStats;   // tell TS that stats exists
   createdAt?: string;
   updatedAt?: string;
 }
@@ -103,7 +103,7 @@ export async function protectedPage(
 
   // Fetch and validate user authentication
   await fetchUser();
-  
+
   // Check if user is properly authenticated with valid data
   if (thisUser && thisUser.id && thisUser.name && thisUser.email) {
     // Render the page content

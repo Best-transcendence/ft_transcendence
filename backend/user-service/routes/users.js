@@ -3,7 +3,7 @@
 // Calculate user statistics from match history
 async function calculateUserStats(prisma, userId) {
   console.log(`[calculateUserStats] Starting calculation for userId: ${userId}`);
-  
+
   const allMatches = await prisma.match.findMany({
     where: {
       OR: [{ player1Id: userId }, { player2Id: userId }]
@@ -40,7 +40,7 @@ async function calculateUserStats(prisma, userId) {
 
   for (const match of allMatches) {
     const isPlayer1 = match.player1Id === userId;
-    
+
     // Convert BigInt to Number if needed
     const playerScore = Number(isPlayer1 ? match.player1Score : match.player2Score);
     const opponentScore = Number(isPlayer1 ? match.player2Score : match.player1Score);
@@ -472,13 +472,13 @@ export default async function (fastify, _opts) {
       // Fetch player details for each match
       const matchesWithPlayers = await Promise.all(
         allMatches.map(async (match) => {
-          const player1 = match.player1Id 
+          const player1 = match.player1Id
             ? await fastify.prisma.userProfile.findUnique({
               where: { id: match.player1Id },
               select: { id: true, name: true, profilePicture: true }
             })
             : null;
-          
+
           const player2 = match.player2Id
             ? await fastify.prisma.userProfile.findUnique({
               where: { id: match.player2Id },
@@ -501,7 +501,7 @@ export default async function (fastify, _opts) {
       const stats = await calculateUserStats(fastify.prisma, user.id);
       console.log(`[${request.id}] Calculated stats:`, stats);
       console.log('DEBUG final stats before sending:', JSON.stringify(stats));
-      
+
       // Create stats object manually to avoid any serialization issues
       const manualStats = {
         gamesPlayed: stats.gamesPlayed || 0,
@@ -513,7 +513,7 @@ export default async function (fastify, _opts) {
         highestScore: stats.highestScore || 0
       };
       console.log(`[${request.id}] Manual stats:`, manualStats);
-      
+
       // Create a clean user object without circular references
       const cleanUser = {
         id: user.id,
@@ -541,11 +541,11 @@ export default async function (fastify, _opts) {
         pointsAgainst: Number(manualStats.pointsAgainst) || 0,
         highestScore: Number(manualStats.highestScore) || 0
       };
-      
+
       cleanUser.stats = cleanStats;
       console.log(`[${request.id}] Clean stats object:`, cleanStats);
       console.log(`[${request.id}] Final user with stats:`, JSON.stringify(cleanUser, null, 2));
-      
+
       // Log the final response before sending
       console.log(`[${request.id}] Final response user stats:`, cleanUser.stats);
       console.log(`[${request.id}] Final response JSON:`, JSON.stringify({ user: cleanUser }, null, 2));
@@ -673,7 +673,7 @@ export default async function (fastify, _opts) {
       {
         console.log(`[${request.id}] Creating match with data:`, matchData);
         const { type, player1Id, player2Id, player1Score, player2Score, _winnerId, date } = matchData;
-        
+
         // Get both player profiles
         const player1Profile = await fastify.prisma.userProfile.findUnique({
           where: { authUserId: player1Id }
@@ -721,7 +721,7 @@ export default async function (fastify, _opts) {
 				  winnerId: finalWinnerId
 				}
           });
-        
+
         console.log(`[${request.id}] Match created successfully:`, match);
         return { message: 'Match created successfully', match };
       }

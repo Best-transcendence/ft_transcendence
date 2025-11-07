@@ -57,7 +57,7 @@ function slideMatches(direction: 'prev' | 'next')
 		} else if (direction === 'next' && currentMatch < matchesLength - 1) {
 			currentMatch++;
 		}
-		
+
 		isNavigating = true; // Set flag before navigation
 		await protectedPage(() => HistoryPage(), matchesEvents);
 		isNavigating = false; // Reset flag after navigation completes

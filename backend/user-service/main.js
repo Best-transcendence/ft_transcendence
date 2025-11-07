@@ -1,5 +1,4 @@
 import Fastify from 'fastify';
-// import dotenv from 'dotenv';
 import './env.js';
 import prismaPlugin from './plugins/prisma.js';
 import userRoutes from './routes/users.js';
@@ -7,9 +6,7 @@ import fastifyJwt from '@fastify/jwt';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 import fastifyCors from '@fastify/cors';
-
-// Load environment variables from local .env file
-// dotenv.config();
+import Vault from 'node-vault';
 
 // Create Fastify server instance with logging
 const app = Fastify({
@@ -21,8 +18,6 @@ const app = Fastify({
     skipNull: false
   }
 });
-
-
 
 // Register Swagger for API documentation
 await app.register(fastifySwagger, {
@@ -63,19 +58,71 @@ await app.register(fastifySwaggerUI, {
 });
 
 // Register CORS plugin
+// Build origin array to support both localhost and LAN_IP with HTTP and HTTPS
+const buildOrigins = () => {
+  const origins = [];
+  const lanIp = process.env.LAN_IP;
+  const frontendPort = process.env.FRONTEND_PORT || 3000;
+  const gatewayPort = process.env.GATEWAY_PORT || 3003;
+  const authServicePort = process.env.AUTH_SERVICE_PORT || 3001;
+  
+  // Add localhost origins (HTTP and HTTPS)
+  origins.push(`http://localhost:${frontendPort}`);
+  origins.push(`https://localhost:${frontendPort}`);
+  origins.push(`http://localhost:${gatewayPort}`);
+  origins.push(`https://localhost:${gatewayPort}`);
+  origins.push(`http://localhost:${authServicePort}`);
+  origins.push(`https://localhost:${authServicePort}`);
+  
+  // Add LAN_IP origins if set (HTTP and HTTPS)
+  if (lanIp) {
+    origins.push(`http://${lanIp}:${frontendPort}`);
+    origins.push(`https://${lanIp}:${frontendPort}`);
+    origins.push(`http://${lanIp}:${gatewayPort}`);
+    origins.push(`https://${lanIp}:${gatewayPort}`);
+    origins.push(`http://${lanIp}:${authServicePort}`);
+    origins.push(`https://${lanIp}:${authServicePort}`);
+  }
+  
+  // Also add any explicit URLs from env if they differ
+  if (process.env.FRONTEND_URL && !origins.includes(process.env.FRONTEND_URL)) {
+    origins.push(process.env.FRONTEND_URL);
+  }
+  if (process.env.GATEWAY_URL && !origins.includes(process.env.GATEWAY_URL)) {
+    origins.push(process.env.GATEWAY_URL);
+  }
+  if (process.env.AUTH_SERVICE_URL && !origins.includes(process.env.AUTH_SERVICE_URL)) {
+    origins.push(process.env.AUTH_SERVICE_URL);
+  }
+  
+  return origins;
+};
+
 await app.register(fastifyCors, {
-  origin: [
-    'http://localhost:3000',  // Frontend
-    'http://localhost:3003',  // Gateway
-    'http://localhost:3001'   // Auth service
-  ],
+  origin: buildOrigins(),
   credentials: true
 });
 
 // Register JWT plugin for token validation (shared secret with auth-service)
-await app.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET || 'super-secret-pass',
-});
+// Register JWT plugin for token generation and verification
+const vault = Vault(
+  {
+    endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
+    token: process.env.VAULT_TOKEN
+  });
+
+let jwtSecret;
+try
+{
+  const secret = await vault.read('secret/data/jwt');
+  jwtSecret = secret.data.data.JWT_SECRET;
+}
+catch (err)
+{
+  console.error('Failed to read JWT secret from Vault:', err);
+  process.exit(1);
+}
+await app.register(fastifyJwt, { secret: jwtSecret });
 
 // Register Prisma plugin to connect to user database
 app.register(prismaPlugin);
