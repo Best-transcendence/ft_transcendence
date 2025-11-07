@@ -746,7 +746,7 @@ export default async function (fastify, _opts) {
       }
 
       if (updateFields.length > 0) {
-        updateFields.push("updatedAt = datetime('now')");
+        updateFields.push('updatedAt = datetime(\'now\')');
         updateValues.push(userId); // Add userId at the end for WHERE clause
 
         const sql = `UPDATE UserProfile SET ${updateFields.join(', ')} WHERE authUserId = ?`;
