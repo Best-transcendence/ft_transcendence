@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { registerRoomHandlers } from './rooms.js';
 import { registerGameHandlers } from './game.js';
 import { registerLobbyHandlers, broadcastLobby } from './lobby.js';
@@ -27,6 +28,7 @@ export function registerWebsocketHandlers(wss, app) {
       ws.close();
       return;
     }
+    const tokenFromQuery = token;
 
     // Verify JWT
     let decoded;
@@ -51,7 +53,6 @@ export function registerWebsocketHandlers(wss, app) {
     // Store user info including token for 1v1 match history saving
     // The token is needed to authenticate match save requests to user-service
     ws.user = { id: userId, name: displayName, token: tokenFromQuery };
-    onlineUsers.set(String(userId), ws);
 
     addOnlineUser(userId, ws);
     // Broadcast online status
