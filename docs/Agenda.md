@@ -30,7 +30,7 @@
 | -- | ------------------------------------------------ | --------------- | ------------------------ | ---------------- | ------------------------------------------------------------------------------ |
 | 0  | **Project Foundations** (Tournament system)      | —               | —                        | —                | ✅ Completed                                                                   |
 | 1  | **Backend framework (Node.js + Fastify)**        | 0               | 3                        | MAJOR            | ✅ DONE                                                                        |
-| 2  | **Database (SQLight + Prisma)**                  | 0               | —                        | Minor            | ✅ DONE                                                                        |
+| 2  | **Database (SQLite + better-sqlite3)**          | 0               | —                        | Minor            | ✅ DONE                                                                        |
 | 3  | **Frontend framework (TS + Tailwind/R)**         | 0               | 1                        | Minor            | ✅ DONE                                                                        |
 | 4  | **Microservices architecture**                   | —               | 2                        | MAJOR            | ✅ DONE                                                                        |
 | 5  | **DevOps: log management**                       | 1               | 8, 10                    | MAJOR            | ✅ DONE                                                                        |
@@ -49,7 +49,7 @@
 |----|------------------------------------|-----------------|--------------------------|
 | 0  | Project Foundations                | —               | —                        |
 | 1  | Backend framework (Node.js+Fastify)| 0               | 3                        | - Major
-| 2  | Database (SQLight + Prisma)        | 0               | —                        | - Minor
+| 2  | Database (SQLite + better-sqlite3) | 0               | —                        | - Minor
 | 3  | Frontend framework (TS+Tailwind/R) | 0               | 1                        | - Minor
 | 4  | Microservices architecture         | -               | 2                        | - Major
 | 5  | DevOps: log management             | 1               | 8, 10                    | - (Major) - internal with backend/frontend
@@ -65,7 +65,7 @@
 
 0. Project Foundations - Tournament system
 1. Backend framework (Node.js+Fastify) - DONE
-2. Database (SQLight + Prisma) - DONE
+2. Database (SQLite + better-sqlite3) - DONE
 3. Frontend framework (TS+Tailwind/R) - Framework applied to all colors, better structured output.css
 4. Microservices architecture - DONE
 5. DevOps: log management - not started 

@@ -100,3 +100,6 @@ frontend/.vite
 
 # Notes
 /perso
+
+# Vault data (secrets management)
+vault/

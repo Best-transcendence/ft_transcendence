@@ -17,7 +17,7 @@ npm start
 **Expected output:**
 - Should see: `✅ SQLite database connected successfully`
 - Service should start on port 3001 (or your configured port)
-- No Prisma-related errors
+- No database-related errors
 
 2. **Test health endpoint:**
 ```bash
@@ -36,7 +36,7 @@ curl http://localhost:3001/health
 3. **Test database file creation:**
 ```bash
 # Check if database file was created
-ls -la data/auth.db  # or prisma/auth.db depending on AUTH_DATABASE_URL
+ls -la data/auth.db  # Database file location
 ```
 
 **Expected:** Database file should exist
@@ -211,7 +211,7 @@ cd backend/auth-service
 docker build -t auth-service-test .
 ```
 
-**Expected:** Build should complete successfully without Prisma errors
+**Expected:** Build should complete successfully without database errors
 
 2. **Run container:**
 ```bash
@@ -258,7 +258,7 @@ curl -X POST http://localhost:3001/auth/login \
 ## Next Steps After Testing
 
 Once all tests pass:
-1. Remove Prisma files (prisma/ directory, plugins/prisma.js)
+1. Remove old database files if needed (data/auth.db)
 2. Run `npm install` to update package-lock.json
 3. Continue with user-service migration
 

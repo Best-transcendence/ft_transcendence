@@ -10,17 +10,27 @@ const __dirname = pathDirname(__filename);
 // In Docker: /app/data/auth.db
 // Locally: ./data/auth.db
 const getDatabasePath = () => {
-  const dbUrl = process.env.AUTH_DATABASE_URL || 'file:./data/auth.db';
+  const dbUrl = process.env.AUTH_DATABASE_URL;
   
-  // Extract path from Prisma-style URL format (file:./path) or use directly
   let dbPath;
-  if (dbUrl.startsWith('file:')) {
-    const path = dbUrl.replace('file:', '');
-    // If relative path, resolve it
-    if (path.startsWith('./') || path.startsWith('../')) {
-      dbPath = join(process.cwd(), path);
+  if (dbUrl) {
+    // Support Prisma-style URL format (file:./path) for backward compatibility
+    // or plain path format
+    if (dbUrl.startsWith('file:')) {
+      const path = dbUrl.replace('file:', '');
+      // If relative path, resolve it
+      if (path.startsWith('./') || path.startsWith('../')) {
+        dbPath = join(process.cwd(), path);
+      } else {
+        dbPath = path;
+      }
     } else {
-      dbPath = path;
+      // Plain path format
+      if (dbUrl.startsWith('./') || dbUrl.startsWith('../')) {
+        dbPath = join(process.cwd(), dbUrl);
+      } else {
+        dbPath = dbUrl;
+      }
     }
   } else {
     // Default to /app/data/auth.db in Docker, ./data/auth.db locally

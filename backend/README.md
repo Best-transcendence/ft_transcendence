@@ -1,6 +1,6 @@
 # Backend Microservices Architecture
 
-This backend is built using a **microservices architecture** with Fastify, Prisma, and SQLite. The system is divided into three main services: **Auth Service**, **User Service**, and **API Gateway**.
+This backend is built using a **microservices architecture** with Fastify and SQLite. The system is divided into three main services: **Auth Service**, **User Service**, and **API Gateway**.
 
 ## 🧩 Microservices Overview
 
@@ -170,8 +170,6 @@ The `backend/package.json` contains linting scripts that run ESLint across all m
 ```bash
 cd backend/auth-service
 npm install
-npx prisma migrate dev
-npx prisma generate
 npm run seed
 ```
 
@@ -179,8 +177,6 @@ npm run seed
 ```bash
 cd backend/user-service
 npm install
-npx prisma migrate dev
-npx prisma generate
 npm run seed
 ```
 
@@ -256,13 +252,13 @@ curl http://localhost:3000         # Frontend
 - **Purpose**: User authentication, registration, JWT token management
 - **Database**: `auth.db` (SQLite)
 - **Endpoints**: `/auth/login`, `/auth/signup`
-- **Dependencies**: Fastify, Prisma, JWT, Axios
+- **Dependencies**: Fastify, JWT, Axios
 
 ### 👤 User Service (Port 3002)
 - **Purpose**: User profiles, friends, game statistics
 - **Database**: `user.db` (SQLite)
 - **Endpoints**: `/users`, `/users/me`, `/users/bootstrap`
-- **Dependencies**: Fastify, Prisma, JWT
+- **Dependencies**: Fastify, JWT
 
 ### 🌐 API Gateway (Port 3003)
 - **Purpose**: Single entry point, request routing, authentication
@@ -399,38 +395,52 @@ sequenceDiagram
 
 ### Auth Service Database (`auth.db`)
 ```sql
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
+CREATE TABLE User (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT UNIQUE NOT NULL,
+  name TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  createdAt TEXT DEFAULT (datetime('now')),
+  updatedAt TEXT DEFAULT (datetime('now'))
+);
 ```
 
 ### User Service Database (`user.db`)
 ```sql
-model UserProfile {
-  id          Int      @id @default(autoincrement())
-  authUserId  Int      @unique  -- References auth-service user ID
-  name        String   -- Duplicated for performance
-  email       String   -- Duplicated for performance
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+CREATE TABLE UserProfile (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  authUserId INTEGER UNIQUE NOT NULL,  -- References auth-service user ID
+  name TEXT UNIQUE NOT NULL,            -- Duplicated for performance
+  email TEXT NOT NULL,                  -- Duplicated for performance
+  profilePicture TEXT DEFAULT '/assets/default-avatar.jpeg',
+  bio TEXT DEFAULT 'Hi, I''m playing Arcade Clash',
+  createdAt TEXT DEFAULT (datetime('now')),
+  updatedAt TEXT DEFAULT (datetime('now'))
+);
 
-  -- Profile information
-  profilePicture String?
-  bio           String?
+-- Join table for many-to-many friends relationship
+CREATE TABLE _UserFriends (
+  userProfileId INTEGER NOT NULL,
+  friendId INTEGER NOT NULL,
+  PRIMARY KEY (userProfileId, friendId),
+  FOREIGN KEY (userProfileId) REFERENCES UserProfile(id) ON DELETE CASCADE,
+  FOREIGN KEY (friendId) REFERENCES UserProfile(id) ON DELETE CASCADE
+);
 
-  -- Friends relationships
-  friends       UserProfile[] @relation("UserFriends")
-  friendOf      UserProfile[] @relation("UserFriends")
-
-  -- Game data
-  matchHistory  Json?  -- Game match history
-  stats         Json?  -- User statistics
-}
+-- Match table
+CREATE TABLE Match (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,
+  date TEXT DEFAULT (datetime('now')),
+  player1Id INTEGER,
+  player2Id INTEGER,
+  winnerId INTEGER,
+  player1Score INTEGER NOT NULL,
+  player2Score INTEGER NOT NULL,
+  FOREIGN KEY (player1Id) REFERENCES UserProfile(id),
+  FOREIGN KEY (player2Id) REFERENCES UserProfile(id),
+  FOREIGN KEY (winnerId) REFERENCES UserProfile(id)
+);
 ```
 
 ---
@@ -576,15 +586,15 @@ cd frontend && npm run dev                # Port 3000
 ```bash
 # Auth Service Database
 cd backend/auth-service
-npx prisma migrate dev    # Run migrations
-npx prisma generate       # Generate Prisma client
-npx prisma studio         # Open database GUI
+npm run seed              # Create/seed database (idempotent)
 
 # User Service Database
 cd backend/user-service
-npx prisma migrate dev    # Run migrations
-npx prisma generate       # Generate Prisma client
-npx prisma studio         # Open database GUI
+npm run seed              # Create/seed database (idempotent)
+
+# View databases (using SQLite CLI)
+sqlite3 backend/auth-service/data/auth.db
+sqlite3 backend/user-service/data/user.db
 ```
 
 ### Testing & Debugging
@@ -611,8 +621,8 @@ rm -rf backend/gateway/node_modules
 rm -rf frontend/node_modules
 
 # Drop databases (if needed)
-rm -f backend/auth-service/prisma/auth.db
-rm -f backend/user-service/prisma/user.db
+rm -f backend/auth-service/data/auth.db
+rm -f backend/user-service/data/user.db
 
 # Reinstall dependencies
 cd backend/auth-service && npm install
@@ -622,13 +632,9 @@ cd frontend && npm install
 
 # Recreate databases after cleanup
 cd backend/auth-service
-npx prisma migrate dev
-npx prisma generate
 npm run seed
 
 cd backend/user-service
-npx prisma migrate dev
-npx prisma generate
 npm run seed
 ```
 
