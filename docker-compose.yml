@@ -179,6 +179,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL:-http://localhost:3003}
+        - VITE_WS_URL=${VITE_WS_URL:-ws://localhost:4000}
     container_name: frontend_service
     env_file:
       - .env

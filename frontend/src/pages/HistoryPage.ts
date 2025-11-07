@@ -29,9 +29,9 @@ export function loadMatches()
 		isNavigating = false;
 		isFirstLoad = false; // Mark that we've loaded once
 	}
-
+	
 	let userMatches = thisUser.matches;
-
+	
 	if (!userMatches || userMatches.length === 0)
 		return noHistory();
 
@@ -68,7 +68,7 @@ export function matchesEvents()
 {
 	// Reset firstLoad flag so next time we load we know it's a fresh navigation
 	isFirstLoad = false;
-
+	
 	document.getElementById('prev-match')?.addEventListener('click', () => slideMatches('prev'));
 	document.getElementById('next-match')?.addEventListener('click', () => slideMatches('next'));
 	document.getElementById('play-arcade-clash')?.addEventListener('click', () => window.location.hash = "intro");

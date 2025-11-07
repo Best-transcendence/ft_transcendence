@@ -59,7 +59,7 @@ export interface User {
   friends?: any[];
   friendOf?: any[];
   matches?: any[];
-  stats?: UserStats;   // ✅ tell TS that stats exists
+  stats?: UserStats;   // tell TS that stats exists
   createdAt?: string;
   updatedAt?: string;
 }

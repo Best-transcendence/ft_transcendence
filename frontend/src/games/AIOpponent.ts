@@ -95,7 +95,7 @@ export function GamePongAIOpponent(): string {
 			<div class="flex gap-4 mb-8">
 				<button id="btnEasy"
 					class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-purple-600 hover:bg-purple-700">
-					  ${t("easy")}
+					  ${t("easy")} 
 				</button>
 				<button id="btnMedium"
 					class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-purple-600 hover:bg-purple-700">
@@ -137,7 +137,7 @@ export function GamePongAIOpponent(): string {
 				</button>
 				<button id="overlayExit"
 						class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-gray-600 hover:bg-gray-700">
-				 ${t("backToArcade")}
+				 ${t("backToArcade")} 
 				</button>
 			</div>
 		</div>
@@ -222,7 +222,7 @@ let gameInitialized = false;
  */
 export function setupAIOpponent() {
 	console.log("Setting up AI opponent game");
-
+	
 	setupLanguageSwitcher();
 
 	// --- DOM ELEMENT REFERENCES ---
@@ -249,6 +249,9 @@ export function setupAIOpponent() {
 	if (timeUpOverlay) {
 		timeUpOverlay.classList.add("hidden");
 	}
+	
+	// Initialize timer with medium difficulty (default) instead of hardcoded 1:30
+	resetTimer(30);
 
 	// Initialize timer with medium difficulty (default) instead of hardcoded 1:30
 	resetTimer(30);
