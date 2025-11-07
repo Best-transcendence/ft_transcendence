@@ -165,7 +165,7 @@ This service is part of a microservices architecture:
 
 ## 🔒 Security Notes
 
-- Passwords are currently stored in plain text (TODO: implement bcrypt)
-- JWT tokens are signed with a shared secret
+- Passwords are encrypted with `bcrypt`
+- JWT tokens are signed with a shared secret located in Vault
 - CORS is configured for frontend communication
 - Input validation is implemented for all endpoints

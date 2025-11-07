@@ -1,9 +1,12 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
+const SALT_ROUNDS = 10;
 
 // Test users for auth service
 // NOTE: createdAt and updatedAt are automatically handled by Prisma
+// Passwords are in plaintext here for initial entry demonstration only - they do get hashed before reaching DB
 const users = [
   { email: 'yioffe@example.com', password: 'q' },
   { email: 'thuy-ngu@example.com', password: 'q' },
@@ -23,12 +26,14 @@ async function main() {
   }
 
   for (const user of users) {
+	const hashedPass = await bcrypt.hash(user.password, SALT_ROUNDS);
+
     const result = await prisma.user.upsert({
       where: { email: user.email },
       update: {}, // No update if user exists
       create: {
         email: user.email,
-        password: user.password, // TODO: hash in production!
+        password: hashedPass,
       },
     });
     console.log(`👤 Created user: ${result.email}`);
