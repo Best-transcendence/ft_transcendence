@@ -1,24 +1,27 @@
 import { createDatabase, closeDatabase } from './connection.js';
+import bcrypt from 'bcrypt'
+
+const SALT_ROUNDS = 10;
 
 // Test users for auth service
 // NOTE: createdAt and updatedAt are automatically handled by SQLite defaults
+// Passwords are in plaintext here for initial entry demonstration only - they do get hashed before reaching DB
 const users = [
-  { email: 'yioffe@example.com', password: 'q' },
-  { email: 'thuy-ngu@example.com', password: 'q' },
-  { email: 'juan-pma@example.com', password: 'q' },
-  { email: 'cbouvet@example.com', password: 'q' },
+  { email: 'yioffe@example.com', password: bcrypt.hashSync('q', 10) },
+  { email: 'thuy-ngu@example.com', password: bcrypt.hashSync('q', SALT_ROUNDS) },
+  { email: 'juan-pma@example.com', password: bcrypt.hashSync('q', SALT_ROUNDS) },
+  { email: 'cbouvet@example.com', password: bcrypt.hashSync('q', SALT_ROUNDS) },
 ];
 
-function main() {
+async function main() {
   console.log('🌱 Starting auth service seed...');
-
   let db = null;
   try {
     db = createDatabase();
 
     // Check if any user already exists
     const existingUserCount = db.prepare('SELECT COUNT(*) as count FROM User').get();
-    
+
     if (existingUserCount.count > 0) {
       console.log(`ℹ️ ${existingUserCount.count} users already exist — skipping seed.`);
       return;
@@ -26,7 +29,7 @@ function main() {
 
     // Insert users using prepared statements
     const insertUser = db.prepare('INSERT INTO User (email, password) VALUES (?, ?)');
-    
+
     for (const user of users) {
       try {
         insertUser.run(user.email, user.password);
