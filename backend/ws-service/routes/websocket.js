@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import jwt from 'jsonwebtoken';
 import { registerRoomHandlers } from './rooms.js';
 import { registerGameHandlers } from './game.js';
 import { registerLobbyHandlers, broadcastLobby } from './lobby.js';
@@ -33,7 +32,7 @@ export function registerWebsocketHandlers(wss, app) {
     // Verify JWT
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreNotBefore: true });
     } catch (err) {
       app.log.error({ error: err.message, ip: req.socket.remoteAddress }, 'Invalid WebSocket Token — closing');
       ws.close(1008, 'Invalid or expired token');
