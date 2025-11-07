@@ -285,7 +285,7 @@ export default async function authRoutes(fastify) {
       const newUser = {
         id: Number(result.lastInsertRowid),
         email: normalizedEmail,
-        password: await bcrypt.hash(password, SALT_ROUNDS),
+        password: hashedPass,
       };
 
       // === Bootstrap profile in user-service with retry ===
