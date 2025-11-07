@@ -427,21 +427,30 @@ export default async function (fastify, _opts) {
         return reply.status(404).send({ error: 'User profile not found' });
       }
 
-      // Get friends (users who have this user in their friends list)
-      const getFriendsStmt = fastify.db.prepare(`
+      // Get friendOf (users who have this user in their friends list - incoming friend requests)
+      const getFriendOfStmt = fastify.db.prepare(`
         SELECT up.id, up.name, up.profilePicture, up.bio 
         FROM _UserFriends uf_rel
-        JOIN UserProfile up ON uf_rel.friendId = up.id
-        WHERE uf_rel.userProfileId = ?
+        JOIN UserProfile up ON uf_rel.userProfileId = up.id
+        WHERE uf_rel.friendId = ?
         ORDER BY up.name ASC
       `);
-      const friendOf = getFriendsStmt.all(user.id);
+      const friendOf = getFriendOfStmt.all(user.id);
+      console.log(`[${request.id}] 🔵 GET /users/me - User ${user.id} (${user.name}) - friendOf query result:`, JSON.stringify(friendOf, null, 2));
 
-      // Get friends list (users this user has in their friends list) - just IDs
+      // Get friends list (users this user has in their friends list - outgoing friend requests) - just IDs
       const getFriendsIdsStmt = fastify.db.prepare(`
         SELECT friendId as id FROM _UserFriends WHERE userProfileId = ?
       `);
       const friends = getFriendsIdsStmt.all(user.id);
+      console.log(`[${request.id}] 🔵 GET /users/me - User ${user.id} (${user.name}) - friends query result:`, JSON.stringify(friends, null, 2));
+      
+      // Debug: Check all relationships for this user
+      const debugAllRelationsStmt = fastify.db.prepare(
+        'SELECT * FROM _UserFriends WHERE userProfileId = ? OR friendId = ?'
+      );
+      const allRelations = debugAllRelationsStmt.all(user.id, user.id);
+      console.log(`[${request.id}] 🔵 DEBUG: All relationships involving user ${user.id}:`, JSON.stringify(allRelations, null, 2));
 
       // Sort friends alphabetically
       friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
@@ -624,11 +633,62 @@ export default async function (fastify, _opts) {
           return reply.status(404).send({ error: 'User profile not found' });
         }
 
+        console.log(`[${request.id}] 🟢 POST /users/me - add_friend action`);
+        console.log(`[${request.id}] 🟢 User ${userId} (profileId: ${userProfile.id}) is sending friend request to profileId: ${friendId}`);
+
+        // Check if friendId is a valid profile
+        const getFriendProfileStmt = fastify.db.prepare('SELECT id, name FROM UserProfile WHERE id = ?');
+        const friendProfile = getFriendProfileStmt.get(friendId);
+        if (!friendProfile) {
+          console.log(`[${request.id}] 🟢 ERROR: Friend profile ${friendId} not found`);
+          return reply.status(404).send({ error: 'Friend profile not found' });
+        }
+        console.log(`[${request.id}] 🟢 Friend profile found: ${friendProfile.name} (id: ${friendProfile.id})`);
+
+        // Check existing relationship
+        const checkExistingStmt = fastify.db.prepare(
+          'SELECT * FROM _UserFriends WHERE userProfileId = ? AND friendId = ?'
+        );
+        const existing = checkExistingStmt.get(userProfile.id, friendId);
+        console.log(`[${request.id}] 🟢 Existing relationship check:`, existing ? 'EXISTS' : 'NONE');
+
         // Insert friend relationship
         const insertFriendStmt = fastify.db.prepare(
           'INSERT OR IGNORE INTO _UserFriends (userProfileId, friendId) VALUES (?, ?)'
         );
-        insertFriendStmt.run(userProfile.id, friendId);
+        const result = insertFriendStmt.run(userProfile.id, friendId);
+        console.log(`[${request.id}] 🟢 Insert result - changes: ${result.changes}, lastInsertRowid: ${result.lastInsertRowid}`);
+
+        // Verify what was inserted
+        const verifyStmt = fastify.db.prepare(
+          'SELECT * FROM _UserFriends WHERE userProfileId = ? AND friendId = ?'
+        );
+        const verified = verifyStmt.get(userProfile.id, friendId);
+        console.log(`[${request.id}] 🟢 Verified relationship:`, verified);
+
+        // Check what the other user will see
+        const checkOtherUserStmt = fastify.db.prepare(
+          'SELECT * FROM _UserFriends WHERE userProfileId = ? AND friendId = ?'
+        );
+        const otherUserView = checkOtherUserStmt.get(friendId, userProfile.id);
+        console.log(`[${request.id}] 🟢 Reverse relationship (what ${friendProfile.name} will see):`, otherUserView ? 'EXISTS' : 'NONE');
+        
+        // Debug: Check all relationships for this user
+        const debugAllRelationsStmt = fastify.db.prepare(
+          'SELECT * FROM _UserFriends WHERE userProfileId = ? OR friendId = ?'
+        );
+        const allRelations = debugAllRelationsStmt.all(userProfile.id, userProfile.id);
+        console.log(`[${request.id}] 🟢 DEBUG: All relationships involving user ${userProfile.id}:`, JSON.stringify(allRelations, null, 2));
+        
+        // Debug: What will friendOf query return for this user?
+        const debugFriendOfStmt = fastify.db.prepare(`
+          SELECT up.id, up.name, up.profilePicture, up.bio 
+          FROM _UserFriends uf_rel
+          JOIN UserProfile up ON uf_rel.userProfileId = up.id
+          WHERE uf_rel.friendId = ?
+        `);
+        const debugFriendOf = debugFriendOfStmt.all(userProfile.id);
+        console.log(`[${request.id}] 🟢 DEBUG: friendOf query result for user ${userProfile.id}:`, JSON.stringify(debugFriendOf, null, 2));
         
         return { message: `${ friendId } added to ${ userId } friendlist` };
       }

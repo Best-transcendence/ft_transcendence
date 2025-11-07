@@ -11,6 +11,10 @@ export async function addFriend(friendId: string, refreshPage?: () => void) //pa
 {
 	const token = localStorage.getItem("jwt");
 
+	console.log('🟡 Frontend: addFriend called with friendId:', friendId);
+	console.log('🟡 Frontend: Current thisUser.friends:', thisUser.friends);
+	console.log('🟡 Frontend: Current thisUser.friendOf:', thisUser.friendOf);
+
 	const response = await fetch(`${API_URL}/users/me`,
 	{
 		method: 'POST',
@@ -26,11 +30,19 @@ export async function addFriend(friendId: string, refreshPage?: () => void) //pa
 		}
 	});
 
+	console.log('🟡 Frontend: addFriend response status:', response.status);
+
 	if (response.ok)
 	{
 		const data = await getCurrentUser();
+		console.log('🟡 Frontend: getCurrentUser response - friends:', JSON.stringify(data.user.friends, null, 2));
+		console.log('🟡 Frontend: getCurrentUser response - friendOf:', JSON.stringify(data.user.friendOf, null, 2));
+		
 		thisUser.friends = data.user.friends;
 		thisUser.friendOf = data.user.friendOf;
+
+		console.log('🟡 Frontend: Updated thisUser.friends:', thisUser.friends);
+		console.log('🟡 Frontend: Updated thisUser.friendOf:', thisUser.friendOf);
 
 		if (refreshPage)
 			refreshPage();
