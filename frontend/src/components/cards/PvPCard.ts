@@ -1,10 +1,11 @@
 // src/components/cards/PvPCard.ts
 
 import { createCard } from './CardCreator'
+import { t } from "../../services/lang/LangEngine";
 
 export const PvPCard = createCard({
-  title: "Player vs Player",
+  title: t("playerVsPlayerTitle"),
   icon: "⚔️",
-  description: "Classic 1v1 arcade action. Challenge a friend and see who's the best.",
+  description: t("playerVsPlayerDescription"),
   hash: "lobby"
 });

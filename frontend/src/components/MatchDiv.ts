@@ -1,19 +1,20 @@
 import { thisUser } from "../router"
 import { formatDate } from "../utils"
+import { t } from "../services/lang/LangEngine";
 
 // Map database enum values to human-readable titles
 function getMatchTypeDisplay(type: string): string {
   switch (type) {
-    case 'ONE_VS_ONE':
-      return '1 vs 1 Match';
-    case 'TOURNAMENT_1V1':
-      return '1v1 Tournament';
-    case 'TOURNAMENT_INTERMEDIATE':
-      return 'Tournament Match';
-    case 'TOURNAMENT_FINAL':
-      return 'Tournament Final';
-    case 'AI':
-      return 'AI Match';
+    case "ONE_VS_ONE":
+      return t("matchTypeOneVOne");
+    case "TOURNAMENT_1V1":
+      return t("matchTypeTournament1v1");
+    case "TOURNAMENT_INTERMEDIATE":
+      return t("matchTypeTournamentIntermediate");
+    case "TOURNAMENT_FINAL":
+      return t("matchTypeTournamentFinal");
+    case "AI":
+      return t("matchTypeAI");
     default:
       return type;
   }
@@ -25,10 +26,10 @@ export function noHistory()
 	return `
 	<div class="flex flex-col items-center justify-center">
 	<br>
-		<h3 class="text-2xl text-gray-400 text-center font-bold mb-5">No previous matches</h3>
+		<h3 class="text-2xl text-gray-400 text-center font-bold mb-5">${t("noPreviousMatches")}</h3>
 		<button id="play-arcade-clash"
 			class="px-6 py-3 rounded-xl font-semibold text-gray-200 transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
-			Play Arcade Clash
+			${t("playArcadeClashCta")}
 		</button>
 	</div>`;
 }
@@ -47,20 +48,20 @@ export function matchCard(match: any)
 	transition: all 0.3s ease-in-out;">
 
 	<!-- Match Info Header -->
-		<h1 class="text-xl font-semibold text-gray-200 mb-2">${ getMatchTypeDisplay(match.type) }</h1>
-		<p class="text-gray-400 mb-10">${ formatDate(match.date, 'S') }</p>
+		<h1 class="text-xl font-semibold text-gray-200 mb-2">${getMatchTypeDisplay(match.type)}</h1>
+		<p class="text-gray-400 mb-10">${formatDate(match.date, 'S')}</p>
 
 	<!-- Players vertical cards -->
 		<div class="flex justify-center" style="gap: clamp(0.5rem, 4vw, 2rem);">
 
-			${ playerCard(match, getSpecialPlayer(match.player1, match), match.player1Score) }
+			${playerCard(match, getSpecialPlayer(match.player1, match), match.player1Score)}
 
 	<!-- VS Divider -->
 			<div class="flex items-center">
-				<span class="text-3xl font-bold text-gray-300">VS</span>
+				<span class="text-3xl font-bold text-gray-300">${t("vsUpper")}</span>
 			</div>
 
-			${ playerCard(match, getSpecialPlayer(match.player2, match), match.player2Score) }
+			${playerCard(match, getSpecialPlayer(match.player2, match), match.player2Score)}
 
 		</div>
 	</div>
@@ -73,8 +74,9 @@ function playerCard(match: any, player: any, score: number)
 	let winstatus = getWinner(match, player);
 
 	let crown = '';
-	if (winstatus.includes('Winner'))
-		crown = `<div class="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10" style="font-size: clamp(1rem, 2vw, 1.875rem);">👑</div>`
+	if (winstatus.includes(t("winner"))) {
+		crown = `<div class="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10" style="font-size: clamp(1rem, 2vw, 1.875rem);">👑</div>`;
+	}
 
 	let befriendButton = checkFriendCondition(player.id);
 
@@ -101,13 +103,13 @@ function getWinner(match: any, player: any)
 	else if (match.player1Score < match.player2Score)
 		winnerId = match.player2.id;
 
-	if (winnerId === 0)
-		return `<h3 class="text-gray-200 font-bold text-lg mb-4">Draw</h3>`;
+  if (winnerId === 0)
+    return `<h3 class="text-gray-200 font-bold text-lg mb-4">${t("draw")}</h3>`;
 
-	if (winnerId != player.id)
-		return `<h3 class="text-gray-200 font-bold text-lg mb-4">Loser</h3>`;
+  if (winnerId != player.id)
+    return `<h3 class="text-gray-200 font-bold text-lg mb-4">${t("loser")}</h3>`;
 
-	return `<h3 class="text-gray-200 font-bold text-lg mb-4" style="text-shadow: 0 0 2px #000, 0 0 4px #000, 0 0 8px #4c1d95, 0 0 16px #7c22ce, 0 0 24px #7c22ce;">Winner</h3>`;
+  return `<h3 class="text-gray-200 font-bold text-lg mb-4" style="text-shadow: 0 0 2px #000, 0 0 4px #000, 0 0 8px #4c1d95, 0 0 16px #7c22ce, 0 0 24px #7c22ce;">${t("winner")}</h3>`;
 
 }
 
@@ -118,26 +120,23 @@ function checkFriendCondition(playerId: number)
 	{
 		if (!thisUser.friends.some((friend: any) => friend.id === playerId))
 			return `<div class="flex justify-end gap-3 mt-6">
-					<button id="befriend--${ playerId }" class="px-6 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-600 cursor-pointer">Befriend</button>
+					<button id="befriend--${ playerId }" class="px-6 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-600 cursor-pointer">${t("befriend")}</button>
 				</div>`;
 		else
 			return `<div class="flex justify-end gap-3 mt-6">
-					<p class="px-6 py-2 bg-[#4a3866]/60 text-[#a89cc6] rounded-lg">Request sent</p>
+					<p class="px-6 py-2 bg-[#4a3866]/60 text-[#a89cc6] rounded-lg">${t("requestSent")}</p>
 				</div>`;
 	}
-
 	return '';
 }
 
 // Returns fields applicable for Guest or AI player display
-function getSpecialPlayer(player: any, match: any)
-{
-	if (player.id == null)
-	{
-		if (match.type == "AI Match")
-			return { id: -1, name: "AI Opponent", profilePicture: "/assets/ai-avatar.jpeg" };
-		return { id: -2, name: "Guest", profilePicture: "/assets/guest-avatar.jpeg" };
-	}
-
-	return player;
+function getSpecialPlayer(player: any, match: any) {
+  if (player.id == null) {
+    if (match.type === "AI") {
+      return { id: -1, name: t("aiOpponent"), profilePicture: "/assets/ai-avatar.jpeg" };
+    }
+    return { id: -2, name: t("guest"), profilePicture: "/assets/guest-avatar.jpeg" };
+  }
+  return player;
 }

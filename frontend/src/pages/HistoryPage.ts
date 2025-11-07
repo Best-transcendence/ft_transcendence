@@ -5,6 +5,8 @@ import { profileDivDisplay } from "../components/ProfileDiv"
 import { sidebarDisplay } from "../components/SideBar"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { matchCard, noHistory } from "../components/MatchDiv"
+import { t } from "../services/lang/LangEngine";
+import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 // Track current match index (reset to 0 on fresh page load)
 let currentMatch = 0;
@@ -114,21 +116,24 @@ export function HistoryPage()
 			${ addTheme() }
 
 	<!-- Header with user info -->
-		<div class="w-full
-			flex justify-between items-center
-			mb-10">
+		<div class="w-full flex justify-between items-center mb-10">
 
 	<!-- Protected pages components -->
-			${ profileDivDisplay() }
-			${ sidebarDisplay() }
-			${ LogOutBtnDisplay() }
+		${ profileDivDisplay() }
+		${ sidebarDisplay() }
+		<!-- Group Language and Logout on the right -->
+		<div class="flex gap-2 items-center">
+			${LanguageSwitcher()}
+			 ${LogOutBtnDisplay()}
 		</div>
+	 </div>
 
 	<!-- Title -->
 		<div class="flex flex-col items-center mb-8">
-			<h1 class="text-4xl text-gray-200 text-center font-heading font-bold mb-1">Match History</h1>
+			<h1 class="text-4xl text-gray-200 text-center font-heading font-bold mb-1">${t("matchHistoryTitle")}</h1>
 			<p class="text-lg text-gray-400 max-w-xl text-center mb-8">
-			Let's take a trip down Memory Lane!</p>
+				${t("matchHistorySubtitle")}
+			</p>
 		</div>
 
 <!-- Match section - like the arcade game section -->

@@ -18,8 +18,8 @@ import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { TimerDisplay, startTimer, resetTimer } from "../components/Timer";
 import { createAIGame, destroyAIGame, isGameRunning } from "./AIGameController";
-import { t } from "../i18n/lang"; // ✅
-import { LanguageSwitcher, setupLanguageSwitcher } from "../i18n/LanguageSwitcher";
+import { t } from "../services/lang/LangEngine"; // ✅
+import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 /**
  * Generates the HTML template for the AI opponent game page
@@ -223,8 +223,6 @@ let gameInitialized = false;
 export function setupAIOpponent() {
 	console.log("Setting up AI opponent game");
 	
-	setupLanguageSwitcher();
-
 	// --- DOM ELEMENT REFERENCES ---
 	// Get references to all interactive elements
 	const difficultyOverlay = document.getElementById("difficultySelectionOverlay");

@@ -1,4 +1,4 @@
-import { translations, Lang } from "./translations";
+import { translations, Lang } from "./Translations";
 
 // Always fall back to English if missing
 const DEFAULT_LANG: Lang = "en";

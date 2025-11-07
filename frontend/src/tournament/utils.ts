@@ -1,5 +1,5 @@
 import { thisUser } from "../router";
-import type { Player } from "./engine";
+import type { Player } from "./TournamentEngine";
 
 /**
  * Tournament Utilities and Helper Functions
