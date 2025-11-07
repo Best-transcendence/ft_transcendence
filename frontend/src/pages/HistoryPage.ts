@@ -6,13 +6,40 @@ import { sidebarDisplay } from "../components/SideBar"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { matchCard, noHistory } from "../components/MatchDiv"
 
+// Track current match index (reset to 0 on fresh page load)
 let currentMatch = 0;
+let isNavigating = false; // Flag to track if we're navigating within the page
+
+// Track if this is the first load of the page (not a prev/next navigation)
+// This gets reset to true when router navigates to history page
+let isFirstLoad = true;
+
+// Export function to reset first load flag (called by router)
+export function resetHistoryPageState() {
+	isFirstLoad = true;
+	isNavigating = false;
+	currentMatch = 0;
+}
 
 export function loadMatches()
 {
+	// Reset to latest match (index 0) on fresh page load (first call or not navigating)
+	if (isFirstLoad || !isNavigating) {
+		currentMatch = 0;
+		isNavigating = false;
+		isFirstLoad = false; // Mark that we've loaded once
+	}
+	
 	let userMatches = thisUser.matches;
+	
 	if (!userMatches || userMatches.length === 0)
 		return noHistory();
+
+	// Ensure currentMatch is within valid bounds
+	if (currentMatch >= userMatches.length)
+		currentMatch = userMatches.length - 1;
+	if (currentMatch < 0)
+		currentMatch = 0;
 
 	return matchCard(userMatches[currentMatch]);
 }
@@ -22,18 +49,26 @@ function slideMatches(direction: 'prev' | 'next')
 	const matchCard = document.getElementById('match-card');
 	matchCard?.classList.add('opacity-0', 'scale-95');
 
-	setTimeout(() =>
+	setTimeout(async () =>
 	{
-		if (direction === 'prev' && currentMatch > 0)
+		const matchesLength = thisUser.matches?.length || 0;
+		if (direction === 'prev' && currentMatch > 0) {
 			currentMatch--;
-		else if (direction === 'next' && currentMatch < thisUser.matches.length -1)
+		} else if (direction === 'next' && currentMatch < matchesLength - 1) {
 			currentMatch++;
-		protectedPage(() => HistoryPage(), matchesEvents);
+		}
+		
+		isNavigating = true; // Set flag before navigation
+		await protectedPage(() => HistoryPage(), matchesEvents);
+		isNavigating = false; // Reset flag after navigation completes
 	}, 200);
 }
 
 export function matchesEvents()
 {
+	// Reset firstLoad flag so next time we load we know it's a fresh navigation
+	isFirstLoad = false;
+	
 	document.getElementById('prev-match')?.addEventListener('click', () => slideMatches('prev'));
 	document.getElementById('next-match')?.addEventListener('click', () => slideMatches('next'));
 	document.getElementById('play-arcade-clash')?.addEventListener('click', () => window.location.hash = "intro");
@@ -52,7 +87,7 @@ export function matchesEvents()
 
 function leftArrow()
 {
-	if (currentMatch <= 0 || thisUser.matches.length == 0)
+	if (currentMatch <= 0 || !thisUser.matches || thisUser.matches.length == 0)
 		return '';
 
 	return `<button id="prev-match"
@@ -63,7 +98,7 @@ function leftArrow()
 
 function rightArrow()
 {
-	if (currentMatch == thisUser.matches.length -1 || thisUser.matches.length === 0)
+	if (currentMatch == (thisUser.matches?.length ?? 0) - 1 || !thisUser.matches || thisUser.matches.length === 0)
 		return '';
 
 	return `<button id="next-match"

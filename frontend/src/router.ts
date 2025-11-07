@@ -27,7 +27,7 @@ import {
 } from "./games/TournamentFlow";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
-import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
+import { HistoryPage, matchesEvents, resetHistoryPageState } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { LoadingPage, initLoadingPage } from "./pages/LoadingPage";
@@ -39,20 +39,51 @@ import { triggerPopup } from "./components/Popups";
 import { friendRequest } from "./components/FriendRequestDiv";
 
 // Global user state - centralizes user data across the application
-export let thisUser: any = undefined;
+export interface UserStats {
+  gamesPlayed: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  pointsFor: number;
+  pointsAgainst: number;
+  highestScore: number;
+}
+
+export interface User {
+  id?: number;
+  authUserId?: number;
+  name?: string;
+  email?: string;
+  profilePicture?: string;
+  bio?: string;
+  friends?: any[];
+  friendOf?: any[];
+  matches?: any[];
+  stats?: UserStats;   // ✅ tell TS that stats exists
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const thisUser: User = {};
 
 /**
  * Fetches current user data from the API and updates global user state
  * Called before rendering protected pages to ensure user authentication
  */
-async function fetchUser() {
+export async function fetchUser() {
   try {
     const data = await getCurrentUser();
-    thisUser = data.user;
-  } catch {
-    thisUser = undefined;
+    Object.assign(thisUser, data.user); // merge new data into existing reference
+
+    console.log("=== FETCH USER DEBUG ===");
+    console.log("Data received:", data);
+    console.log("User stats:", thisUser.stats);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    for (const key in thisUser) delete (thisUser as any)[key];
   }
 }
+
 
 /**
  * Protected page wrapper that ensures user authentication before rendering
@@ -65,16 +96,19 @@ async function fetchUser() {
  *                    (used for page-specific initialization like event listeners)
  */
 export async function protectedPage(
-  renderer: () => string,
+  renderer: () => string | Promise<string>,
   ...postRender: (() => void)[]
 ) {
   const app = document.getElementById("app")!;
 
   // Fetch and validate user authentication
   await fetchUser();
-  if (thisUser != undefined) {
+  
+  // Check if user is properly authenticated with valid data
+  if (thisUser && thisUser.id && thisUser.name && thisUser.email) {
     // Render the page content
-    app.innerHTML = renderer();
+    const content = await renderer();
+    app.innerHTML = content;
 
     // Attach common UI components to all protected pages
     sideBar(); // Navigation sidebar
@@ -83,7 +117,10 @@ export async function protectedPage(
     // Execute page-specific initialization functions
     postRender?.forEach((fn) => fn());
   } else {
-    console.error("Failed to load user");
+    console.error("Failed to load user - redirecting to login");
+    console.error("User state:", thisUser);
+    // Clear invalid token
+    localStorage.removeItem("jwt");
     window.location.hash = "login"; // Redirect to login if not authenticated
   }
 }
@@ -226,7 +263,9 @@ export function router() {
       break;
 
     case "history":
-      protectedPage(() => HistoryPage(), matchesEvents); // Match history page
+      // Reset history page state to show latest match on fresh navigation
+      resetHistoryPageState();
+      protectedPage(() => HistoryPage(), matchesEvents);  // Match history page
       break;
 
     // Fallback for unknown routes

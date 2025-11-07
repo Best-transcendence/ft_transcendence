@@ -15,7 +15,7 @@ import { registerTournamentGame } from "./GameController";
 const DIFFICULTY = {
   easy: { 
     ballSpeed: 1.0, 
-    gameTime: 40 
+    gameTime: 8 // TODO: Change back to 40 seconds
   },
   medium: { 
     ballSpeed: 1.5, 
@@ -279,10 +279,59 @@ _timeupHandler = () => {
   const r = Number(score2?.textContent ?? 0);  // Right player score
   console.log("Final scores: Left =", l, "Right =", r);
 
-  // Get player names from tournament system
+  // Get player names and data from tournament system
   const players = (window as any).tournamentCurrentPlayers;
   const leftName = players?.left || "Player 1";
   const rightName = players?.right || "Player 2";
+  const leftPlayer = players?.leftPlayer;
+  const rightPlayer = players?.rightPlayer;
+
+  console.log("=== TOURNAMENT MATCH SAVING DEBUG ===");
+  console.log("=== TOURNAMENT MATCH SAVE DEBUG ===");
+  console.log("Left player:", leftPlayer);
+  console.log("Right player:", rightPlayer);
+  console.log("Left authenticated:", leftPlayer?.isAuthenticated);
+  console.log("Right authenticated:", rightPlayer?.isAuthenticated);
+  console.log("Tournament current players:", (window as any).tournamentCurrentPlayers);
+  
+  // Save match if both players are authenticated (regardless of who the logged-in user is)
+  if (leftPlayer?.isAuthenticated && rightPlayer?.isAuthenticated) {
+    // Check tournament mode from seed to determine match type
+    const seed = JSON.parse(localStorage.getItem("tournamentSeed") || "{}");
+    const tournamentMode = seed.mode; // "2" or "4"
+    
+    let matchType: string;
+    if (tournamentMode === "2") {
+      matchType = "TOURNAMENT_1V1";
+    } else {
+      // 4-player tournament
+      const currentMatch = (window as any).tournamentCurrentMatch;
+      const isFinal = currentMatch?.round === 2;
+      matchType = isFinal ? "TOURNAMENT_FINAL" : "TOURNAMENT_INTERMEDIATE";
+    }
+    
+    console.log("Tournament mode:", tournamentMode);
+    console.log("Match type:", matchType);
+    
+    const matchData: MatchObject = {
+      type: matchType,
+      date: new Date().toISOString(),
+      player1Id: leftPlayer.authUserId!,
+      player2Id: rightPlayer.authUserId!,
+      player1Score: l,
+      player2Score: r,
+    };
+    
+    console.log("Saving match data:", matchData);
+    
+    saveMatch(matchData).then(result => {
+      console.log("Match saved successfully:", result);
+    }).catch(err => 
+      console.error("Failed to save tournament match:", err)
+    );
+  } else {
+    console.log("Skipping match save - not both players authenticated");
+  }
 
   // Show time up overlay with winner
   const timeUpOverlay = document.getElementById("timeUpOverlay");
@@ -461,14 +510,12 @@ window.addEventListener("game:timeup", _timeupHandler);
       // Ball went past left side - Player 2 (right) scores
       s2++;
       score2.textContent = s2.toString();
-      console.log("⚡ Right player scored! New scores: Left =", s1, "Right =", s2);
       //playSound(lossSfx);                    // TODO: Implement sound effects
       resetBall();
     } else if (ballCenterX > FIELD) {
       // Ball went past right side - Player 1 (left) scores
       s1++;
       score1.textContent = s1.toString();
-      console.log("⚡ Left player scored! New scores: Left =", s1, "Right =", s2);
       //playSound(lossSfx);                    // TODO: Implement sound effects
       resetBall();
     }
