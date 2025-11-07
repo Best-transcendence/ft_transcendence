@@ -4,26 +4,16 @@ import { WebSocket } from 'ws';
 import { registerRoomHandlers } from './rooms.js';
 import { registerGameHandlers } from './game.js';
 import { registerFriendsHandlers } from './friends.js';
-
-const namesCache = new Map(); // userId(string) name
-
-async function fetchUserName(app, userId) {
-  const base = process.env.USER_SERVICE_URL || 'http://localhost:3002';
-  try {
-    const res = await fetch(`${base}/users/public/${userId}`);
-    if (!res.ok) throw new Error(`status ${res.status}`);
-    const user = await res.json();
-    const name = user?.name ?? null;
-    if (name) namesCache.set(String(userId), name);
-    return name;
-  } catch (err) {
-    app.log.warn({ userId, err: err.message }, 'Failed to fetch username');
-    return null;
-  }
-}
-
-//TODO show friends' online status
-const onlineUsers = new Map();
+import {
+  addOnlineUser,
+  removeOnlineUser,
+  cacheUserName,
+  getUserName,
+  fetchUserName,
+  onlineUsers,
+  namesCache,
+  lobbyUsers
+} from '../state/user.js';
 
 // TODO delete if you don't use for checking online friends
 function getAllUsers() {
@@ -39,7 +29,7 @@ function sendUserList(ws) {
   const filtered = all.filter(u => u.id !== ws.user.id); // hide self
   ws.send(JSON.stringify({ type: 'user:list', users: filtered }));
 }
-const lobbyUsers = new Map(); // track only users who are on lobby page
+
 
 
 // Build lobby list
@@ -103,7 +93,7 @@ export function registerWebsocketHandlers(wss, app) {
     // Store user info including token for 1v1 match history saving
     // The token is needed to authenticate match save requests to user-service
     ws.user = { id: userId, name: displayName, token: tokenFromQuery };
-    onlineUsers.set(String(userId), ws);
+    addOnlineUser(userId, ws);
 
     // Broadcast online status
     wss.clients.forEach(client => {
@@ -132,7 +122,7 @@ export function registerWebsocketHandlers(wss, app) {
     }
 
     // Track this connection (1 entry per user; last tab wins)
-    onlineUsers.set(String(userId), ws);
+    addOnlineUser(userId, ws);
 
     app.log.info({ userId }, 'WS connected');
     ws.send(JSON.stringify({ type: 'welcome', user: ws.user }));
@@ -272,8 +262,7 @@ export function registerWebsocketHandlers(wss, app) {
 
       // cleanup both maps
       lobbyUsers.delete(ws.user.id);
-      const current = onlineUsers.get(String(ws.user.id));
-      if (current === ws) onlineUsers.delete(String(ws.user.id));
+      removeOnlineUser(ws.user.id, ws);
 
       broadcastLobby(); // update lists
       app.log.info({ userId: ws.user.id }, 'WS disconnected');

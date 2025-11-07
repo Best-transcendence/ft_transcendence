@@ -64,6 +64,14 @@ export function onSocketMessage(fn: (msg: any) => void) {
   };
 }
 
+// Subscribe to open events
+export function onSocketOpen(fn: () => void) {
+  openListeners.push(fn);
+  return () => {
+    openListeners = openListeners.filter((l) => l !== fn);
+  };
+}
+
 export function disconnectSocket() {
   if (!socket) return;
   manualClose = true;
