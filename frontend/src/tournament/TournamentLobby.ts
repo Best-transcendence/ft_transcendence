@@ -2,6 +2,8 @@ import { addTheme } from "../components/Theme";
 import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
+import { t } from "../services/lang/LangEngine";
+import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 /**
  * Tournament Lobby Page Template Generator
@@ -30,15 +32,21 @@ export function LobbyPageTournament() {
 
     <!-- Header section with user interface components -->
     <div class="w-full flex justify-between items-center mb-10">
-      ${profileDivDisplay()}    <!-- User profile information -->
-      ${sidebarDisplay()}       <!-- Navigation sidebar -->
-      ${LogOutBtnDisplay()}     <!-- Logout button -->
-    </div>
+		
+	<!-- Protected pages components -->
+		${ profileDivDisplay() }
+		${ sidebarDisplay() }
+        <!-- Group Language and Logout on the right -->
+        <div class="flex gap-2 items-center">
+            ${LanguageSwitcher()}
+             ${LogOutBtnDisplay()}
+        </div>
+     </div>
 
     <!-- Page title and description -->
     <div class="flex items-center flex-col text-center">
-      <h1 class="text-4xl text-gray-200 font-heading font-bold mb-1">Create Tournament</h1>
-      <p class="text-lg text-gray-400 max-w-xl mb-12">Choose 2 or 4 players · Single Elimination</p>
+      <h1 class="text-4xl text-gray-200 font-heading font-bold mb-1">${t("createTournamentTitle")}</h1>
+      <p class="text-lg text-gray-400 max-w-xl mb-12">${t("createTournamentSubtitle")}</p>
     </div>
 
     <!-- Main tournament builder card with glassmorphism styling -->
@@ -50,23 +58,21 @@ export function LobbyPageTournament() {
         <div class="md:col-span-2 space-y-4">
           <!-- Player addition interface -->
           <div class="rounded-xl border border-white/10 p-4">
-            <div class="text-sm text-gray-300 mb-3">Add Player</div>
+            <div class="text-sm text-gray-300 mb-3">${t("addPlayer")}</div>
 
             <!-- Two buttons to toggle between guest and user -->
             <div class="flex gap-2 mb-3">
               <button
                 type="button"
                 id="btn-toggle-guest"
-                class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-600 text-white border border-violet-400"
-              >
-                Add Guest
+                class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-600 text-white border border-violet-400">
+               ${t("addGuest")}
               </button>
               <button
                 type="button"
                 id="btn-toggle-user"
-                class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-transparent text-gray-300 border border-white/10 hover:border-violet-400"
-              >
-                Add User
+                class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-transparent text-gray-300 border border-white/10 hover:border-violet-400">
+                ${t("addUser")}
               </button>
             </div>
 
@@ -75,16 +81,14 @@ export function LobbyPageTournament() {
               <input
                 id="guest-name"
                 type="text"
-                placeholder="Guest username (letters only, max 12)"
+                placeholder="${t("guestNamePlaceholder")}"
                 maxlength="12"
-                class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
+                class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"/>
               <button
                 type="button"
                 id="btn-add-guest"
-                class="w-full px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium"
-              >
-                Add Guest Player
+                class="w-full px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium">
+				${t("addGuestPlayer")}
               </button>
             </div>
 
@@ -93,24 +97,21 @@ export function LobbyPageTournament() {
               <input
                 id="user-email"
                 type="email"
-                placeholder="User's email"
+                placeholder="${t("userEmailPlaceholder")}"
                 autocomplete="off"
-                class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
+                class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"/>
               <input
                 id="user-password"
                 type="password"
-                placeholder="User's password"
+                placeholder="${t("userPasswordPlaceholder")}"
                 autocomplete="off"
-                class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
+                class="w-full bg-transparent border border-white/10 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"/>
               <button
                 type="button"
                 id="btn-add-user"
-                class="w-full px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium cursor-pointer"
-              >
-                Verify & Add User
-              </button>
+                class="w-full px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium cursor-pointer">
+ 				${t("verifyAndAddUser")}
+               </button>
             </div>
 
             <!-- Error message display -->
@@ -119,15 +120,15 @@ export function LobbyPageTournament() {
 
           <!-- Tournament size selection -->
           <div class="rounded-xl border border-white/10 p-4">
-            <div class="text-sm text-gray-300 mb-2">Tournament Size</div>
+            <div class="text-sm text-gray-300 mb-2">${t("tournamentSize")}</div>
             <div class="space-y-2 text-sm text-gray-200">
               <label class="flex items-center gap-2">
                 <input type="radio" name="tournament-size" value="2" id="mode-2" class="accent-violet-600" checked />
-                <span>Tournament of <span class="font-mono">2</span> players</span>
+                <span>${t("tournamentOf2")}</span>
               </label>
               <label class="flex items-center gap-2">
                 <input type="radio" name="tournament-size" value="4" id="mode-4" class="accent-violet-600" />
-                <span>Tournament of <span class="font-mono">4</span> players</span>
+                <span>${t("tournamentOf4")}</span>
               </label>
             </div>
           </div>
@@ -137,36 +138,36 @@ export function LobbyPageTournament() {
             <!-- Player counter -->
             <div class="flex items-center justify-between mb-4">
               <div>
-                <div class="text-sm text-gray-300">Players</div>
+                <div class="text-sm text-gray-300">${t("playersLabel")}</div>
                 <div class="text-2xl font-semibold text-white">
                   <span id="count">0</span>/<span id="max">4</span>
                 </div>
               </div>
               <!-- Tournament start button (disabled until enough players) -->
               <button id="btn-start" class="px-4 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white disabled:opacity-40 disabled:cursor-not-allowed" disabled>
-                Matchmaking
+                ${t("matchmaking")}
               </button>
             </div>
 
             <!-- Difficulty selection -->
             <div class="border-t border-white/10 pt-4">
-              <div class="text-sm text-gray-300 mb-2">Difficulty</div>
+              <div class="text-sm text-gray-300 mb-2">${t("difficultyLabel")}</div>
               <div class="flex gap-3">
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="radio" name="tournament-difficulty" value="easy" id="difficulty-easy" class="accent-violet-600" />
-                  <span class="text-sm text-gray-200">Easy</span>
+                  <span class="text-sm text-gray-200">${t("easy")}</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="radio" name="tournament-difficulty" value="medium" id="difficulty-medium" class="accent-violet-600" checked />
-                  <span class="text-sm text-gray-200">Medium</span>
+                  <span class="text-sm text-gray-200">${t("medium")}</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="radio" name="tournament-difficulty" value="hard" id="difficulty-hard" class="accent-violet-600" />
-                  <span class="text-sm text-gray-200">Hard</span>
+                  <span class="text-sm text-gray-200">${t("hard")}</span>
                 </label>
               </div>
               <div class="text-xs text-gray-400 mt-2">
-                <span id="difficulty-info">30s · Normal ball speed</span>
+                <span id="difficulty-info">${t("difficultyInfoNormal")}</span>
               </div>
             </div>
           </div>
@@ -174,7 +175,7 @@ export function LobbyPageTournament() {
 
         <!-- Right column: Match generator preview -->
         <div class="md:col-span-3 rounded-xl border border-white/10 p-4">
-          <div class="text-sm text-gray-300 mb-2">Match Generator</div>
+          <div class="text-sm text-gray-300 mb-2">${t("matchGenerator")}</div>
           <!-- Dynamic match preview container -->
           <div id="matchgenerator" class="flex flex-wrap gap-2 min-h-[42px]"></div>
         </div>

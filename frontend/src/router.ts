@@ -10,7 +10,8 @@
 import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
 import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
-
+import { setupLanguageSwitcher } from "./services/lang/LanguageSwitcher";
+import { t } from "./services/lang/LangEngine";
 // Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
@@ -18,14 +19,14 @@ import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { destroyCurrentGame } from "./games/GameController";
 import { GamePongTournament } from "./games/Tournament";
-import { LobbyPageTournament } from "./pages/TournamentLobby";
+import { LobbyPageTournament } from "./tournament/TournamentLobby";
 import { initLobbyPageTournament } from "./tournament/InitTournamentLobby";
 import { initGameTournament } from "./games/InitGameTournament";
 import {
   bootTournamentFlow,
   teardownTournamentFlow,
 } from "./games/TournamentFlow";
-import { ProfilePage } from "./pages/ProfilePage";
+import { ProfilePage, profileStatsEvents } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents, resetHistoryPageState } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
@@ -59,7 +60,7 @@ export interface User {
   friends?: any[];
   friendOf?: any[];
   matches?: any[];
-  stats?: UserStats;   // ✅ tell TS that stats exists
+  stats?: UserStats;   // tell TS that stats exists
   createdAt?: string;
   updatedAt?: string;
 }
@@ -103,7 +104,7 @@ export async function protectedPage(
 
   // Fetch and validate user authentication
   await fetchUser();
-  
+
   // Check if user is properly authenticated with valid data
   if (thisUser && thisUser.id && thisUser.name && thisUser.email) {
     // Render the page content
@@ -114,6 +115,7 @@ export async function protectedPage(
     sideBar(); // Navigation sidebar
     logOutBtn(); // Logout button
 
+	setupLanguageSwitcher();  // i18n: wire up the language switcher
     // Execute page-specific initialization functions
     postRender?.forEach((fn) => fn());
   } else {
@@ -186,6 +188,7 @@ export function router() {
     case "login":
       app.innerHTML = LoginPage();
       attachLoginListeners(); // Set up login form event listeners
+	  setupLanguageSwitcher();
       break;
 
     // Protected routes (authentication required)
@@ -251,7 +254,7 @@ export function router() {
 
     // User management routes
     case "profile":
-      protectedPage(() => ProfilePage(), triggerPopup); // User profile page
+      protectedPage(() => ProfilePage(), profileStatsEvents, triggerPopup); // User profile page
       break;
 
     case "friends":
@@ -380,18 +383,21 @@ function attachLoginListeners() {
       nameField?.classList.remove("hidden");
       confirmPasswordField?.classList.remove("hidden");
       // Update UI text for signup mode
-      if (submitButton) submitButton.textContent = "Register";
-      if (title) title.textContent = "Sign Up";
-      signupToggle.innerHTML = `Already have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign In</span>`;
+      if (submitButton) submitButton.textContent = t("register");
+      if (title) title.textContent = t("signUp");
+      signupToggle.innerHTML = `${t("alreadyHaveAccount")} <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">${t("signIn")}</span>`;
     } else {
       // Hide signup fields for login mode
       nameField?.classList.add("hidden");
       confirmPasswordField?.classList.add("hidden");
       // Update UI text for login mode
-      if (submitButton) submitButton.textContent = "Login";
-      if (title) title.textContent = "Sign In";
-      signupToggle.innerHTML =
-        'Don\'t have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign Up</span>';
+      if (submitButton) submitButton.textContent = t("login");
+      if (title) title.textContent = t("signIn");
+      signupToggle.innerHTML = `
+		${t("dontHaveAccount")}
+		<span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">
+			${t("signUp")}
+		</span>`;
     }
   }
 

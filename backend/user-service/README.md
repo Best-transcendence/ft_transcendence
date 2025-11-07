@@ -146,7 +146,7 @@ CREATE TABLE Match (
 USER_DATABASE_URL="file:./data/user.db"
 
 # JWT (shared with auth-service)
-JWT_SECRET="your-jwt-secret"
+JWT_SECRET= fetched from `vault-service`
 
 # Service
 USER_SERVICE_PORT=3002
@@ -237,25 +237,25 @@ async function testUserService() {
         password: 'q'
       })
     });
-    
+
     const { token } = await loginResponse.json();
     console.log('✅ Login successful, token:', token);
-    
+
     // Step 2: Get public profiles
     const profilesResponse = await fetch('http://localhost:3002/users');
     const profiles = await profilesResponse.json();
     console.log('✅ Public profiles:', profiles);
-    
+
     // Step 3: Get my profile
     const myProfileResponse = await fetch('http://localhost:3002/users/me', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const myProfile = await myProfileResponse.json();
     console.log('✅ My profile:', myProfile);
-    
+
   } catch (error) {
     console.error('❌ Test failed:', error);
   }

@@ -117,7 +117,7 @@ export async function verifyUserForTournament(email: string, password: string) {
 
   const authData = await authRes.json();
   const token = authData.token;
-  
+
   // Now fetch the user profile to get their actual name
   const profileRes = await fetch(`${API_URL}/users/me`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -133,12 +133,12 @@ export async function verifyUserForTournament(email: string, password: string) {
   }
 
   const profileData = await profileRes.json();
-  
+
   // Verify profile actually exists in user-service
   if (!profileData.user || !profileData.user.id) {
     throw new Error("User profile not found in system. Please contact support.");
   }
-  
+
   // Return user data with proper name from user-service
   return {
     id: profileData.user.authUserId,

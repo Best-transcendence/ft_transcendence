@@ -460,9 +460,6 @@ FRONTEND_PORT=3000
 AUTH_DATABASE_URL="file:./data/auth.db"
 USER_DATABASE_URL="file:./data/user.db"
 
-# JWT Configuration
-JWT_SECRET="your-super-secret-jwt-key-here"
-
 # Service URLs (for inter-service communication)
 USER_SERVICE_URL="http://localhost:3002"
 

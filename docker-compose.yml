@@ -1,4 +1,34 @@
+version: '2.4'
+
 services:
+  # =============================================================================
+  # Vault (dev) - HashiCorp Vault server
+  # =============================================================================
+  vault-service:
+    image: hashicorp/vault:1.14.0
+    container_name: vault_service
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "8200:8200"
+    env_file:
+      - .env
+    environment:
+    - VAULT_TOKEN=${VAULT_TOKEN}
+    volumes:
+      - ./vault:/vault/config
+      - ./vault/data:/vault/file
+    command:
+      - "server"
+    restart: unless-stopped
+    networks:
+      - ft_transcendence_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sSf http://127.0.0.1:8200/v1/sys/health || exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
   # =============================================================================
   # BACKEND SERVICES
   # =============================================================================
@@ -15,13 +45,15 @@ services:
       - USER_SERVICE_PORT=${USER_SERVICE_PORT}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
       - USER_DATABASE_URL=${USER_DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+      - VAULT_TOKEN=${VAULT_TOKEN}
     ports:
       - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     volumes:
       - user_data:/app/data
+    depends_on:
+      vault-service:
+        condition: service_healthy
     networks:
       - ft_transcendence_network
     restart: unless-stopped
@@ -45,14 +77,15 @@ services:
       - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
       - AUTH_DATABASE_URL=${AUTH_DATABASE_URL}
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+      - VAULT_TOKEN=${VAULT_TOKEN}
     ports:
       - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
     volumes:
       - auth_data:/app/data
     depends_on:
+      vault-service:
+        condition: service_healthy
       user-service:
         condition: service_healthy
     networks:
@@ -79,12 +112,13 @@ services:
       - AUTH_SERVICE_URL=http://auth_service:${AUTH_SERVICE_PORT}
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - WS_SERVICE_URL=http://ws_service:${WS_PORT}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+      - VAULT_TOKEN=${VAULT_TOKEN}
     ports:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
     depends_on:
+      vault-service:
+        condition: service_healthy
       auth-service:
         condition: service_healthy
       user-service:
@@ -114,12 +148,13 @@ services:
       - GATEWAY_URL=http://gateway_service:${GATEWAY_PORT}
       - AUTH_SERVICE_URL=http://auth_service:${AUTH_SERVICE_PORT}
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
+      - VAULT_TOKEN=${VAULT_TOKEN}
     ports:
       - "${WS_PORT}:${WS_PORT}"
     depends_on:
+      vault-service:
+        condition: service_healthy
       auth-service:
         condition: service_healthy
       user-service:
@@ -168,6 +203,42 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+# =============================================================================
+  # PROXY SERVICE
+ # =============================================================================
+  waf:
+    build:
+      context: ./waf
+      dockerfile: Dockerfile
+    container_name: waf_service
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - .env
+    environment:
+      VAULT_ADDR: http://vault-service:8200
+      VAULT_TOKEN: ${VAULT_TOKEN}
+    volumes:
+      - ./waf/modsec_logs:/var/log/modsec
+      - ./waf/nginx_logs:/var/log/nginx
+      - ./waf/nginx.conf:/etc/nginx/templates/conf.d/default.conf.template:ro
+      - ./waf/modsecurity.conf:/etc/nginx/templates/modsecurity.d/setup.conf.template:ro
+      - ./waf/crs:/etc/nginx/modsec/crs:ro
+      - ./waf/exception-rules.conf:/etc/nginx/modsec/exception-rules.conf:ro
+    depends_on:
+      vault-service:
+        condition: service_healthy
+      gateway-service:
+        condition: service_healthy
+      ws-service:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      - ft_transcendence_network
+    restart: unless-stopped
 
 # =============================================================================
 # NETWORKS

@@ -37,7 +37,7 @@ function calculateUserStats(db, userId) {
 
   for (const match of allMatches) {
     const isPlayer1 = match.player1Id === userId;
-    
+
     // Convert BigInt to Number if needed
     const playerScore = Number(isPlayer1 ? match.player1Score : match.player2Score);
     const opponentScore = Number(isPlayer1 ? match.player2Score : match.player1Score);
@@ -472,7 +472,7 @@ export default async function (fastify, _opts) {
       const stats = calculateUserStats(fastify.db, user.id);
       console.log(`[${request.id}] Calculated stats:`, stats);
       console.log('DEBUG final stats before sending:', JSON.stringify(stats));
-      
+
       // Create stats object manually to avoid any serialization issues
       const manualStats = {
         gamesPlayed: stats.gamesPlayed || 0,
@@ -484,7 +484,7 @@ export default async function (fastify, _opts) {
         highestScore: stats.highestScore || 0
       };
       console.log(`[${request.id}] Manual stats:`, manualStats);
-      
+
       // Create a clean user object without circular references
       const cleanUser = {
         id: user.id,
@@ -512,11 +512,11 @@ export default async function (fastify, _opts) {
         pointsAgainst: Number(manualStats.pointsAgainst) || 0,
         highestScore: Number(manualStats.highestScore) || 0
       };
-      
+
       cleanUser.stats = cleanStats;
       console.log(`[${request.id}] Clean stats object:`, cleanStats);
       console.log(`[${request.id}] Final user with stats:`, JSON.stringify(cleanUser, null, 2));
-      
+
       // Log the final response before sending
       console.log(`[${request.id}] Final response user stats:`, cleanUser.stats);
       console.log(`[${request.id}] Final response JSON:`, JSON.stringify({ user: cleanUser }, null, 2));
@@ -663,7 +663,7 @@ export default async function (fastify, _opts) {
       {
         console.log(`[${request.id}] Creating match with data:`, matchData);
         const { type, player1Id, player2Id, player1Score, player2Score, _winnerId, date } = matchData;
-        
+
         // Get both player profiles
         const getPlayer1Stmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
         const player1Profile = getPlayer1Stmt.get(player1Id);

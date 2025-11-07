@@ -36,7 +36,7 @@ export async function saveMatch(match: any)
 {
 	console.log("=== SAVEMATCH DEBUG ===");
 	console.log("Match data:", match);
-	
+
 	const token = localStorage.getItem("jwt");
 	console.log("Token exists:", !!token);
 
@@ -63,12 +63,12 @@ export async function saveMatch(match: any)
 		console.error("Failed to save match:", errorText);
 		throw new Error("Failed to save match");
 	}
-	
+
 	const result = await res.json();
 	console.log("Match saved successfully:", result);
-	
+
 	// Refresh user data to update match history and stats
 	await fetchUser();
-	
+
 	return result;
 }
