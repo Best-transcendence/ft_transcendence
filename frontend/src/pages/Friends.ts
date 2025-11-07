@@ -20,15 +20,8 @@ export interface Friend
 // if userA has userB ONLY in friendOf = Friend request from userB for userA to accept/decline
 export function loadFriend(): string
 {
-	console.log('🟣 Frontend: loadFriend called');
-	console.log('🟣 Frontend: thisUser.friends:', JSON.stringify(thisUser.friends, null, 2));
-	console.log('🟣 Frontend: thisUser.friendOf:', JSON.stringify(thisUser.friendOf, null, 2));
-
 	if (!thisUser.friendOf || thisUser.friendOf.length === 0)
-	{
-		console.log('🟣 Frontend: No friendOf, returning noFriends()');
 		return noFriends();
-	}
 
 	let cards = '';
 	let friendRequests = '';
@@ -36,26 +29,12 @@ export function loadFriend(): string
 	for (let i = 0; i < thisUser.friendOf.length; i++)
 	{
 		const friend = thisUser.friendOf[i];
-		console.log(`🟣 Frontend: Processing friend ${friend.id} (${friend.name})`);
 
-		const isInFriends = thisUser.friends.find((f: any) => f.id === friend.id);
-		console.log(`🟣 Frontend: Friend ${friend.id} (${friend.name}) is in friends list:`, !!isInFriends);
-		console.log(`🟣 Frontend: Checking friends array:`, thisUser.friends.map((f: any) => ({ id: f.id, name: f.name || 'no name' })));
-
-		if (!isInFriends)
-		{
-			console.log(`🟣 Frontend: Friend ${friend.id} is NOT in friends - showing as friend request`);
+		if (!thisUser.friends.find((f: Friend) => f.id === friend.id))
 			friendRequests = friendRequestCard(friend);
-		}
 		else
-		{
-			console.log(`🟣 Frontend: Friend ${friend.id} IS in friends - showing as mutual friend`);
 			cards += friendCard(thisUser.friendOf[i]);
-		}
 	}
-
-	console.log('🟣 Frontend: Final cards:', cards ? 'HAS CARDS' : 'NO CARDS');
-	console.log('🟣 Frontend: Final friendRequests:', friendRequests ? 'HAS REQUESTS' : 'NO REQUESTS');
 
 	return (cards + friendRequests);
 }
