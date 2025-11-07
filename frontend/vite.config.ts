@@ -10,11 +10,13 @@ export default defineConfig({
   server: {
     port: 3000,
     host:'0.0.0.0',
-    open: !isDocker // only locally open browser
+    open: !isDocker, // only locally open browser
+    cors: true // Allow CORS for development
   },
   preview: {
     port: 3000,
     host:'0.0.0.0',
-    open: !isDocker // same behaviour for vite preview
+    open: !isDocker, // same behaviour for vite preview
+    cors: true // Allow CORS for preview (needed when accessed through WAF)
   }
 });
