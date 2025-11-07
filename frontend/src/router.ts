@@ -8,8 +8,12 @@
 
 // Service imports for API communication and WebSocket connection
 import { getCurrentUser, login, signup } from "./services/api";
-import { connectSocket } from "./services/ws";
-import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
+import { connectSocket, disconnectSocket } from "./services/ws";
+import {
+  GamePongRemote,
+  initRemoteGame,
+  leaveRemoteGame,
+} from "./games/Pong2dRemote";
 
 // Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
@@ -26,8 +30,8 @@ import {
   teardownTournamentFlow,
 } from "./games/TournamentFlow";
 import { ProfilePage } from "./pages/ProfilePage";
-import { FriendsPage } from "./pages/Friends";
-import { HistoryPage, matchesEvents, resetHistoryPageState } from "./pages/HistoryPage";
+import { FriendsPage, setupFriends } from "./pages/Friends";
+import { HistoryPage, matchesEvents } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { LoadingPage, initLoadingPage } from "./pages/LoadingPage";
@@ -37,6 +41,8 @@ import { sideBar } from "./components/SideBar";
 import { logOutBtn } from "./components/LogOutBtn";
 import { triggerPopup } from "./components/Popups";
 import { friendRequest } from "./components/FriendRequestDiv";
+
+import { autoConnect } from "./services/ws";
 
 // Global user state - centralizes user data across the application
 export interface UserStats {
@@ -107,6 +113,8 @@ export async function protectedPage(
   // Check if user is properly authenticated with valid data
   if (thisUser && thisUser.id && thisUser.name && thisUser.email) {
     // Render the page content
+//    app.innerHTML = renderer();
+    autoConnect();
     const content = await renderer();
     app.innerHTML = content;
 
@@ -184,6 +192,7 @@ export function router() {
   switch (page) {
     // Public routes (no authentication required)
     case "login":
+      disconnectSocket(); // Disconnect WS when leaving protected pages
       app.innerHTML = LoginPage();
       attachLoginListeners(); // Set up login form event listeners
       break;
@@ -255,7 +264,7 @@ export function router() {
       break;
 
     case "friends":
-      protectedPage(() => FriendsPage(), triggerPopup, friendRequest); // Friends management
+      protectedPage(() => FriendsPage(), () => setupFriends(), triggerPopup, friendRequest); // Friends management
       break;
 
     case "dashboard":

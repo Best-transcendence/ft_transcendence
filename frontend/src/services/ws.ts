@@ -2,6 +2,7 @@ let socket: WebSocket | null = null;
 let reconnectTimer: number | null = null;
 let manualClose = false;
 let listeners: ((msg: any) => void)[] = [];
+let openListeners: (() => void)[] = [];
 
 export function getSocket() {
   return socket;
@@ -23,6 +24,8 @@ export function connectSocket(token: string) {
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
     }
+    // Notify open listeners
+    openListeners.forEach((fn) => fn());
   };
 
   socket.onmessage = (event) => {
@@ -41,7 +44,11 @@ export function connectSocket(token: string) {
   socket.onclose = (ev) => {
     console.log("WS closed", ev.code, ev.reason);
     socket = null;
+
+    // If was not a manual close send to intro page.
     if (!manualClose) {
+      window.location.hash = "intro";
+
       reconnectTimer = window.setTimeout(() => {
         const saved = localStorage.getItem("jwt");
         if (saved) connectSocket(saved);
@@ -61,6 +68,14 @@ export function onSocketMessage(fn: (msg: any) => void) {
   listeners.push(fn);
   return () => {
     listeners = listeners.filter((l) => l !== fn);
+  };
+}
+
+// Subscribe to open event
+export function onSocketOpen(fn: () => void) {
+  openListeners.push(fn);
+  return () => {
+    openListeners = openListeners.filter((l) => l !== fn);
   };
 }
 
