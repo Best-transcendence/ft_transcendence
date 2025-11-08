@@ -34,7 +34,7 @@ const buildOrigins = () => {
   const frontendPort = process.env.FRONTEND_PORT || 3000;
   const authServicePort = process.env.AUTH_SERVICE_PORT || 3001;
   const userServicePort = process.env.USER_SERVICE_PORT || 3002;
-  
+
   // Add localhost origins (HTTP and HTTPS)
   origins.push(`http://localhost:${frontendPort}`);
   origins.push(`https://localhost:${frontendPort}`);
@@ -42,7 +42,7 @@ const buildOrigins = () => {
   origins.push(`https://localhost:${authServicePort}`);
   origins.push(`http://localhost:${userServicePort}`);
   origins.push(`https://localhost:${userServicePort}`);
-  
+
   // Add LAN_IP origins if set (HTTP and HTTPS)
   if (lanIp) {
     origins.push(`http://${lanIp}:${frontendPort}`);
@@ -52,7 +52,7 @@ const buildOrigins = () => {
     origins.push(`http://${lanIp}:${userServicePort}`);
     origins.push(`https://${lanIp}:${userServicePort}`);
   }
-  
+
   // Also add any explicit URLs from env if they differ
   if (process.env.FRONTEND_URL && !origins.includes(process.env.FRONTEND_URL)) {
     origins.push(process.env.FRONTEND_URL);
@@ -63,7 +63,7 @@ const buildOrigins = () => {
   if (process.env.USER_SERVICE_URL && !origins.includes(process.env.USER_SERVICE_URL)) {
     origins.push(process.env.USER_SERVICE_URL);
   }
-  
+
   return origins;
 };
 
@@ -92,6 +92,24 @@ catch (err)
   process.exit(1);
 }
 await app.register(fastifyJwt, { secret: jwtSecret });
+
+// Paths to exempt from jwt protection:
+const publicPaths = ['/auth', '/health', '/docs', '/favicon.ico'];
+
+// Global JWT protection for all routes except auth
+app.addHook('onRequest', async (request, reply) =>
+{
+	if (publicPaths.some(path => request.raw.url.startsWith(path)))
+		return;
+	try
+	{
+		await request.jwtVerify();
+	}
+	catch
+	{
+		return reply.code(401).send({ error: 'Unauthorized' });
+	}
+});
 
 // Register Swagger for API documentation
 await app.register(fastifySwagger, {
