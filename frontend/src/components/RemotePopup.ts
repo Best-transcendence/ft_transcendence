@@ -1,6 +1,7 @@
 // src/components/popup.ts
 import { sendWSMessage } from "../services/ws";
 import { t } from "../services/lang/LangEngine";
+import DOMPurify from "dompurify";
 
 /**
  * Trigger an invite popup when another player invites you.
@@ -18,7 +19,7 @@ export function triggerInvitePopup(inviteData: { from: { id: string; name?: stri
 
   const fromName = inviteData.from.name ?? `${t("playerLabel")} ${inviteData.from.id}`;
 
-  overlay.innerHTML = `
+  overlay.innerHTML = DOMPurify.sanitize(`
     <div class="bg-slate-900 text-gray-200 p-6 rounded-2xl shadow-lg w-[min(90vw,380px)] text-center animate-fadeIn">
       <h2 class="text-xl font-bold mb-4">${t("gameInvitationTitle")}</h2>
       <p class="mb-6"><b>${fromName}</b> ${t("gameInvitationText")}</p>
@@ -27,7 +28,7 @@ export function triggerInvitePopup(inviteData: { from: { id: string; name?: stri
         <button id="declineInvite" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold">${t("decline")}</button>
       </div>
     </div>
-  `;
+  `);
 
   document.body.appendChild(overlay);
   activeInvitePopup = overlay;
@@ -38,7 +39,7 @@ export function triggerInvitePopup(inviteData: { from: { id: string; name?: stri
   };
 
   overlay.querySelector("#acceptInvite")?.addEventListener("click", () => {
-    sendWSMessage("invite:accepted", { from: inviteData.from.id }); 
+    sendWSMessage("invite:accepted", { from: inviteData.from.id });
     cleanup();
   });
 

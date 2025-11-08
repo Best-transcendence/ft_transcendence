@@ -7,6 +7,7 @@ import { t } from "../services/lang/LangEngine";
 import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 import { thisUser } from "../router";
+import DOMPurify from "dompurify";
 import {
   triggerInvitePopup,
   closeInvitePopup,
@@ -74,7 +75,7 @@ export async function initLobby() {
   if (!usersContainer) return;
 
   const selfId = String(thisUser?.id ?? "");
-  usersContainer.innerHTML = `<p class="text-gray-400">${t("waitingForUsers")}</p>`;
+  usersContainer.innerHTML = DOMPurify.sanitize(`<p class="text-gray-400">${t("waitingForUsers")}</p>`);
 
   const socket = connectSocket(token);
   const unsuscribe = onSocketMessage((msg) => {
@@ -84,11 +85,11 @@ export async function initLobby() {
         const others = list.filter((u: any) => String(u?.id ?? "") !== selfId);
 
         if (others.length === 0) {
-          usersContainer.innerHTML = `<p class="text-gray-400">${t("noOtherPlayers")}</p>`;
+          usersContainer.innerHTML = DOMPurify.sanitize(`<p class="text-gray-400">${t("noOtherPlayers")}</p>`);
           return;
         }
 
-        usersContainer.innerHTML = others
+        usersContainer.innerHTML = DOMPurify.sanitize(others
           .map((u: any) => {
             const id = String(u?.id ?? "");
             const idNum = Number(id) || 0;
@@ -117,7 +118,7 @@ export async function initLobby() {
 				</button>
 			</div>`;
           })
-          .join("");
+          .join(""));
 
         usersContainer.querySelectorAll(".invite-btn").forEach((btn) => {
           btn.addEventListener("click", () => {
