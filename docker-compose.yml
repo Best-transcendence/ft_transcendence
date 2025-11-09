@@ -355,3 +355,7 @@ volumes:
     driver: local
   auth_data:
     driver: local
+  elasticsearch_data:
+    driver: local
+  logstash_data:
+    driver: local
