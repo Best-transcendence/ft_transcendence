@@ -14,7 +14,11 @@ export function connectSocket(token: string) {
   }
 
   manualClose = false;
-  const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:4000";
+  let WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:4000";
+  // Ensure trailing slash for nginx /ws/ location
+  if (WS_URL.endsWith('/ws') && !WS_URL.endsWith('/ws/')) {
+    WS_URL = WS_URL + '/';
+  }
   socket = new WebSocket(`${WS_URL}?token=${token}`);
 
   socket.onopen = () => {
