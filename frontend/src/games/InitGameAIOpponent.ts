@@ -175,7 +175,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	let p1Up = false, p1Down = false, p2Up = false, p2Down = false;
 
 	// --- AI FSM: periodic view (1Hz) ---
-	aiIntervalId = setInterval(() => {
+	aiIntervalId = window.setInterval(() => {
 		// Only run if this is still the active instance
 		if (myInstanceId !== currentInstanceId) return;
 		if (!aiEnabled || !running) return;
