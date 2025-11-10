@@ -47,7 +47,7 @@ export function GamePongAIOpponent(): string {
 		<!-- Protected pages components -->
 		${ profileDivDisplay() }
 		${ sidebarDisplay() }
-        <!-- Group Logout on the right -->
+        <!-- Group and Logout on the right -->
         <div class="flex gap-2 items-center">
              ${LogOutBtnDisplay()}
         </div>
@@ -129,10 +129,6 @@ export function GamePongAIOpponent(): string {
 
 			<!-- Action buttons -->
 			<div class="flex gap-4">
-				<button id="playAgain"
-						class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-purple-600 hover:bg-purple-700">
-				 ${t("playAgain")}
-				</button>
 				<button id="overlayExit"
 						class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-gray-600 hover:bg-gray-700">
 				 ${t("backToArcade")} 
@@ -233,7 +229,6 @@ export function setupAIOpponent() {
 	const btnMedium = document.getElementById("btnMedium");
 	const btnHard = document.getElementById("btnHard");
 	const backToIntro = document.getElementById("backToIntro");
-	const playAgain = document.getElementById("playAgain");
 	const overlayExit = document.getElementById("overlayExit");
 
 	// --- INITIAL UI STATE ---
@@ -302,67 +297,6 @@ export function setupAIOpponent() {
 	// Navigation back to main menu
 	backToIntro?.addEventListener("click", () => {
 		window.location.hash = "intro";
-	});
-
-	// --- PLAY AGAIN HANDLER ---
-	/**
-	 * Handles the "Play Again" button click
-	 * Resets the game state and returns to difficulty selection
-	 */
-	playAgain?.addEventListener("click", () => {
-		console.log("=== PLAY AGAIN CLICKED ===");
-
-		// --- GAME CLEANUP ---
-		// Destroy any existing game instance
-		destroyAIGame();
-
-		// Hide time up overlay
-		if (timeUpOverlay) {
-			timeUpOverlay.classList.add("hidden");
-		}
-
-		// --- STATE RESET ---
-		// Reset game initialization flag
-		gameInitialized = false;
-		console.log("Game state reset, gameInitialized:", gameInitialized);
-
-		// --- VISUAL ELEMENT RESET ---
-		// Reset all game elements to initial positions and scores
-		const score1 = document.getElementById("score1");
-		const score2 = document.getElementById("score2");
-		const ball = document.getElementById("ball");
-		const paddle1 = document.getElementById("paddle1");
-		const paddle2 = document.getElementById("paddle2");
-
-		console.log("Resetting visual elements");
-		if (score1) {
-			console.log("Resetting score1 from", score1.textContent, "to 0");
-			score1.textContent = "0";
-		}
-		if (score2) {
-			console.log("Resetting score2 from", score2.textContent, "to 0");
-			score2.textContent = "0";
-		}
-		if (ball) {
-			ball.style.left = "48.3%";
-			ball.style.top = "47.5%";
-		}
-		if (paddle1) paddle1.style.top = "37.5%";
-		if (paddle2) paddle2.style.top = "37.5%";
-
-		// --- UI STATE RESTORATION ---
-		// Return to difficulty selection screen
-		if (difficultyOverlay) {
-			difficultyOverlay.classList.remove("hidden");
-		}
-		if (startPress) {
-			startPress.classList.add("hidden");
-		}
-		if (keyboardHint) {
-			keyboardHint.classList.add("hidden");
-		}
-
-		console.log("=== PLAY AGAIN COMPLETE ===");
 	});
 
 	// --- EXIT HANDLER ---

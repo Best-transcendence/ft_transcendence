@@ -12,6 +12,12 @@ import { t } from "../services/lang/LangEngine";
 let unsubscribeGame: (() => void) | null = null;
 let currentPlayers: { id: string; name: string }[] = [];
 
+let modalActive = false; // true while the timeUp overlay is visible
+
+function isVisible(el: HTMLElement | null): boolean {
+  return !!el && !el.classList.contains("hidden");
+}
+
 export function GamePongRemote(): string {
   if (unsubscribeGame) unsubscribeGame(); // clean old listener
   unsubscribeGame = onSocketMessage((msg) => {
@@ -73,6 +79,10 @@ export function GamePongRemote(): string {
         const overlay = document.getElementById("timeUpOverlay");
         if (overlay) {
           overlay.classList.remove("hidden");
+
+		 //block keyboard while overlay is up
+        modalActive = true;
+
         const textEl = document.getElementById("resultText");
 		if (textEl) {
 		const p1Name = currentPlayers[0]?.name ?? t("player1") ?? "Player 1";
@@ -215,6 +225,16 @@ export function initRemoteGame(roomId: string) {
   if (keyupHandler) document.removeEventListener("keyup", keyupHandler);
 
   keydownHandler = (e: KeyboardEvent) => {
+	//if overlay is visible, swallow Space + movement
+	const timeUp = document.getElementById("timeUpOverlay");
+	if (modalActive || isVisible(timeUp)) {
+		if (e.code === "Space" || ["ArrowUp","ArrowDown","w","s"].includes(e.key)) {
+		e.preventDefault();
+		e.stopPropagation();
+		}
+		return;
+	}
+
     if (e.code === "Space") {
       socket?.send(JSON.stringify({ type: "game:begin", roomId }));
       document.getElementById("startPress")?.remove();
@@ -234,6 +254,16 @@ export function initRemoteGame(roomId: string) {
   };
 
   keyupHandler = (e: KeyboardEvent) => {
+	 // block movement keyups while overlay is visible
+	const timeUp = document.getElementById("timeUpOverlay");
+	if (modalActive || isVisible(timeUp)) {
+		if (["ArrowUp","ArrowDown","w","s"].includes(e.key)) {
+		e.preventDefault();
+		e.stopPropagation();
+		}
+		return;
+	}
+
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
       socket?.send(
         JSON.stringify({
@@ -251,6 +281,7 @@ export function initRemoteGame(roomId: string) {
 
   const overlayExit = document.getElementById("overlayExit");
   overlayExit?.addEventListener("click", () => {
+	modalActive = false; // clear block (safe even if you navigate away)
     window.location.hash = "intro";
   });
 }

@@ -211,13 +211,6 @@ function showChampion(name: string) {
       <h2 class="text-3xl font-bold text-white mb-2">${t("tournamentComplete")}</h2>
       <div class="text-xl text-emerald-300 font-semibold mb-6">${t("champion")}: ${name}</div>
 
-      <div class="flex gap-3">
-        <button id="btn-new-tourney"
-          class="px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white
-                 border border-violet-400/30 shadow-[0_0_16px_2px_#7037d355]">
-          ${t("newTournament")}
-        </button>
-
         <button id="btn-back-arcade"
           class="px-5 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-100
                  border border-white/10">
@@ -230,16 +223,7 @@ function showChampion(name: string) {
   overlay.classList.remove("hidden");
 
   // Set up completion screen button handlers
-  const btnNew  = overlay.querySelector("#btn-new-tourney") as HTMLButtonElement;
   const btnBack = overlay.querySelector("#btn-back-arcade") as HTMLButtonElement;
-
-  // New tournament button - return to tournament lobby
-  btnNew?.addEventListener("click", () => {
-    teardownTournamentFlow();
-    localStorage.removeItem("tournamentSeed");
-    resetDifficulty(); // Reset difficulty to medium
-    window.location.hash = "#lobbytournament";
-  });
 
   // Back to arcade button - return to main menu
   btnBack?.addEventListener("click", () => {

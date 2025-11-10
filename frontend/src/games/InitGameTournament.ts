@@ -3,6 +3,12 @@ import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
 import { registerTournamentGame } from "./GameController";
 
+// Overlay gating
+let modalActive = false;
+function isVisible(el: HTMLElement | null): boolean {
+  return !!el && !el.classList.contains("hidden");
+}
+
 /**
  * Tournament Game Controller
  * 
@@ -350,6 +356,8 @@ _timeupHandler = () => {
       console.log("Result: Tie");
     }
     timeUpOverlay.classList.remove("hidden");
+	// block keyboard while overlay is up
+	modalActive = true;
   }
 
   // Set up continue button to hide overlay and notify tournament system
@@ -362,6 +370,9 @@ _timeupHandler = () => {
     newBtn.addEventListener("click", () => {
       console.log("Continue button clicked, hiding overlay");
       timeUpOverlay?.classList.add("hidden");
+
+	// allow keys again (you’ll likely navigate away right after)
+     modalActive = false;
       
       // Notify tournament system of round completion with final scores
       const timeUp = (window as any).tournamentTimeUp;
@@ -382,14 +393,21 @@ window.addEventListener("game:timeup", _timeupHandler);
     
     // Keyboard input handler for game controls
     __keydownHandler = (e: KeyboardEvent) => {
-      // Space bar: Start game round (with overlay protection)
-      if (e.code === "Space" && !running) {
-        const ov = document.getElementById("tournament-overlay");
-        if (ov && !ov.classList.contains("hidden")) return; // Space handled by overlay
 
-        // Start the tournament round
-        (window as any).beginTournamentRound?.();
-      }
+	// block Space + movement while overlay is visible
+	const ov = document.getElementById("timeUpOverlay");
+	if (modalActive || isVisible(ov)) {
+		if (e.code === "Space" || ["ArrowUp","ArrowDown","w","s","W","S"].includes(e.key)) {
+		e.preventDefault();
+		e.stopPropagation();
+		}
+		return;
+	}
+
+	// Space bar: Start game round (only when not running)
+	if (e.code === "Space" && !running) {
+		(window as any).beginTournamentRound?.();
+	}
       
       // Player 1 controls (WASD)
       if (e.key === "w") p1Up = true;
@@ -403,6 +421,16 @@ window.addEventListener("game:timeup", _timeupHandler);
 
     // Keyboard release handler for smooth paddle movement
     __keyupHandler = (e: KeyboardEvent) => {
+	 // block movement key-ups while overlay is visible
+		const ov = document.getElementById("timeUpOverlay");
+		if (modalActive || isVisible(ov)) {
+			if (["ArrowUp","ArrowDown","w","s","W","S"].includes(e.key)) {
+			e.preventDefault();
+			e.stopPropagation();
+			}
+			return;
+		}
+	
       // Player 1 controls (WASD)
       if (e.key === "w") p1Up = false;
       if (e.key === "s") p1Down = false;
