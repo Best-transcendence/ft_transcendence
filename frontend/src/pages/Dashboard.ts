@@ -87,6 +87,15 @@ export function initDashboard(): void {
   const winRate = gamesPlayed > 0 ? ((wins / gamesPlayed) * 100).toFixed(1) : "0.0";
   const diff = pointsFor - pointsAgainst;
 
+  // Calculate most recent match date
+  let lastMatchDate: string | null = null;
+  if (matches && matches.length > 0) {
+    const sortedMatches = [...matches].sort(
+      (a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()
+    );
+    lastMatchDate = sortedMatches[0].date || sortedMatches[0].createdAt || null;
+  }
+
   // Setup carousel navigation
   setupDashboardCarousel(stats, matches, {
     gamesPlayed,
@@ -99,7 +108,8 @@ export function initDashboard(): void {
     winStreak,
     avgScore,
     winRate,
-    diff
+    diff,
+    lastMatchDate
   });
 }
 
@@ -118,6 +128,7 @@ function setupDashboardCarousel(
     avgScore: number;
     winRate: string;
     diff: number;
+    lastMatchDate: string | null;
   }
 ): void {
   const contentEl = document.getElementById("dashboard-content");
@@ -258,9 +269,9 @@ function renderStatsView(calculated: any, stats: UserStats): string {
         </div>
       </div>
 
-      ${thisUser.updatedAt ? `
+      ${calculated.lastMatchDate ? `
         <div class="text-xs text-gray-400 text-center mt-3" style="font-size: clamp(0.625rem, 1.5vw, 0.75rem);">
-          ${t("lastUpdated")} ${formatDate(thisUser.updatedAt, "H")}
+          ${t("lastUpdated")} ${formatDate(calculated.lastMatchDate, "H")}
         </div>
       ` : ""}
     </div>
@@ -328,7 +339,7 @@ function renderRecentMatchesView(matches: any[]): string {
 
   const recentMatches = [...matches]
     .sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())
-    .slice(0, 6);
+    .slice(0, 3);
 
   return `
     <div class="space-y-4">
