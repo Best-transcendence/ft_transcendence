@@ -30,7 +30,7 @@ import {
 import { ProfilePage, profileStatsEvents } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents, resetHistoryPageState } from "./pages/HistoryPage";
-import { DashboardPage } from "./pages/Dashboard";
+import { DashboardPage, initDashboard } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { LoadingPage, initLoadingPage } from "./pages/LoadingPage";
 
@@ -263,7 +263,7 @@ export function router() {
       break;
 
     case "dashboard":
-      protectedPage(() => DashboardPage()); // User dashboard
+      protectedPage(() => DashboardPage(), initDashboard); // User dashboard
       break;
 
     case "history":

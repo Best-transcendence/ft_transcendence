@@ -9,7 +9,6 @@ let globalScorePlayer = 0;
 let globalAnimationFrameId: number | null = null;
 let globalGameRunning = false;
 let currentInstanceId = 0; // Track which instance is active
-import { t } from "../services/lang/LangEngine";
 
 /*
  * AI Opponent Implementation
@@ -173,7 +172,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	let p1Up = false, p1Down = false, p2Up = false, p2Down = false;
 
 	// --- AI FSM: periodic view (1Hz) ---
-	aiIntervalId = setInterval(() => {
+	aiIntervalId = window.setInterval(() => {
 		// Only run if this is still the active instance
 		if (myInstanceId !== currentInstanceId) return;
 		if (!aiEnabled || !running) return;
