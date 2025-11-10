@@ -1,4 +1,4 @@
-import { connectSocket, onSocketMessage, sendWSMessage } from "../services/ws";
+import { connectSocket, onSocketMessage, sendWSMessage, getSocket } from "../services/ws";
 import { addTheme } from "../components/Theme";
 import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
@@ -35,11 +35,11 @@ export function emojiForId(id: number) {
 
 function escapeHTML(s: string) {
   return s
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 export function LobbyPage() {
@@ -157,19 +157,32 @@ export async function initLobby() {
   });
 
   // tell server: joined lobby
-  // tell server: joined lobby
-  if (socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({ type: "lobby:join" }));
-    socket.send(JSON.stringify({ type: "user:list:request" }));
-  } else {
-    socket.addEventListener(
-      "open",
-      () => {
-        socket.send(JSON.stringify({ type: "lobby:join" }));
-        socket.send(JSON.stringify({ type: "user:list:request" }));
-      },
-      { once: true }
-    );
+  const sendLobbyJoin = () => {
+    const currentSocket = getSocket();
+    if (currentSocket && currentSocket.readyState === WebSocket.OPEN) {
+      currentSocket.send(JSON.stringify({ type: "lobby:join" }));
+      currentSocket.send(JSON.stringify({ type: "user:list:request" }));
+    } else if (currentSocket) {
+      currentSocket.addEventListener(
+        "open",
+        () => {
+          const s = getSocket();
+          if (s && s.readyState === WebSocket.OPEN) {
+            s.send(JSON.stringify({ type: "lobby:join" }));
+            s.send(JSON.stringify({ type: "user:list:request" }));
+          }
+        },
+        { once: true }
+      );
+    }
+  };
+
+  // Try to send immediately, or wait for connection
+  sendLobbyJoin();
+  
+  // Also try when socket opens (in case it's still connecting)
+  if (socket) {
+    socket.addEventListener("open", sendLobbyJoin, { once: true });
   }
 
   // LEAVE lobby when navigating away from lobby route
@@ -178,7 +191,10 @@ export async function initLobby() {
     const route = hash.split("?")[0];
     if (route !== "lobby") {
       try {
-        socket.send(JSON.stringify({ type: "lobby:leave" }));
+        const currentSocket = getSocket();
+        if (currentSocket && currentSocket.readyState === WebSocket.OPEN) {
+          currentSocket.send(JSON.stringify({ type: "lobby:leave" }));
+        }
       } catch {}
       closeInvitePopup(); //  hide any open invite popup
       window.removeEventListener("hashchange", leaveIfNotLobby);
