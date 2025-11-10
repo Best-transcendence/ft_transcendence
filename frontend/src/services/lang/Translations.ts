@@ -149,6 +149,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	wins: "Wins",
 	losses: "Losses",
 	draws: "Draws",
+	win: " wins 🥇",
 	gamesPlayed: "Games",
 	bestScore: "Best Score",
 	pointsFor: "Points For",
@@ -173,6 +174,9 @@ export const translations: Record<Lang, Record<string, string>> = {
 	noMatchesYet: "No matches yet.",
 	startPlayingHistory: "Start playing to see your history!",
 	viewFullHistory: "View Full History →",
+	result: "Result",
+	controlsLabel: "Controls",
+	you: "You",
   },
   fr: {
     continue: "Continuer",
@@ -321,6 +325,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	wins: "Victoires",
 	losses: "Défaites",
 	draws: "Matchs nuls",
+	win: " gagne 🥇",
 	gamesPlayed: "Parties jouées",
 	bestScore: "Meilleur score",
 	pointsFor: "Points marqués",
@@ -345,6 +350,9 @@ export const translations: Record<Lang, Record<string, string>> = {
 	noMatchesYet: "Aucun match pour le moment.",
 	startPlayingHistory: "Commencez à jouer pour voir votre historique !",
 	viewFullHistory: "Voir l'historique complet →",
+	result: "Résultat",
+	controlsLabel: "Commandes",
+	you: "Vous"
   },
   de: {
     continue: "Weiter",
@@ -493,6 +501,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	wins: "Siege",
 	losses: "Niederlagen",
 	draws: "Unentschieden",
+	win: " gewinnt 🥇",
 	gamesPlayed: "Spiele",
 	bestScore: "Bester Score",
 	pointsFor: "Punkte erzielt",
@@ -517,6 +526,9 @@ export const translations: Record<Lang, Record<string, string>> = {
 	noMatchesYet: "Noch keine Spiele.",
 	startPlayingHistory: "Fangen Sie an zu spielen, um Ihren Verlauf zu sehen!",
 	viewFullHistory: "Vollständigen Verlauf anzeigen →",
+	result: "Ergebnis",
+	controlsLabel: "Steuerung",
+	you: "Du"
   },
   es: {
     continue: "Continuar",
@@ -665,6 +677,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	wins: "Victorias",
 	losses: "Derrotas",
 	draws: "Empates",
+	win: " gana 🥇",
 	gamesPlayed: "Partidas",
 	bestScore: "Mejor puntuación",
 	pointsFor: "Puntos a favor",
@@ -689,6 +702,9 @@ export const translations: Record<Lang, Record<string, string>> = {
 	noMatchesYet: "Aún no hay partidas.",
 	startPlayingHistory: "¡Comienza a jugar para ver tu historial!",
 	viewFullHistory: "Ver historial completo →",
+	result: "Resultado",
+	controlsLabel: "Controles",
+	you: "Tú"
   },
   pt: {
     continue: "Continuar",
@@ -837,6 +853,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	wins: "Vitórias",
 	losses: "Derrotas",
 	draws: "Empates",
+	win: " vence 🥇",
 	gamesPlayed: "Partidas",
 	bestScore: "Melhor pontuação",
 	pointsFor: "Pontos a favor",
@@ -861,6 +878,9 @@ export const translations: Record<Lang, Record<string, string>> = {
 	noMatchesYet: "Ainda não há partidas.",
 	startPlayingHistory: "Comece a jogar para ver seu histórico!",
 	viewFullHistory: "Ver histórico completo →",
+	result: "Resultado",
+	controlsLabel: "Controles",
+	you: "Você"
   },
   hu: {
     continue: "Tovább",
@@ -1009,6 +1029,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	wins: "Győzelmek",
 	losses: "Vereségek",
 	draws: "Döntetlenek",
+	win: " nyert 🥇",
 	gamesPlayed: "Lejátszott meccsek",
 	bestScore: "Legjobb pontszám",
 	pointsFor: "Szerzett pontok",
@@ -1033,5 +1054,8 @@ export const translations: Record<Lang, Record<string, string>> = {
 	noMatchesYet: "Még nincsenek mérkőzések.",
 	startPlayingHistory: "Kezdj el játszani, hogy lásd a történetedet!",
 	viewFullHistory: "Teljes történet megtekintése →",
+	result: "Eredmény",
+	controlsLabel: "Irányítás",
+	you: "Te"
   }
 };

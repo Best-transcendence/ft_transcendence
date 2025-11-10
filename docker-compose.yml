@@ -45,8 +45,8 @@ services:
       - USER_DATABASE_URL=${USER_DATABASE_URL}
       - NODE_ENV=${NODE_ENV}
       - VAULT_TOKEN=${VAULT_TOKEN:-}
-    ports:
-      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
+    expose:
+      - "${USER_SERVICE_PORT}"
     volumes:
       - user_data:/app/data
     depends_on:
@@ -77,8 +77,8 @@ services:
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - NODE_ENV=${NODE_ENV}
       - VAULT_TOKEN=${VAULT_TOKEN:-}
-    ports:
-      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
+    expose:
+      - "${AUTH_SERVICE_PORT}"
     volumes:
       - auth_data:/app/data
     depends_on:
@@ -112,8 +112,8 @@ services:
       - WS_SERVICE_URL=http://ws_service:${WS_PORT}
       - NODE_ENV=${NODE_ENV}
       - VAULT_TOKEN=${VAULT_TOKEN:-}
-    ports:
-      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    expose:
+      - "${GATEWAY_PORT}"
     depends_on:
       vault-service:
         condition: service_healthy
@@ -148,8 +148,8 @@ services:
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - NODE_ENV=${NODE_ENV}
       - VAULT_TOKEN=${VAULT_TOKEN:-}
-    ports:
-      - "${WS_PORT}:${WS_PORT}"
+    expose:
+      - "${WS_PORT}"
     depends_on:
       vault-service:
         condition: service_healthy
@@ -311,8 +311,8 @@ services:
       - .env
     environment:
       - FRONTEND_PORT=${FRONTEND_PORT}
-    ports:
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    expose:
+      - "${FRONTEND_PORT}"
     depends_on:
       gateway-service:
         condition: service_healthy

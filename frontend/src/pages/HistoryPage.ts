@@ -6,7 +6,6 @@ import { sidebarDisplay } from "../components/SideBar"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { matchCard, noHistory } from "../components/MatchDiv"
 import { t } from "../services/lang/LangEngine";
-import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 // Track current match index (reset to 0 on fresh page load)
 let currentMatch = 0;
@@ -121,9 +120,8 @@ export function HistoryPage()
 	<!-- Protected pages components -->
 		${ profileDivDisplay() }
 		${ sidebarDisplay() }
-		<!-- Group Language and Logout on the right -->
+		<!-- Group Logout on the right -->
 		<div class="flex gap-2 items-center">
-			${LanguageSwitcher()}
 			 ${LogOutBtnDisplay()}
 		</div>
 	 </div>

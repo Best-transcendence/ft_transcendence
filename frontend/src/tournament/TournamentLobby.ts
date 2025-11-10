@@ -3,7 +3,6 @@ import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { t } from "../services/lang/LangEngine";
-import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 /**
  * Tournament Lobby Page Template Generator
@@ -36,9 +35,8 @@ export function LobbyPageTournament() {
 	<!-- Protected pages components -->
 		${ profileDivDisplay() }
 		${ sidebarDisplay() }
-        <!-- Group Language and Logout on the right -->
+        <!-- Group Logout on the right -->
         <div class="flex gap-2 items-center">
-            ${LanguageSwitcher()}
              ${LogOutBtnDisplay()}
         </div>
      </div>
