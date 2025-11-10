@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 export default async function authRoutes(fastify) {
   // Create structured logger instance
   const logger = createLogger(fastify.log);
-
+  const SALT_ROUNDS = 10;
   // POST /auth/login - Authenticate user and return JWT token
   fastify.post('/login', {
     // Everything in schema is public information only, for documentation purposes (Swagger).
@@ -111,7 +111,8 @@ export default async function authRoutes(fastify) {
       }
 
       // Look up user in database by email
-      const user = await fastify.prisma.user.findUnique({ where: { email } });
+      const getUserStmt = fastify.db.prepare('SELECT * FROM User WHERE email = ?');
+      const user = getUserStmt.get(email);
 
       if (!user) {
         // Don't reveal if email exists - use generic error for security
@@ -363,9 +364,9 @@ export default async function authRoutes(fastify) {
         return reply.status(400).send({ error: 'Passwords do not match' });
       }
 
-      const existingEmail = await fastify.prisma.user.findUnique({
-        where: { email: normalizedEmail }
-      });
+      // Check if email already exists
+      const checkEmailStmt = fastify.db.prepare('SELECT * FROM User WHERE email = ?');
+      const existingEmail = checkEmailStmt.get(normalizedEmail);
       if (existingEmail) {
         logger.error(correlationId, `User with email '${normalizedEmail}' already exists`, {
           errorType: ErrorType.DUPLICATE_EMAIL,
@@ -377,14 +378,14 @@ export default async function authRoutes(fastify) {
       }
 
       // === Create user in auth-service ===
-      const SALT_ROUNDS = 10;
-      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-      const newUser = await fastify.prisma.user.create({
-        data: {
-          email: normalizedEmail,
-          password: hashedPassword
-        }
-      });
+      const hashedPass = await bcrypt.hash(password, SALT_ROUNDS);
+      const insertUserStmt = fastify.db.prepare('INSERT INTO User (email, password) VALUES (?, ?)');
+      const result = insertUserStmt.run(normalizedEmail, hashedPass);
+      const newUser = {
+        id: Number(result.lastInsertRowid),
+        email: normalizedEmail,
+        password: hashedPass,
+      };
 
       // === Bootstrap profile in user-service with retry ===
       const axios = (await import('axios')).default;
@@ -432,7 +433,8 @@ export default async function authRoutes(fastify) {
 
           // unrecoverable client-side error (e.g., username conflict)
           if (status === 400) {
-            await fastify.prisma.user.delete({ where: { id: newUser.id } });
+            const deleteUserStmt = fastify.db.prepare('DELETE FROM User WHERE id = ?');
+            deleteUserStmt.run(newUser.id);
             logger.error(correlationId, `Signup failed - username conflict, rolled back user ${newUser.id}`, {
               errorType: ErrorType.DUPLICATE_USERNAME,
               errorCode: 'USERNAME_ALREADY_EXISTS',
@@ -446,7 +448,8 @@ export default async function authRoutes(fastify) {
 
           // last retry failed → rollback and report error
           if (attempt >= maxRetries) {
-            await fastify.prisma.user.delete({ where: { id: newUser.id } });
+            const deleteUserStmt = fastify.db.prepare('DELETE FROM User WHERE id = ?');
+            deleteUserStmt.run(newUser.id);
             logger.error(correlationId, `All ${maxRetries} attempts failed, rolled back user ${newUser.id}`, {
               errorType: ErrorType.EXTERNAL_SERVICE_ERROR,
               errorCode: 'PROFILE_BOOTSTRAP_FAILED',

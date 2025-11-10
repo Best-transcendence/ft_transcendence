@@ -75,7 +75,7 @@ export function friendRequestCard(friend: Friend)
 		</div>
 
 		<div class="flex justify-end gap-3 mt-6">
-			<button data-action="decline" class="px-4 py-2 text-black hover:text-purple-700 cursor-pointer"${t("decline")}</button>
+			<button data-action="decline" class="px-4 py-2 text-black hover:text-purple-700 cursor-pointer">${t("decline")}</button>
 			<button data-action="accept" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer">${t("accept")}</button>
 		</div>
 	</div>`;

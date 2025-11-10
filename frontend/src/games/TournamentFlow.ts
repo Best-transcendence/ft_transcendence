@@ -10,10 +10,11 @@ import { myName, ensureMeFirst } from "../tournament/utils"; // reuse shared hel
 import { resetTimer } from "../components/Timer";
 import { difficulty, resetDifficulty, getDisplayName } from "../tournament/InitTournamentLobby";
 import { t } from "../services/lang/LangEngine";
+import DOMPurify from "dompurify";
 
 /**
  * Tournament Flow Controller
- * 
+ *
  * This module manages the complete tournament flow including:
  * - Tournament bracket creation and management
  * - Match progression and result handling
@@ -125,7 +126,7 @@ function mountOverlay() {
   overlay.setAttribute("style", "border-radius: inherit; background: inherit;");
 
   // Overlay HTML template with match information and controls
-  overlay.innerHTML = `
+  overlay.innerHTML = DOMPurify.sanitize(`
     <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
       <h2 id="round-label" class="text-2xl font-bold text-white"></h2>
       <div class="relative mt-6 w-full h-full flex items-center justify-between px-6">
@@ -144,7 +145,7 @@ function mountOverlay() {
         <div class="text-gray-400 text-sm">${t("pressSpace")}</div>
       </div>
     </div>
-  `;
+  `);
   gameWin.appendChild(overlay);
 
   // Cache DOM element references for efficient updates
@@ -157,7 +158,7 @@ function mountOverlay() {
 /**
  * Displays the tournament overlay with match information
  * @param left - Left player name
- * @param right - Right player name  
+ * @param right - Right player name
  * @param label - Round label (e.g., "Round 1", "Final")
  * @param leftPlayer - Full left Player object (optional)
  * @param rightPlayer - Full right Player object (optional)
@@ -180,9 +181,9 @@ function showOverlay(left: string, right: string, label: string, leftPlayer?: Pl
   currentRightName = rightPlayer ? getDisplayName(rightPlayer) : right;
   currentLeftPlayer = leftPlayer;
   currentRightPlayer = rightPlayer;
-  (window as any).tournamentCurrentPlayers = { 
-    left, 
-    right, 
+  (window as any).tournamentCurrentPlayers = {
+    left,
+    right,
     label,
     leftPlayer,   // Full Player object
     rightPlayer   // Full Player object
@@ -205,7 +206,7 @@ function showChampion(name: string) {
   if (!overlay) return;
 
   // Rebuild overlay as tournament completion view
-  overlay.innerHTML = `
+  overlay.innerHTML = DOMPurify.sanitize(`
     <div class="relative h-full w-full flex flex-col items-center justify-center px-6 animate-zoomIn">
       <h2 class="text-3xl font-bold text-white mb-2">${t("tournamentComplete")}</h2>
       <div class="text-xl text-emerald-300 font-semibold mb-6">${t("champion")}: ${name}</div>
@@ -224,7 +225,7 @@ function showChampion(name: string) {
         </button>
       </div>
     </div>
-  `;
+  `);
 
   overlay.classList.remove("hidden");
 
@@ -325,7 +326,7 @@ function acceptGameResultWithPlayer(winnerId: string, winnerName: string) {
     if (!m.winnerId) m.winnerId = m.winsA > m.winsB ? m.playerA.id : m.playerB.id;
     bracket.championId = m.winnerId;
     const champ = bracket.players.find(p => p.id === bracket!.championId)!.name;
-    
+
     showChampion(champ);
     return;
   }
@@ -380,7 +381,7 @@ function acceptGameResult(winnerName: string) {
     if (!m.winnerId) m.winnerId = m.winsA > m.winsB ? m.playerA.id : m.playerB.id;
     bracket.championId = m.winnerId;
     const champ = bracket.players.find(p => p.id === bracket!.championId)!.name;
-    
+
     showChampion(champ);
     return;
   }
@@ -429,7 +430,7 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
 
   // Use difficulty from saved seed (set when tournament was created)
   const currentDifficulty: "easy" | "medium" | "hard" = seed.difficulty || "medium";
-  
+
   console.log("🔍 DIFFICULTY DEBUG - Seed data:");
   console.log("  Saved difficulty:", seed.difficulty);
   console.log("🎯 SELECTED DIFFICULTY:", currentDifficulty);
@@ -493,15 +494,15 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
   (window as any).reportTournamentGameResult = (winnerName: string) => {
     acceptGameResult(winnerName);
   };
-  
+
   // Expose current match for match saving logic
   (window as any).tournamentCurrentMatch = currentMatch;
   console.log("Set tournamentCurrentMatch:", currentMatch);
-  
+
   // Expose tournament difficulty for game to access
   const tournamentDifficulty = bracket?.difficulty || "medium";
   (window as any).tournamentDifficulty = tournamentDifficulty;
-  
+
   // Initialize timer display with correct difficulty time
   const difficultyTimes = { easy: 8, medium: 30, hard: 20 }; // TODO: Change easy back to 40 seconds
   const gameTime = difficultyTimes[tournamentDifficulty];
@@ -532,12 +533,12 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
       console.error("tournamentTimeUp: No currentMatch available");
       return;
     }
-    
+
     // Determine winner based on scores: L > R means left player (playerA) wins, else right player (playerB) wins
     // Since showOverlay maps playerA to left and playerB to right, we can use currentMatch directly
     const winnerId = L > R ? currentMatch.playerA.id : currentMatch.playerB.id;
     const winnerName = L > R ? currentMatch.playerA.name : currentMatch.playerB.name;
-    
+
     acceptGameResultWithPlayer(winnerId, winnerName);
   };
 }
@@ -549,7 +550,7 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
 export function teardownTournamentFlow() {
   // Reset difficulty to medium when leaving tournament
   resetDifficulty();
-  
+
   // Stop the game loop
   if (typeof (window as any).stopTournamentGame === 'function') {
     (window as any).stopTournamentGame();

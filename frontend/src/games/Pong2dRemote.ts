@@ -5,6 +5,7 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { addTheme } from "../components/Theme";
 import { TimerDisplay, resetTimer } from "../components/Timer";
 import { renderPlayerCard } from "../components/cards/NameCard";
+import DOMPurify from "dompurify";
 
 import { onSocketMessage } from "../services/ws";
 
@@ -34,10 +35,10 @@ export function GamePongRemote(): string {
         setTimeout(() => {
           const playerCardsContainer = document.getElementById("player-cards");
           if (playerCardsContainer && players[0] && players[1]) {
-            playerCardsContainer.innerHTML = `
+            playerCardsContainer.innerHTML = DOMPurify.sanitize(`
   ${renderPlayerCard(players[0].id, players[0].name, "p1", playerIndex === 0)}
   ${renderPlayerCard(players[1].id, players[1].name, "p2", playerIndex === 1)}
-`;
+`);
           }
         }, 0);
         break;
