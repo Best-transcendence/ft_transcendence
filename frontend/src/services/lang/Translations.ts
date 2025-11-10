@@ -155,6 +155,8 @@ export const translations: Record<Lang, Record<string, string>> = {
 	pointsFor: "Points For",
 	pointsAgainst: "Points Against",
 	result: "Result",
+	controlsLabel: "Controls",
+	you: "You",
   },
   fr: {
     continue: "Continuer",
@@ -309,6 +311,8 @@ export const translations: Record<Lang, Record<string, string>> = {
 	pointsFor: "Points marqués",
 	pointsAgainst: "Points encaissés",
 	result: "Résultat",
+	controlsLabel: "Commandes",
+	you: "Vous"
   },
   de: {
     continue: "Weiter",
@@ -463,6 +467,8 @@ export const translations: Record<Lang, Record<string, string>> = {
 	pointsFor: "Punkte erzielt",
 	pointsAgainst: "Punkte kassiert",
 	result: "Ergebnis",
+	controlsLabel: "Steuerung",
+	you: "Du"
   },
   es: {
     continue: "Continuar",
@@ -617,6 +623,8 @@ export const translations: Record<Lang, Record<string, string>> = {
 	pointsFor: "Puntos a favor",
 	pointsAgainst: "Puntos en contra",
 	result: "Resultado",
+	controlsLabel: "Controles",
+	you: "Tú"
   },
   pt: {
     continue: "Continuar",
@@ -771,6 +779,8 @@ export const translations: Record<Lang, Record<string, string>> = {
 	pointsFor: "Pontos a favor",
 	pointsAgainst: "Pontos contra",
 	result: "Resultado",
+	controlsLabel: "Controles",
+	you: "Você"
   },
   hu: {
     continue: "Tovább",
@@ -925,5 +935,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	pointsFor: "Szerzett pontok",
 	pointsAgainst: "Kapott pontok",
 	result: "Eredmény",
+	controlsLabel: "Irányítás",
+	you: "Te"
   }
 };

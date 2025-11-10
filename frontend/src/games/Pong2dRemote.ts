@@ -88,7 +88,7 @@ export function GamePongRemote(): string {
 			: `${p2Name}${win}`;
 		}
 	}
-        break;
+    break;
 
       case "game:update":
         updateGameState(msg.state);
@@ -101,13 +101,15 @@ export function GamePongRemote(): string {
   });
 
 	// Directly render cards using currentPlayers if they’re known already
-  let playerCardsHTML = "";
-  if (currentPlayers.length === 2) {
-    playerCardsHTML = `
-      ${renderPlayerCard(currentPlayers[0].id, currentPlayers[0].name, "p1", false)}
-      ${renderPlayerCard(currentPlayers[1].id, currentPlayers[1].name, "p2", false)}
-    `;
-  }
+	const playerCardsHTML =
+	currentPlayers.length >= 2
+		? currentPlayers
+			.slice(0, 2)
+			.map((p, i) =>
+			renderPlayerCard(p.id, p.name, i === 0 ? "p1" : "p2", false)
+			)
+			.join("")
+		: "";
 
   return `
     ${addTheme()}
