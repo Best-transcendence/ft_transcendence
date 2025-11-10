@@ -1,4 +1,4 @@
- import Fastify from 'fastify';
+import Fastify from 'fastify';
 //import dotenv from 'dotenv';
 import './env.js';
 import databasePlugin from './plugins/database.js';
@@ -13,7 +13,7 @@ import Vault from 'node-vault';
 //dotenv.config();
 
 // Create Fastify server instance with logging
-// TODO: change everywhere HTTP to HTTPS once it's working
+// TODO (Yulia): change everywhere HTTP to HTTPS once it's working
 const app = Fastify({ 
   logger: true,
   trustProxy: false // Don't trust proxy headers, always use HTTP

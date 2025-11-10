@@ -1,5 +1,5 @@
 import { createDatabase, closeDatabase } from './connection.js';
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt';
 
 const SALT_ROUNDS = 10;
 

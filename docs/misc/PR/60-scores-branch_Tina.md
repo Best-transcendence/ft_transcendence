@@ -56,10 +56,6 @@ export function initGameAIOpponent(): void {
 	const aiMaxSpeed = 2.0;       // how fast the AI can move (<= your maxSpeed)
 	const aiFollowStrength = 0.15; // smoothing (0..1), higher = snappier
 	
-	// TODO more difficult AI movements
-	// target is to center the paddle on the ball
-    const ballCenterY = ballY + BALL_H / 2;
-    const paddleCenterY = p1Y + PADDLE_H / 2;
 
 	 backend/user-service/prisma/migrations/20250910164408_init/migration.sql |   7 ++--
  backend/user-service/prisma/migrations/20251009205740_init/migration.sql |  13 ++++++++

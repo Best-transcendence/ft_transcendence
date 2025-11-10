@@ -103,3 +103,4 @@ frontend/.vite
 
 # Vault data (secrets management)
 vault/
+.vault-keys

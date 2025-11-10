@@ -4,6 +4,7 @@ import Vault from 'node-vault';
 import { WebSocket } from 'ws';
 import { registerRoomHandlers } from './rooms.js';
 import { registerGameHandlers } from './game.js';
+import { createLogger, ErrorType } from '../utils/logger.js';
 
 const namesCache = new Map(); // userId(string) name
 
@@ -17,28 +18,14 @@ async function fetchUserName(app, userId) {
     if (name) namesCache.set(String(userId), name);
     return name;
   } catch (err) {
+    const correlationId = `fetch-user-${userId}-${Date.now()}`;
     app.log.warn({ userId, err: err.message }, 'Failed to fetch username');
     return null;
   }
 }
 
-//TODO show friends' online status
 const onlineUsers = new Map();
 
-// TODO delete if you don't use for checking online friends
-function getAllUsers() {
-  return [...onlineUsers.values()].map(s => {
-    const id = s.user.id;
-    const name = s.user.name ?? namesCache.get(String(id)) ?? null;
-    return { id, name };
-  });
-}
-
-function sendUserList(ws) {
-  const all = getAllUsers();
-  const filtered = all.filter(u => u.id !== ws.user.id); // hide self
-  ws.send(JSON.stringify({ type: 'user:list', users: filtered }));
-}
 const lobbyUsers = new Map(); // track only users who are on lobby page
 
 
@@ -68,6 +55,7 @@ function broadcastLobby() {
 }
 
 export async function registerWebsocketHandlers(wss, app) {
+  const logger = createLogger(app.log);
 
 	const vault = Vault(
 	{
@@ -83,6 +71,13 @@ export async function registerWebsocketHandlers(wss, app) {
 	}
 	catch (err)
 	{
+		const correlationId = `vault-${Date.now()}`;
+		logger.error(correlationId, `Failed to read JWT secret from Vault: ${err.message}`, {
+			errorType: ErrorType.EXTERNAL_SERVICE_ERROR,
+			errorCode: 'VAULT_READ_ERROR',
+			httpStatus: 500,
+			metadata: { error: err.message }
+		});
 		console.error('Failed to read JWT secret from Vault:', err);
 		process.exit(1);
 	}
@@ -95,7 +90,13 @@ export async function registerWebsocketHandlers(wss, app) {
     const token = url.searchParams.get('token');
 
     if (!token) {
-      app.log.warn({ ip: req.socket.remoteAddress }, 'Missing WebSocket token — closing connection');
+      const correlationId = `ws-auth-${Date.now()}`;
+      logger.error(correlationId, 'Missing WebSocket token — closing connection', {
+        errorType: ErrorType.AUTHENTICATION_ERROR,
+        errorCode: 'MISSING_WEBSOCKET_TOKEN',
+        httpStatus: 401,
+        metadata: { ip: req.socket.remoteAddress }
+      });
       ws.close();
       return;
     }
@@ -105,7 +106,13 @@ export async function registerWebsocketHandlers(wss, app) {
     try {
       decoded = jwt.verify(token, jwtSecret);
     } catch (err) {
-      app.log.error({ error: err.message, ip: req.socket.remoteAddress }, 'Invalid WebSocket Token — closing');
+      const correlationId = `ws-auth-${Date.now()}`;
+      logger.error(correlationId, `Invalid WebSocket Token — closing: ${err.message}`, {
+        errorType: ErrorType.AUTHENTICATION_ERROR,
+        errorCode: 'INVALID_WEBSOCKET_TOKEN',
+        httpStatus: 401,
+        metadata: { ip: req.socket.remoteAddress, error: err.message }
+      });
       ws.close(1008, 'Invalid or expired token');
       return;
     }
@@ -137,7 +144,13 @@ export async function registerWebsocketHandlers(wss, app) {
     }
 
     if (!userId || Number.isNaN(userId)) {
-      app.log.warn({ decoded }, 'JWT missing user id — closing connection');
+      const correlationId = `ws-auth-${Date.now()}`;
+      logger.error(correlationId, 'JWT missing user id — closing connection', {
+        errorType: ErrorType.AUTHENTICATION_ERROR,
+        errorCode: 'INVALID_TOKEN_PAYLOAD',
+        httpStatus: 401,
+        metadata: { decoded }
+      });
       ws.close(1008, 'Invalid token payload');
       return;
     }
@@ -154,13 +167,19 @@ export async function registerWebsocketHandlers(wss, app) {
       try {
         data = JSON.parse(raw.toString());
       } catch {
-        app.log.warn({ raw: raw?.toString() }, 'Invalid JSON message');
+        const correlationId = `ws-msg-${Date.now()}`;
+        logger.warn(correlationId, 'Invalid JSON message', {
+          metadata: { raw: raw?.toString() }
+        });
         return;
       }
 
       const type = data?.type;
       if (!type) {
-        app.log.warn({ raw: raw?.toString() }, 'Missing message type');
+        const correlationId = `ws-msg-${Date.now()}`;
+        logger.warn(correlationId, 'Missing message type', {
+          metadata: { raw: raw?.toString() }
+        });
         return;
       }
 
@@ -266,7 +285,13 @@ export async function registerWebsocketHandlers(wss, app) {
             app.log.warn({ type }, 'Unhandled WS message');
         }
       } catch (err) {
-        app.log.error({ error: err.message, type }, 'Error handling WS message');
+        const correlationId = `ws-handler-${Date.now()}`;
+        logger.error(correlationId, `Error handling WS message: ${err.message}`, {
+          errorType: ErrorType.WEBSOCKET_ERROR,
+          errorCode: 'MESSAGE_HANDLER_ERROR',
+          httpStatus: 500,
+          metadata: { type, error: err.message, userId: ws.user?.id }
+        });
       }
     });
 
