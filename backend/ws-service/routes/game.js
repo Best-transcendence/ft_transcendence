@@ -92,7 +92,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         p1Down: false,
         p2Up: false,
         p2Down: false,
-		ballSpeed: 4.0,
+		ballSpeed: 3.0,
 		lastServe: null,
       };
     }
