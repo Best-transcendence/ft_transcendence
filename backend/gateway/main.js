@@ -99,16 +99,16 @@ const publicPaths = ['/auth', '/health', '/docs', '/favicon.ico'];
 // Global JWT protection for all routes except auth
 app.addHook('onRequest', async (request, reply) =>
 {
-	if (publicPaths.some(path => request.raw.url.startsWith(path)))
-		return;
-	try
-	{
-		await request.jwtVerify();
-	}
-	catch
-	{
-		return reply.code(401).send({ error: 'Unauthorized' });
-	}
+  if (publicPaths.some(path => request.raw.url.startsWith(path)))
+    return;
+  try
+  {
+    await request.jwtVerify();
+  }
+  catch
+  {
+    return reply.code(401).send({ error: 'Unauthorized' });
+  }
 });
 
 // Register Swagger for API documentation

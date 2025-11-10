@@ -240,7 +240,13 @@ services:
     depends_on:
       logstash:
         condition: service_healthy
-    restart: unless-stopped
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f filebeat || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   # Kibana - Log visualization and dashboards
   kibana:
