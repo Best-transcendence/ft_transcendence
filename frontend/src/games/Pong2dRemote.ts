@@ -11,13 +11,13 @@ import { t } from "../services/lang/LangEngine";
 
 let unsubscribeGame: (() => void) | null = null;
 let currentPlayers: { id: string; name: string }[] = [];
+let isInValidGame: boolean = false; // Track if we're in a valid game state
 
 let modalActive = false; // true while the timeUp overlay is visible
 
 function isVisible(el: HTMLElement | null): boolean {
   return !!el && !el.classList.contains("hidden");
 }
-let isInValidGame: boolean = false; // Track if we're in a valid game state
 
 export function GamePongRemote(): string {
   isInValidGame = true; // Mark that we're entering a valid game
@@ -48,27 +48,6 @@ export function GamePongRemote(): string {
       case "game:ready":
         const startPress = document.getElementById("startPress");
         if (startPress) startPress.classList.remove("hidden");
-        break;
-
-      case "room:start":
-        initRemoteGame(msg.roomId);
-        break;
-
-      case "game:start": {
-        resetTimer(msg.duration || 90);
-        document.getElementById("startPress")?.remove();
-
-        const { players, playerIndex } = msg;
-        currentPlayers = players;
-        console.log("game:start payload", msg);
-
-        const playerCardsContainer = document.getElementById("player-cards");
-        if (playerCardsContainer && players[0] && players[1]) {
-          playerCardsContainer.innerHTML = DOMPurify.sanitize(`
-            ${renderPlayerCard(players[0].id, players[0].name, "p1", playerIndex === 0)}
-            ${renderPlayerCard(players[1].id, players[1].name, "p2", playerIndex === 1)}
-          `);
-        }
         break;
 
       case "room:start":
