@@ -92,7 +92,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         p1Down: false,
         p2Up: false,
         p2Down: false,
-		ballSpeed: 1.5,
+		ballSpeed: 4.0,
 		lastServe: null,
       };
     }
@@ -109,6 +109,19 @@ export function registerGameHandlers(wss, onlineUsers, app) {
       room.players.forEach(client => {
         client.send(JSON.stringify({ type: 'game:ready', roomId }));
       });
+
+	// tell clients who the players are so they can show the real cards immediately
+    room.players.forEach(client => {
+      client.send(JSON.stringify({
+		type: 'room:players',
+        roomId,
+        youIndex: room.players.indexOf(client),
+        players: room.players.map(p => ({
+          id: p.user.id,
+          name: p.user.name ?? `Player ${p.user.id}`
+        }))
+      }));
+    });
 
       resetBall(room.state);
 

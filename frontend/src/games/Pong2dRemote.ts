@@ -7,6 +7,7 @@ import { TimerDisplay, resetTimer } from "../components/Timer";
 import { renderPlayerCard } from "../components/cards/NameCard";
 import DOMPurify from "dompurify";
 import { onSocketMessage } from "../services/ws";
+import { t } from "../services/lang/LangEngine";
 
 let unsubscribeGame: (() => void) | null = null;
 let currentPlayers: { id: string; name: string }[] = [];
@@ -15,18 +16,24 @@ export function GamePongRemote(): string {
   if (unsubscribeGame) unsubscribeGame(); // clean old listener
   unsubscribeGame = onSocketMessage((msg) => {
     switch (msg.type) {
+
+	// render real player cards as soon as the server tells us who joined
+      case "room:players": {
+        const { players, youIndex } = msg; // server will send {id, name}[]
+        currentPlayers = players;
+        const wrap = document.getElementById("player-cards");
+        if (wrap && players[0] && players[1]) {
+          wrap.innerHTML = DOMPurify.sanitize(`
+            ${renderPlayerCard(players[0].id, players[0].name, "p1", youIndex === 0)}
+            ${renderPlayerCard(players[1].id, players[1].name, "p2", youIndex === 1)}
+          `);
+        }
+        break;
+      }
+
       case "game:ready":
-        break;
-
-      case "room:start":
-        initRemoteGame(msg.roomId);
-        break;
-
-      case "game:start": {
-        resetTimer(30);
-        document.getElementById("startPress")?.remove();
-
-        const { players, playerIndex } = msg;
+		resetTimer(30);
+		const { players, playerIndex } = msg;
         currentPlayers = players;
         console.log("game:start payload", msg);
 
@@ -37,6 +44,16 @@ export function GamePongRemote(): string {
             ${renderPlayerCard(players[1].id, players[1].name, "p2", playerIndex === 1)}
           `);
         }
+        break;
+
+      case "room:start":
+        initRemoteGame(msg.roomId);
+        break;
+
+
+      case "game:start": {
+        document.getElementById("startPress")?.remove();
+
         break;
       }
 
@@ -60,10 +77,10 @@ export function GamePongRemote(): string {
           if (textEl) {
             textEl.textContent =
               msg.winner === "draw"
-                ? "It's a draw 🤝"
+                ? t("itsATie")
                 : msg.winner === "p1"
-                ? `${currentPlayers[0]?.name ?? "Player 1"} wins 🥇`
-                : `${currentPlayers[1]?.name ?? "Player 2"} wins 🥇`;
+                ? `${currentPlayers[0]?.name ?? "Player 1"} ${t("win")}`
+                : `${currentPlayers[1]?.name ?? "Player 2"} ${t("win")}`;
           }
         }
         break;
@@ -99,7 +116,10 @@ export function GamePongRemote(): string {
        <div id="player-cards" class="absolute left-1/2 -translate-x-1/2 flex gap-4">
             ${playerCardsHTML}
        </div>
-      ${LogOutBtnDisplay()}
+    	<!-- Group Language and Logout on the right -->
+        <div class="flex gap-2 items-center">
+             ${LogOutBtnDisplay()}
+		</div>
     </div>
 
 	<!-- Timer -->
@@ -127,11 +147,11 @@ export function GamePongRemote(): string {
             class="absolute inset-0 z-20 hidden"
             style="border-radius: inherit; background: inherit;">
             <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
-              <h2 class="text-2xl font-bold text-white">Time’s up!</h2>
-              <p class="text-lg text-gray-200 mt-2 mb-6">Result</p>
+              <h2 class="text-2xl font-bold text-white">${t("timeUp")}</h2>
+			  <p class="text-lg text-gray-200 mt-2 mb-6">Result</p>
               <button id="overlayExit"
                 class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
-                Back to Arcade Clash
+                ${t("backToArcade")}
               </button>
             </div>
           </div>
@@ -160,7 +180,7 @@ export function GamePongRemote(): string {
           <p id="startPress"
             class="absolute z-20 bottom-[5%] left-1/2 -translate-x-1/2 text-center
             bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
-            Press Space To Start The Game
+            ${t("pressStart")}
           </p>
 
           <!-- Audio -->

@@ -4,7 +4,6 @@ import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { TimerDisplay, startTimer } from "../components/Timer";
 import { t } from "../services/lang/LangEngine"
-import { LanguageSwitcher } from "../services/lang/LanguageSwitcher"
 
 /**
  * Tournament Game HTML Template Generator
@@ -43,7 +42,6 @@ export function GamePongTournament(): string {
 		${ sidebarDisplay() }
         <!-- Group Language and Logout on the right -->
         <div class="flex gap-2 items-center">
-            ${LanguageSwitcher()}
              ${LogOutBtnDisplay()}
         </div>
      </div>
