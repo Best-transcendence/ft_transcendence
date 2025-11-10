@@ -11,6 +11,7 @@ import {
 } from "./utils";
 import { verifyUserForTournament } from "../services/api";
 import { t } from "../services/lang/LangEngine";
+import DOMPurify from "dompurify";
 
 /**
  * Tournament Lobby Initialization and Management
@@ -368,7 +369,7 @@ function makeRoundCard(title: string, top: string, bottom: string, highlight = f
  */
 function renderMatchmakerPreview() {
   const host = byId<HTMLDivElement>("matchgenerator");
-  host.innerHTML = "";
+  host.innerHTML = DOMPurify.sanitize("");
 
   const max = currentMax(mode);
 
@@ -395,7 +396,7 @@ function renderMatchmakerPreview() {
         chip.className =
           "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
           "bg-emerald-500/15 text-emerald-100 border border-emerald-400/20";
-        chip.innerHTML = `${getDisplayName(pl)} <span class="ml-1">✓</span>`;
+        chip.innerHTML = DOMPurify.sanitize(`${getDisplayName(pl)} <span class="ml-1">✓</span>`);
       } else {
         chip.className =
           "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
@@ -492,7 +493,7 @@ function resetPageState() {
   paired = false;
 
   players = ensureMeFirst(players);
-  byId<HTMLDivElement>("matchgenerator").innerHTML = "";
+  byId<HTMLDivElement>("matchgenerator").innerHTML = DOMPurify.sanitize("");
   renderMatchmakerPreview();
   updateCounters();
 }
