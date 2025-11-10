@@ -1,6 +1,8 @@
+import bcrypt from 'bcrypt';
+
 // Authentication routes for user login and registration
 export default async function authRoutes(fastify) {
-
+  const SALT_ROUNDS = 10;
   // POST /auth/login - Authenticate user and return JWT token
   fastify.post('/login', {
     // Everything in schema is public information only, for documentation purposes (Swagger).
@@ -101,9 +103,8 @@ export default async function authRoutes(fastify) {
         return reply.status(401).send({ error: 'Invalid credentials' });
       }
 
-      // TODO: Replace plain text password comparison with bcrypt hash comparison
-      // Password validation (currently plain text - should be hashed)
-      if (password !== user.password) {
+      const passMatch = await bcrypt.compare(password, user.password);
+      if (!passMatch) {
         return reply.status(401).send({ error: 'Invalid credentials' });
       }
 
@@ -278,12 +279,13 @@ export default async function authRoutes(fastify) {
       }
 
       // === Create user in auth-service ===
+	  const hashedPass = await bcrypt.hash(password, SALT_ROUNDS);
       const insertUserStmt = fastify.db.prepare('INSERT INTO User (email, password) VALUES (?, ?)');
-      const result = insertUserStmt.run(normalizedEmail, password);
+      const result = insertUserStmt.run(normalizedEmail, hashedPass);
       const newUser = {
         id: Number(result.lastInsertRowid),
         email: normalizedEmail,
-        password
+        password: hashedPass,
       };
 
       // === Bootstrap profile in user-service with retry ===

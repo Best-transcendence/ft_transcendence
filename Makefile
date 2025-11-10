@@ -1,5 +1,6 @@
 # ft_transcendence - Main Makefile
 # School 42 project - Docker management
+SHELL := /bin/bash
 
 # Load environment variables from .env file
 ifeq ($(shell test -f .env && echo true),true)
