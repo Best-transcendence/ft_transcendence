@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import './env.js';
-import prismaPlugin from './plugins/prisma.js';
+import databasePlugin from './plugins/database.js';
 import userRoutes from './routes/users.js';
 import fastifyJwt from '@fastify/jwt';
 import fastifySwagger from '@fastify/swagger';
@@ -12,6 +12,7 @@ import Vault from 'node-vault';
 const app = Fastify({
   logger: true,
   ajv: false,
+  trustProxy: false, // Don't trust proxy headers, always use HTTP
   // Critical fix — keep full objects in responses
   serializerOpts: {
     removeAdditional: false,
@@ -27,8 +28,8 @@ await app.register(fastifySwagger, {
       description: 'User management microservice for ft_transcendence - handles user profiles, friends, and statistics',
       version: '1.0.0',
     },
-    // We clean the URL from the protocol to avoid issues with Swagger UI
-    host: (process.env.USER_SERVICE_URL || 'localhost:3002').replace(/^https?:\/\//, ''),
+    // Swagger will auto-detect host from request
+    // Schemes allowed for API calls
     schemes: ['http'],
     consumes: ['application/json'],
     produces: ['application/json'],
@@ -53,8 +54,26 @@ await app.register(fastifySwaggerUI, {
     docExpansion: 'full',
     deepLinking: false,
   },
-  staticCSP: true,
+  staticCSP: {
+    'default-src': ['\'self\''],
+    'script-src': ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\''],
+    'style-src': ['\'self\'', '\'unsafe-inline\''],
+    'img-src': ['\'self\'', 'data:', 'https:'],
+    'font-src': ['\'self\'', 'data:'],
+    // Explicitly allow HTTP (no upgrade-insecure-requests)
+  },
   transformSpecificationClone: true,
+  transformSpecification: (swaggerObject, request, _reply) => {
+    // Dynamically set host from request, always use HTTP
+    const host = request.headers.host || 'localhost:3002';
+    swaggerObject.host = host;
+    swaggerObject.schemes = ['http']; // Force HTTP since we don't use HTTPS
+    // Ensure basePath is set correctly
+    if (!swaggerObject.basePath) {
+      swaggerObject.basePath = '';
+    }
+    return swaggerObject;
+  },
 });
 
 // Register CORS plugin
@@ -124,8 +143,8 @@ catch (err)
 }
 await app.register(fastifyJwt, { secret: jwtSecret });
 
-// Register Prisma plugin to connect to user database
-app.register(prismaPlugin);
+// Register database plugin to connect to user database
+app.register(databasePlugin);
 
 // Register user routes with /users prefix
 app.register(userRoutes, { prefix: '/users' });

@@ -12,6 +12,7 @@ import { connectSocket } from "./services/ws";
 import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
 import { setupLanguageSwitcher } from "./services/lang/LanguageSwitcher";
 import { t } from "./services/lang/LangEngine";
+import DOMPurify from "dompurify";
 // Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
@@ -186,7 +187,7 @@ export function router() {
   switch (page) {
     // Public routes (no authentication required)
     case "login":
-      app.innerHTML = LoginPage();
+      app.innerHTML = DOMPurify.sanitize(LoginPage());
       attachLoginListeners(); // Set up login form event listeners
 	  setupLanguageSwitcher();
       break;
@@ -217,7 +218,7 @@ export function router() {
       const roomId = query ? new URLSearchParams(query).get("room") : null;
       if (roomId) localStorage.setItem("roomId", roomId); // Store room ID for game
       if (!roomId) {
-        app.innerHTML = NotFoundPage(); // Show 404 if no room ID provided
+        app.innerHTML = DOMPurify.sanitize(NotFoundPage()); // Show 404 if no room ID provided
         return;
       }
       protectedPage(
@@ -273,7 +274,7 @@ export function router() {
 
     // Fallback for unknown routes
     default:
-      app.innerHTML = NotFoundPage(); // 404 page for invalid routes
+      app.innerHTML = DOMPurify.sanitize(NotFoundPage()); // 404 page for invalid routes
   }
 }
 
@@ -385,7 +386,7 @@ function attachLoginListeners() {
       // Update UI text for signup mode
       if (submitButton) submitButton.textContent = t("register");
       if (title) title.textContent = t("signUp");
-      signupToggle.innerHTML = `${t("alreadyHaveAccount")} <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">${t("signIn")}</span>`;
+      signupToggle.innerHTML = DOMPurify.sanitize(`${t("alreadyHaveAccount")} <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">${t("signIn")}</span>`);
     } else {
       // Hide signup fields for login mode
       nameField?.classList.add("hidden");
@@ -393,11 +394,11 @@ function attachLoginListeners() {
       // Update UI text for login mode
       if (submitButton) submitButton.textContent = t("login");
       if (title) title.textContent = t("signIn");
-      signupToggle.innerHTML = `
+      signupToggle.innerHTML = DOMPurify.sanitize(`
 		${t("dontHaveAccount")}
 		<span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">
 			${t("signUp")}
-		</span>`;
+		</span>`);
     }
   }
 
