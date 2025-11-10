@@ -22,7 +22,6 @@
     "vite": "^7.1.5"
   },
   "dependencies": {
-    "chart.js": "^4.4.0",
     "dompurify": "^3.3.0"
   }
 }

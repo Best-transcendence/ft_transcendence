@@ -5,11 +5,6 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { thisUser, UserStats } from "../router";
 import { formatDate } from "../utils";
 import { t } from "../services/lang/LangEngine";
-// @ts-ignore - Chart.js types will be available after npm install
-import { Chart, registerables } from "chart.js";
-
-// Register Chart.js components
-Chart.register(...registerables);
 
 export function DashboardPage(): string {
   return `
@@ -34,9 +29,9 @@ export function DashboardPage(): string {
       <div id="dashboard-card"
         class="bg-slate-900 backdrop-blur-md rounded-2xl w-[90%] max-w-[700px]
           p-6 shadow-[0_0_30px_10px_#7037d3] transition-all duration-300"
-        style="height: 550px;">
+        style="min-height: 550px;">
         <!-- Content will be populated by initDashboard -->
-        <div id="dashboard-content" class="overflow-y-auto" style="height: 500px;">
+        <div id="dashboard-content" class="overflow-y-auto" style="min-height: 500px;">
           <!-- Content will be dynamically inserted here -->
         </div>
       </div>
@@ -60,6 +55,11 @@ export function DashboardPage(): string {
 // Dashboard carousel state
 let currentView = 0;
 const views = ["stats", "outcomes", "matchTypes", "performance", "recentMatches"];
+
+// Export function to reset dashboard state (called by router)
+export function resetDashboardState(): void {
+  currentView = 0;
+}
 
 /** Call after rendering DashboardPage() */
 export function initDashboard(): void {
@@ -154,13 +154,6 @@ function setupDashboardCarousel(
 
   function renderView() {
     if (!contentEl) return;
-
-    // Clear previous charts
-    const existingCharts = ["outcomesChart", "matchTypesChart", "performanceChart"];
-    existingCharts.forEach(chartName => {
-      const chart = (window as any)[chartName];
-      if (chart) chart.destroy();
-    });
 
     let html = "";
     switch (views[currentView]) {
@@ -424,10 +417,6 @@ function createOutcomesChart(wins: number, losses: number, draws: number): void 
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
-  // Destroy existing chart if it exists
-  const existingChart = (window as any).outcomesChart;
-  if (existingChart) existingChart.destroy();
-
   // Handle empty data
   if (wins === 0 && losses === 0 && draws === 0) {
     return; // Don't render chart if no data
@@ -437,43 +426,51 @@ function createOutcomesChart(wins: number, losses: number, draws: number): void 
   setTimeout(() => {
     if (!canvas || !ctx) return;
 
-  const chart = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: [t("wins"), t("losses"), t("draws")],
-      datasets: [{
-        data: [wins, losses, draws],
-        backgroundColor: [
-          "rgba(124, 58, 237, 0.8)", // purple for wins
-          "rgba(239, 68, 68, 0.8)", // red for losses
-          "rgba(156, 163, 175, 0.8)" // gray for draws
-        ],
-        borderColor: [
-          "rgba(124, 58, 237, 1)",
-          "rgba(239, 68, 68, 1)",
-          "rgba(156, 163, 175, 1)"
-        ],
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: {
-          position: "bottom",
-          labels: {
-            color: "#e5e7eb",
-            font: {
-              size: 12
-            }
-          }
-        }
-      }
-    }
-  });
+    // Set canvas size
+    const size = Math.min(400, 300);
+    canvas.width = size;
+    canvas.height = size;
 
-    (window as any).outcomesChart = chart;
+    const centerX = size / 2;
+    const centerY = size / 2;
+    const radius = size * 0.35;
+    const innerRadius = size * 0.2;
+    const total = wins + losses + draws;
+
+    // Colors
+    const colors = [
+      { fill: "rgba(124, 58, 237, 0.8)", stroke: "rgba(124, 58, 237, 1)" }, // purple for wins
+      { fill: "rgba(239, 68, 68, 0.8)", stroke: "rgba(239, 68, 68, 1)" }, // red for losses
+      { fill: "rgba(156, 163, 175, 0.8)", stroke: "rgba(156, 163, 175, 1)" } // gray for draws
+    ];
+
+    const data = [wins, losses, draws];
+    let currentAngle = -Math.PI / 2; // Start at top
+
+    // Draw each segment
+    for (let i = 0; i < data.length; i++) {
+      const value = data[i];
+      if (!value || value === 0) continue;
+
+      const color = colors[i];
+      if (!color) continue;
+
+      const sliceAngle = (value / total) * 2 * Math.PI;
+      const endAngle = currentAngle + sliceAngle;
+
+      // Draw outer arc
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, currentAngle, endAngle);
+      ctx.arc(centerX, centerY, innerRadius, endAngle, currentAngle, true);
+      ctx.closePath();
+      ctx.fillStyle = color.fill;
+      ctx.fill();
+      ctx.strokeStyle = color.stroke;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      currentAngle = endAngle;
+    }
   }, 50);
 }
 
@@ -494,10 +491,6 @@ function createMatchTypesChart(matches: any[]): void {
   const labels = Object.keys(typeCounts);
   const data = Object.values(typeCounts);
 
-  // Destroy existing chart if it exists
-  const existingChart = (window as any).matchTypesChart;
-  if (existingChart) existingChart.destroy();
-
   // Handle empty data
   if (labels.length === 0 || data.every(val => val === 0)) {
     return; // Don't render chart if no data
@@ -507,50 +500,85 @@ function createMatchTypesChart(matches: any[]): void {
   setTimeout(() => {
     if (!canvas || !ctx) return;
 
-  const chart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: labels.map(type => getMatchTypeLabel(type)),
-      datasets: [{
-        label: "Matches",
-        data: data,
-        backgroundColor: "rgba(124, 58, 237, 0.8)",
-        borderColor: "rgba(124, 58, 237, 1)",
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: {
-          display: false
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            color: "#e5e7eb",
-            stepSize: 1
-          },
-          grid: {
-            color: "rgba(255, 255, 255, 0.1)"
-          }
-        },
-        x: {
-          ticks: {
-            color: "#e5e7eb"
-          },
-          grid: {
-            color: "rgba(255, 255, 255, 0.1)"
-          }
-        }
-      }
-    }
-  });
+    // Set canvas size
+    const width = canvas.offsetWidth || 600;
+    const height = 380;
+    canvas.width = width;
+    canvas.height = height;
 
-    (window as any).matchTypesChart = chart;
+    const padding = { top: 20, right: 20, bottom: 60, left: 50 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    const maxValue = Math.max(...data, 1);
+    const barWidth = chartWidth / labels.length * 0.7;
+    const barSpacing = chartWidth / labels.length;
+
+    // Draw grid lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.lineWidth = 1;
+    const gridLines = 5;
+    for (let i = 0; i <= gridLines; i++) {
+      const y = padding.top + (chartHeight / gridLines) * i;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(padding.left + chartWidth, y);
+      ctx.stroke();
+    }
+
+    // Draw vertical grid lines
+    for (let i = 0; i <= labels.length; i++) {
+      const x = padding.left + (chartWidth / labels.length) * i;
+      ctx.beginPath();
+      ctx.moveTo(x, padding.top);
+      ctx.lineTo(x, padding.top + chartHeight);
+      ctx.stroke();
+    }
+
+    // Draw bars
+    const barColor = "rgba(124, 58, 237, 0.8)";
+    const borderColor = "rgba(124, 58, 237, 1)";
+
+    labels.forEach((label, index) => {
+      const value = data[index];
+      if (value === undefined) return;
+
+      const barHeight = (value / maxValue) * chartHeight;
+      const x = padding.left + barSpacing * index + (barSpacing - barWidth) / 2;
+      const y = padding.top + chartHeight - barHeight;
+
+      // Draw bar
+      ctx.fillStyle = barColor;
+      ctx.fillRect(x, y, barWidth, barHeight);
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, barWidth, barHeight);
+
+      // Draw label
+      ctx.fillStyle = "#e5e7eb";
+      ctx.font = "12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      const labelText = getMatchTypeLabel(label);
+      const labelX = padding.left + barSpacing * index + barSpacing / 2;
+      const labelY = padding.top + chartHeight + 10;
+      ctx.fillText(labelText, labelX, labelY);
+
+      // Draw value on top of bar
+      ctx.textBaseline = "bottom";
+      ctx.fillText(value.toString(), labelX, y);
+    });
+
+    // Draw Y-axis labels
+    ctx.fillStyle = "#e5e7eb";
+    ctx.font = "12px sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    for (let i = 0; i <= gridLines; i++) {
+      const value = Math.round((maxValue / gridLines) * (gridLines - i));
+      const y = padding.top + (chartHeight / gridLines) * i;
+      ctx.fillText(value.toString(), padding.left - 10, y);
+    }
   }, 50);
 }
 
@@ -564,85 +592,165 @@ function createPerformanceChart(matches: any[]): void {
   // Sort matches by date (oldest first)
   const sortedMatches = [...matches]
     .sort((a, b) => new Date(a.date || a.createdAt).getTime() - new Date(b.date || b.createdAt).getTime())
-    .slice(-15); // Last 15 matches
+    .slice(-10); // Last 10 matches
 
   // Handle empty data
   if (sortedMatches.length === 0) {
     return; // Don't render chart if no data
   }
 
-  const labels = sortedMatches.map((match, index) => `Match ${index + 1}`);
-  const wins = sortedMatches.map(match => match.winnerId === thisUser.id ? 1 : 0);
-  const losses = sortedMatches.map(match => 
-    match.winnerId && match.winnerId !== thisUser.id ? 1 : 0
-  );
+  // Calculate cumulative win rate over time
+  const winRates: number[] = [];
+  let totalWins = 0;
+  let totalMatches = 0;
 
-  // Destroy existing chart if it exists
-  const existingChart = (window as any).performanceChart;
-  if (existingChart) existingChart.destroy();
+  sortedMatches.forEach(match => {
+    totalMatches++;
+    if (match.winnerId === thisUser.id) {
+      totalWins++;
+    }
+    // Calculate win rate as percentage
+    const winRate = totalMatches > 0 ? (totalWins / totalMatches) * 100 : 0;
+    winRates.push(winRate);
+  });
 
   // Small delay to ensure canvas is rendered
   setTimeout(() => {
     if (!canvas || !ctx) return;
 
-  const chart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: t("wins"),
-          data: wins,
-          borderColor: "rgba(124, 58, 237, 1)",
-          backgroundColor: "rgba(124, 58, 237, 0.2)",
-          tension: 0.4,
-          fill: true
-        },
-        {
-          label: t("losses"),
-          data: losses,
-          borderColor: "rgba(239, 68, 68, 1)",
-          backgroundColor: "rgba(239, 68, 68, 0.2)",
-          tension: 0.4,
-          fill: true
+    // Set canvas size
+    const width = canvas.offsetWidth || 600;
+    const height = 360;
+    canvas.width = width;
+    canvas.height = height;
+
+    const padding = { top: 20, right: 20, bottom: 60, left: 60 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    const dataLength = sortedMatches.length;
+    const maxValue = 100; // Win rate percentage (0-100%)
+
+    // Draw grid lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.lineWidth = 1;
+    
+    // Horizontal grid lines (0%, 25%, 50%, 75%, 100%)
+    const gridLines = 4;
+    for (let i = 0; i <= gridLines; i++) {
+      const y = padding.top + (chartHeight / gridLines) * i;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(padding.left + chartWidth, y);
+      ctx.stroke();
+    }
+
+    // Vertical grid lines
+    const verticalLines = Math.min(dataLength, 10);
+    for (let i = 0; i <= verticalLines; i++) {
+      const x = padding.left + (chartWidth / verticalLines) * i;
+      ctx.beginPath();
+      ctx.moveTo(x, padding.top);
+      ctx.lineTo(x, padding.top + chartHeight);
+      ctx.stroke();
+    }
+
+    // Draw win rate line
+    const points: { x: number; y: number }[] = [];
+    
+    winRates.forEach((rate, index) => {
+      const x = padding.left + (chartWidth / (dataLength - 1 || 1)) * index;
+      const y = padding.top + chartHeight - (rate / maxValue) * chartHeight;
+      points.push({ x, y });
+    });
+
+    if (points.length > 0) {
+      // Draw filled area
+      ctx.beginPath();
+      const firstPoint = points[0];
+      if (firstPoint) {
+        ctx.moveTo(firstPoint.x, padding.top + chartHeight);
+        points.forEach(point => ctx.lineTo(point.x, point.y));
+        const lastPoint = points[points.length - 1];
+        if (lastPoint) {
+          ctx.lineTo(lastPoint.x, padding.top + chartHeight);
         }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: {
-          labels: {
-            color: "#e5e7eb"
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 1,
-          ticks: {
-            color: "#e5e7eb",
-            stepSize: 1
-          },
-          grid: {
-            color: "rgba(255, 255, 255, 0.1)"
-          }
-        },
-        x: {
-          ticks: {
-            color: "#e5e7eb"
-          },
-          grid: {
-            color: "rgba(255, 255, 255, 0.1)"
+      }
+      ctx.closePath();
+      ctx.fillStyle = "rgba(124, 58, 237, 0.2)";
+      ctx.fill();
+
+      // Draw line
+      ctx.beginPath();
+      if (firstPoint) {
+        ctx.moveTo(firstPoint.x, firstPoint.y);
+        for (let i = 1; i < points.length; i++) {
+          const prev = points[i - 1];
+          const curr = points[i];
+          if (prev && curr) {
+            // Smooth curve using quadratic bezier
+            const cpX = (prev.x + curr.x) / 2;
+            ctx.quadraticCurveTo(cpX, prev.y, curr.x, curr.y);
           }
         }
       }
-    }
-  });
+      ctx.strokeStyle = "rgba(124, 58, 237, 1)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
-    (window as any).performanceChart = chart;
+      // Draw points
+      points.forEach(point => {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = "rgba(124, 58, 237, 1)";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+    }
+
+    // Draw Y-axis labels (0%, 25%, 50%, 75%, 100%)
+    ctx.fillStyle = "#e5e7eb";
+    ctx.font = "12px sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    for (let i = 0; i <= gridLines; i++) {
+      const value = 100 - (i * 25);
+      const y = padding.top + (chartHeight / gridLines) * i;
+      ctx.fillText(`${value}%`, padding.left - 10, y);
+    }
+
+    // Draw Y-axis label (rotated)
+    ctx.save();
+    ctx.translate(15, padding.top + chartHeight / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "14px sans-serif";
+    ctx.fillStyle = "#e5e7eb";
+    ctx.fillText(t("winRateLabel"), 0, 0);
+    ctx.restore();
+
+    // Draw X-axis labels (match numbers)
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.font = "12px sans-serif";
+    const labelY = padding.top + chartHeight + 10;
+    for (let i = 0; i < dataLength; i++) {
+      const x = padding.left + (chartWidth / (dataLength - 1 || 1)) * i;
+      // Only show labels for every few matches to avoid crowding
+      if (dataLength <= 10 || i % Math.ceil(dataLength / 10) === 0 || i === dataLength - 1) {
+        ctx.fillText((i + 1).toString(), x, labelY);
+      }
+    }
+
+    // Draw X-axis label
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.font = "14px sans-serif";
+    ctx.fillStyle = "#e5e7eb";
+    ctx.fillText(t("matchNumberLabel"), padding.left + chartWidth / 2, padding.top + chartHeight + 35);
   }, 50);
 }
 
