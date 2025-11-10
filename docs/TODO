@@ -1,3 +1,1 @@
-// TODO limit usernames max 12 chars, in the backend and in the frontend as well, for example Guest username when you create a tournament, Edit profile name
-// TODO IDEA to make the tournament more exciting for 2 players apply to choose session times (for example set up the first 00:15 the sedcong 00:30 the last 00:05) (?)
-// TODO autorizathion for friends in tournament
+// TODO (Tina) limit usernames max 12 chars, allow only a-z 

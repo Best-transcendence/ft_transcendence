@@ -50,7 +50,6 @@ export function initGame(): void {
 
   document.addEventListener("keydown", (e) => {
 	if (e.code === "Space" && !running) {
-		// TODO setup to 90
 		startTimer(5);
 		startGame();
 	}
@@ -170,12 +169,6 @@ export function initGame(): void {
     ballVelX = Math.random() > 0.5 ? baseSpeedX : -baseSpeedX;
     ballVelY = Math.random() > 0.5 ? baseSpeedY : -baseSpeedY;
   }
-
-// TODO fix playsound function or delete from everywhere
-//   function playSound(audio: HTMLAudioElement) {
-//     audio.currentTime = 0;
-//     audio.play();
-//   }
 
   function clamp(val: number, min: number, max: number): number {
     return Math.max(min, Math.min(max, val));

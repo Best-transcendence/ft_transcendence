@@ -24,23 +24,8 @@ async function fetchUserName(app, userId) {
   }
 }
 
-//TODO show friends' online status
 const onlineUsers = new Map();
 
-// TODO delete if you don't use for checking online friends
-function getAllUsers() {
-  return [...onlineUsers.values()].map(s => {
-    const id = s.user.id;
-    const name = s.user.name ?? namesCache.get(String(id)) ?? null;
-    return { id, name };
-  });
-}
-
-function sendUserList(ws) {
-  const all = getAllUsers();
-  const filtered = all.filter(u => u.id !== ws.user.id); // hide self
-  ws.send(JSON.stringify({ type: 'user:list', users: filtered }));
-}
 const lobbyUsers = new Map(); // track only users who are on lobby page
 
 

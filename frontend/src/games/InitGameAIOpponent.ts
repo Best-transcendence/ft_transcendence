@@ -626,12 +626,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	}
 	// --- END AI FSM ---
 
-// TODO fix playsound function or delete from everywhere
-//   function playSound(audio: HTMLAudioElement) {
-//     audio.currentTime = 0;
-//     audio.play();
-//   }
-
 	/**
 	 * Utility function to clamp a value between min and max
 	 * 

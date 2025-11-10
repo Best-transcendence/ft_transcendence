@@ -9,7 +9,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
-    "eslint": "^9.0.0"
+    "@eslint-community/eslint-utils": "^4.9.0",
+    "eslint": "^9.0.0",
+    "eslint-visitor-keys": "^3.4.0"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0"
