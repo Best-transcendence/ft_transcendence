@@ -291,8 +291,8 @@ services:
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
     entrypoint: ["/bin/sh"]
-    command: ["/elk-setup/setup-index-pattern.sh"]
-    restart: unless-stopped
+    command: ["/elk-setup/elk-setup.sh"]
+    restart: "no"
 
 
   # =============================================================================
