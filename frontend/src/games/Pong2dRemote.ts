@@ -6,41 +6,60 @@ import { addTheme } from "../components/Theme";
 import { TimerDisplay, resetTimer } from "../components/Timer";
 import { renderPlayerCard } from "../components/cards/NameCard";
 import DOMPurify from "dompurify";
-
 import { onSocketMessage } from "../services/ws";
+import { t } from "../services/lang/LangEngine";
 
 let unsubscribeGame: (() => void) | null = null;
 let currentPlayers: { id: string; name: string }[] = [];
+
+let modalActive = false; // true while the timeUp overlay is visible
+
+function isVisible(el: HTMLElement | null): boolean {
+  return !!el && !el.classList.contains("hidden");
+}
 
 export function GamePongRemote(): string {
   if (unsubscribeGame) unsubscribeGame(); // clean old listener
   unsubscribeGame = onSocketMessage((msg) => {
     switch (msg.type) {
+
+	// render real player cards as soon as the server tells us who joined
+      case "room:players": {
+        const { players, youIndex } = msg; // server will send {id, name}[]
+        currentPlayers = players;
+        const wrap = document.getElementById("player-cards");
+        if (wrap && players[0] && players[1]) {
+          wrap.innerHTML = DOMPurify.sanitize(`
+            ${renderPlayerCard(players[0].id, players[0].name, "p1", youIndex === 0)}
+            ${renderPlayerCard(players[1].id, players[1].name, "p2", youIndex === 1)}
+          `);
+        }
+        break;
+      }
+
       case "game:ready":
-        document.getElementById("startPress")?.classList.remove("hidden");
+		resetTimer(30);
+		const { players, playerIndex } = msg;
+        currentPlayers = players;
+        console.log("game:start payload", msg);
+
+        const playerCardsContainer = document.getElementById("player-cards");
+        if (playerCardsContainer && players[0] && players[1]) {
+          playerCardsContainer.innerHTML = DOMPurify.sanitize(`
+            ${renderPlayerCard(players[0].id, players[0].name, "p1", playerIndex === 0)}
+            ${renderPlayerCard(players[1].id, players[1].name, "p2", playerIndex === 1)}
+          `);
+        }
         break;
 
       case "room:start":
         initRemoteGame(msg.roomId);
         break;
 
+
       case "game:start": {
-        resetTimer(msg.duration || 90);
         document.getElementById("startPress")?.remove();
 
-        const { players, playerIndex } = msg;
-        currentPlayers = players;
-        console.log("game:start payload", msg);
-
-        setTimeout(() => {
-          const playerCardsContainer = document.getElementById("player-cards");
-          if (playerCardsContainer && players[0] && players[1]) {
-            playerCardsContainer.innerHTML = DOMPurify.sanitize(`
-  ${renderPlayerCard(players[0].id, players[0].name, "p1", playerIndex === 0)}
-  ${renderPlayerCard(players[1].id, players[1].name, "p2", playerIndex === 1)}
-`);
-          }
-        }, 0);
         break;
       }
 
@@ -60,17 +79,26 @@ export function GamePongRemote(): string {
         const overlay = document.getElementById("timeUpOverlay");
         if (overlay) {
           overlay.classList.remove("hidden");
-          const textEl = overlay.querySelector("p");
-          if (textEl) {
-            textEl.textContent =
-              msg.winner === "draw"
-                ? "It's a draw 🤝"
-                : msg.winner === "p1"
-                ? `${currentPlayers[0]?.name ?? "Player 1"} wins 🥇`
-                : `${currentPlayers[1]?.name ?? "Player 2"} wins 🥇`;
-          }
-        }
-        break;
+
+		 //block keyboard while overlay is up
+        modalActive = true;
+
+        const textEl = document.getElementById("resultText");
+		if (textEl) {
+		const p1Name = currentPlayers[0]?.name ?? t("player1") ?? "Player 1";
+		const p2Name = currentPlayers[1]?.name ?? t("player2") ?? "Player 2";
+		const win = t("win") ?? " wins 🥇";
+		const tie = t("itsATie") ?? "It's a draw 🤝";
+
+		textEl.textContent =
+			msg.winner === "draw"
+			? tie
+			: msg.winner === "p1"
+			? `${p1Name}${win}`
+			: `${p2Name}${win}`;
+		}
+	}
+    break;
 
       case "game:update":
         updateGameState(msg.state);
@@ -82,6 +110,17 @@ export function GamePongRemote(): string {
     }
   });
 
+	// Directly render cards using currentPlayers if they’re known already
+	const playerCardsHTML =
+	currentPlayers.length >= 2
+		? currentPlayers
+			.slice(0, 2)
+			.map((p, i) =>
+			renderPlayerCard(p.id, p.name, i === 0 ? "p1" : "p2", false)
+			)
+			.join("")
+		: "";
+
   return `
     ${addTheme()}
 
@@ -91,14 +130,17 @@ export function GamePongRemote(): string {
     <div class="w-full flex justify-between items-center mb-10 relative z-3">
       ${profileDivDisplay()}
       ${sidebarDisplay()}
-      ${LogOutBtnDisplay()}
+       <div id="player-cards" class="absolute left-1/2 -translate-x-1/2 flex gap-4">
+            ${playerCardsHTML}
+       </div>
+    	<!-- Group Logout on the right -->
+        <div class="flex gap-2 items-center">
+             ${LogOutBtnDisplay()}
+		</div>
     </div>
 
-          <!-- Timer -->
-          ${TimerDisplay()}
-
-          <div id="player-cards" class="flex justify-between gap-4 mb-4"></div>
-          <div id="player-controls" class="text-sm text-gray-400 mt-2 text-center"></div>
+	<!-- Timer -->
+	${TimerDisplay()}
 
     <!-- Game section -->
     <div class="flex justify-center w-screen overflow-hidden">
@@ -122,11 +164,11 @@ export function GamePongRemote(): string {
             class="absolute inset-0 z-20 hidden"
             style="border-radius: inherit; background: inherit;">
             <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
-              <h2 class="text-2xl font-bold text-white">Time’s up!</h2>
-              <p class="text-lg text-gray-200 mt-2 mb-6">Result</p>
+              <h2 class="text-2xl font-bold text-white">${t("timeUp")}</h2>
+			  <p id="resultText" class="text-lg text-gray-200 mt-2 mb-6">${t("result")}</p>
               <button id="overlayExit"
                 class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
-                Back to Arcade Clash
+                ${t("backToArcade")}
               </button>
             </div>
           </div>
@@ -155,7 +197,7 @@ export function GamePongRemote(): string {
           <p id="startPress"
             class="absolute z-20 bottom-[5%] left-1/2 -translate-x-1/2 text-center
             bg-[#222222]/80 rounded px-4 py-2 text-[clamp(14px,1vw,20px)] select-none">
-            Press Space To Start The Game
+            ${t("pressStart")}
           </p>
 
           <!-- Audio -->
@@ -167,6 +209,7 @@ export function GamePongRemote(): string {
     </div>
   `;
 }
+
 let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
 let keyupHandler: ((e: KeyboardEvent) => void) | null = null;
 let currentRoomId: string | null = null;
@@ -182,6 +225,16 @@ export function initRemoteGame(roomId: string) {
   if (keyupHandler) document.removeEventListener("keyup", keyupHandler);
 
   keydownHandler = (e: KeyboardEvent) => {
+	//if overlay is visible, swallow Space + movement
+	const timeUp = document.getElementById("timeUpOverlay");
+	if (modalActive || isVisible(timeUp)) {
+		if (e.code === "Space" || ["ArrowUp","ArrowDown","w","s"].includes(e.key)) {
+		e.preventDefault();
+		e.stopPropagation();
+		}
+		return;
+	}
+
     if (e.code === "Space") {
       socket?.send(JSON.stringify({ type: "game:begin", roomId }));
       document.getElementById("startPress")?.remove();
@@ -201,6 +254,16 @@ export function initRemoteGame(roomId: string) {
   };
 
   keyupHandler = (e: KeyboardEvent) => {
+	 // block movement keyups while overlay is visible
+	const timeUp = document.getElementById("timeUpOverlay");
+	if (modalActive || isVisible(timeUp)) {
+		if (["ArrowUp","ArrowDown","w","s"].includes(e.key)) {
+		e.preventDefault();
+		e.stopPropagation();
+		}
+		return;
+	}
+
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
       socket?.send(
         JSON.stringify({
@@ -218,6 +281,7 @@ export function initRemoteGame(roomId: string) {
 
   const overlayExit = document.getElementById("overlayExit");
   overlayExit?.addEventListener("click", () => {
+	modalActive = false; // clear block (safe even if you navigate away)
     window.location.hash = "intro";
   });
 }

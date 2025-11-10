@@ -1,4 +1,5 @@
-// ./components/cards/NameCard.ts
+import { t } from "../../services/lang/LangEngine";
+
 const EMOJIS = ["⚡","🚀","🐉","🦊","🐱","🐼","🐧","🐸","🦄","👾","⭐","🌟","🍀"];
 
 function safeEmojiForId(idStr: string) {
@@ -26,6 +27,9 @@ export function renderPlayerCard(
   const rawName = typeof name === "string" ? name : "";
   const displayName = rawName.trim() || `Player ${displayId}`;
   const emoji = safeEmojiForId(displayId);
+  const controlsLabel = t("controlsLabel") ?? "Controls";
+  const youLabel = t("you") ?? "You";
+
   const controls =
     role === "p1"
       ? "<kbd class='px-1 py-0.5 bg-slate-700 rounded'>W</kbd> / <kbd class='px-1 py-0.5 bg-slate-700 rounded'>S</kbd>"
@@ -40,8 +44,8 @@ export function renderPlayerCard(
       </div>
       <div class="flex flex-col leading-tight">
         <span class="text-gray-200 font-medium">${escapeHTML(displayName)}</span>
-        ${isYou ? `<span class="text-green-400 text-xs">You</span>` : ""}
-        <span class="text-xs text-gray-400 mt-1">Controls: ${controls}</span>
+        ${isYou ? `<span class="text-green-400 text-xs">${escapeHTML(youLabel)}</span>` : ""}
+        <span class="text-xs text-gray-400 mt-1">${escapeHTML(controlsLabel)}: ${controls}</span>
       </div>
     </div>
   `;
