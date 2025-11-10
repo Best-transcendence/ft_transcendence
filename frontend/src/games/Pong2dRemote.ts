@@ -6,7 +6,6 @@ import { addTheme } from "../components/Theme";
 import { TimerDisplay, resetTimer } from "../components/Timer";
 import { renderPlayerCard } from "../components/cards/NameCard";
 import DOMPurify from "dompurify";
-
 import { onSocketMessage } from "../services/ws";
 
 let unsubscribeGame: (() => void) | null = null;
@@ -17,7 +16,6 @@ export function GamePongRemote(): string {
   unsubscribeGame = onSocketMessage((msg) => {
     switch (msg.type) {
       case "game:ready":
-        document.getElementById("startPress")?.classList.remove("hidden");
         break;
 
       case "room:start":
@@ -25,22 +23,20 @@ export function GamePongRemote(): string {
         break;
 
       case "game:start": {
-        resetTimer(msg.duration || 90);
+        resetTimer(30);
         document.getElementById("startPress")?.remove();
 
         const { players, playerIndex } = msg;
         currentPlayers = players;
         console.log("game:start payload", msg);
 
-        setTimeout(() => {
-          const playerCardsContainer = document.getElementById("player-cards");
-          if (playerCardsContainer && players[0] && players[1]) {
-            playerCardsContainer.innerHTML = DOMPurify.sanitize(`
-  ${renderPlayerCard(players[0].id, players[0].name, "p1", playerIndex === 0)}
-  ${renderPlayerCard(players[1].id, players[1].name, "p2", playerIndex === 1)}
-`);
-          }
-        }, 0);
+        const playerCardsContainer = document.getElementById("player-cards");
+        if (playerCardsContainer && players[0] && players[1]) {
+          playerCardsContainer.innerHTML = DOMPurify.sanitize(`
+            ${renderPlayerCard(players[0].id, players[0].name, "p1", playerIndex === 0)}
+            ${renderPlayerCard(players[1].id, players[1].name, "p2", playerIndex === 1)}
+          `);
+        }
         break;
       }
 
@@ -82,6 +78,15 @@ export function GamePongRemote(): string {
     }
   });
 
+	// Directly render cards using currentPlayers if they’re known already
+  let playerCardsHTML = "";
+  if (currentPlayers.length === 2) {
+    playerCardsHTML = `
+      ${renderPlayerCard(currentPlayers[0].id, currentPlayers[0].name, "p1", false)}
+      ${renderPlayerCard(currentPlayers[1].id, currentPlayers[1].name, "p2", false)}
+    `;
+  }
+
   return `
     ${addTheme()}
 
@@ -91,14 +96,14 @@ export function GamePongRemote(): string {
     <div class="w-full flex justify-between items-center mb-10 relative z-3">
       ${profileDivDisplay()}
       ${sidebarDisplay()}
+       <div id="player-cards" class="absolute left-1/2 -translate-x-1/2 flex gap-4">
+            ${playerCardsHTML}
+       </div>
       ${LogOutBtnDisplay()}
     </div>
 
-          <!-- Timer -->
-          ${TimerDisplay()}
-
-          <div id="player-cards" class="flex justify-between gap-4 mb-4"></div>
-          <div id="player-controls" class="text-sm text-gray-400 mt-2 text-center"></div>
+	<!-- Timer -->
+	${TimerDisplay()}
 
     <!-- Game section -->
     <div class="flex justify-center w-screen overflow-hidden">
@@ -167,6 +172,7 @@ export function GamePongRemote(): string {
     </div>
   `;
 }
+
 let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
 let keyupHandler: ((e: KeyboardEvent) => void) | null = null;
 let currentRoomId: string | null = null;

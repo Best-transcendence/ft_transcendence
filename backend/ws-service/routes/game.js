@@ -92,6 +92,8 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         p1Down: false,
         p2Up: false,
         p2Down: false,
+		ballSpeed: 1.5,
+		lastServe: null,
       };
     }
 
@@ -219,9 +221,23 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     state.ballX = 50 - 3.3 / 2;
     state.ballY = 50 - 5 / 2;
 
-    // Set slower initial ball velocity
-    state.ballVelX = Math.random() > 0.5 ? 0.6 : -0.6;
-    state.ballVelY = Math.random() > 0.5 ? 0.4 : -0.4;
+    const baseVX = 0.6;
+    const baseVY = 0.4;
+    const s = Number(state.ballSpeed) > 0 ? Number(state.ballSpeed) : 1.0;
+
+   // alternate serve side each time
+   // lastServe === "left"  -> next serve goes right  (positive X)
+   // lastServe === "right" -> next serve goes left   (negative X)
+   // null (first time) -> random side
+   const dir =
+     state.lastServe === "left"  ?  1 :
+     state.lastServe === "right" ? -1 :
+     (Math.random() > 0.5 ? 1 : -1);
+   	state.lastServe = (dir === 1) ? "right" : "left";
+
+   // X velocity uses chosen direction; Y stays randomized
+   state.ballVelX = dir * baseVX * s;
+   state.ballVelY = (Math.random() > 0.5 ? baseVY : -baseVY) * s;
   }
 
   function broadcastGameState(room) {
