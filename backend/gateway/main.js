@@ -27,42 +27,46 @@ const app = Fastify({
 });
 
 // Register CORS plugin
-// Build origin array to support both localhost and LAN_IP with HTTP and HTTPS
+// Build origin array to support only HTTPS LAN_IP (no localhost, no ports)
 const buildOrigins = () => {
   const origins = [];
   const lanIp = process.env.LAN_IP;
-  const frontendPort = process.env.FRONTEND_PORT || 3000;
-  const authServicePort = process.env.AUTH_SERVICE_PORT || 3001;
-  const userServicePort = process.env.USER_SERVICE_PORT || 3002;
 
-  // Add localhost origins (HTTP and HTTPS)
-  origins.push(`http://localhost:${frontendPort}`);
-  origins.push(`https://localhost:${frontendPort}`);
-  origins.push(`http://localhost:${authServicePort}`);
-  origins.push(`https://localhost:${authServicePort}`);
-  origins.push(`http://localhost:${userServicePort}`);
-  origins.push(`https://localhost:${userServicePort}`);
+  // Helper function to normalize URL: ensure HTTPS and remove port
+  const normalizeUrl = (url) => {
+    if (!url) return null;
+    // Remove protocol if present
+    let normalized = url.replace(/^https?:\/\//, '');
+    // Remove port if present
+    normalized = normalized.replace(/:\d+$/, '');
+    // Remove trailing slash
+    normalized = normalized.replace(/\/$/, '');
+    // Return as HTTPS URL
+    return `https://${normalized}`;
+  };
 
-  // Add LAN_IP origins if set (HTTP and HTTPS)
+  // Add LAN_IP origin if set (HTTPS only, no port)
   if (lanIp) {
-    origins.push(`http://${lanIp}:${frontendPort}`);
-    origins.push(`https://${lanIp}:${frontendPort}`);
-    origins.push(`http://${lanIp}:${authServicePort}`);
-    origins.push(`https://${lanIp}:${authServicePort}`);
-    origins.push(`http://${lanIp}:${userServicePort}`);
-    origins.push(`https://${lanIp}:${userServicePort}`);
+    const normalizedLanIp = lanIp.replace(/:\d+$/, '').replace(/\/$/, '');
+    origins.push(`https://${normalizedLanIp}`);
   }
 
-  // Also add any explicit URLs from env if they differ
-  if (process.env.FRONTEND_URL && !origins.includes(process.env.FRONTEND_URL)) {
-    origins.push(process.env.FRONTEND_URL);
-  }
-  if (process.env.AUTH_SERVICE_URL && !origins.includes(process.env.AUTH_SERVICE_URL)) {
-    origins.push(process.env.AUTH_SERVICE_URL);
-  }
-  if (process.env.USER_SERVICE_URL && !origins.includes(process.env.USER_SERVICE_URL)) {
-    origins.push(process.env.USER_SERVICE_URL);
-  }
+  // Add explicit URLs from env if they differ (normalize to HTTPS without port)
+  const envUrls = [
+    process.env.FRONTEND_URL,
+    process.env.GATEWAY_URL,
+    process.env.AUTH_SERVICE_URL,
+    process.env.USER_SERVICE_URL
+  ];
+
+  envUrls.forEach(url => {
+    if (url) {
+      const normalized = normalizeUrl(url);
+      if (normalized && !origins.includes(normalized)) {
+        origins.push(normalized);
+      }
+    }
+  });
 
   return origins;
 };
@@ -120,28 +124,26 @@ await app.register(fastifySwagger, {
                 API Gateway for ft_transcendence microservices - routes requests to individual services.
 
                 **Service Documentation:**
-                - [Auth Service](${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/docs) - Authentication and JWT handling
-                - [User Service](${process.env.USER_SERVICE_URL || 'http://localhost:3002'}/docs) - User profiles and management
+                - [Auth Service](${process.env.AUTH_SERVICE_URL ? process.env.AUTH_SERVICE_URL.replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}`}/auth-docs/) - Authentication and JWT handling
+                - [User Service](${process.env.USER_SERVICE_URL ? process.env.USER_SERVICE_URL.replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}`}/user-docs/) - User profiles and management
 
                 **Note:** This gateway proxies requests to the individual microservices.
                 For detailed API schemas and examples, refer to the individual service documentation above.
             `,
       version: '1.0.0',
     },
-    // We clean the URL from the protocol to avoid issues with Swagger UI
-    host: (process.env.GATEWAY_URL || 'localhost:3003').replace(/^https?:\/\//, ''),
-
-    schemes: ['http'],
+    // Dynamic host will be set in transformSpecification
+    schemes: ['https'],
     consumes: ['application/json'],
     produces: ['application/json'],
     tags: [
       {
         name: 'Authentication',
-        description: `Auth service endpoints (login, signup) - [See detailed docs](${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/docs)`
+        description: `Auth service endpoints (login, signup) - [See detailed docs](${process.env.AUTH_SERVICE_URL ? process.env.AUTH_SERVICE_URL.replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}`}/auth-docs/)`
       },
       {
         name: 'User Management',
-        description: `User service endpoints (profiles, data) - [See detailed docs](${process.env.USER_SERVICE_URL || 'http://localhost:3002'}/docs)`
+        description: `User service endpoints (profiles, data) - [See detailed docs](${process.env.USER_SERVICE_URL ? process.env.USER_SERVICE_URL.replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}`}/user-docs/)`
       },
       { name: 'Health', description: 'Service health checks' }
     ],
@@ -171,7 +173,13 @@ await app.register(fastifySwaggerUI, {
   },
   staticCSP: true,
   transformSpecificationClone: true,
-  transformSpecification: (swaggerObject, _request, _reply) => {
+  transformSpecification: (swaggerObject, request, _reply) => {
+    // Dynamically set host from request headers (remove port if present)
+    const hostHeader = request?.headers?.host || process.env.LAN_IP || 'LAN_IP';
+    const hostname = hostHeader.split(':')[0]; // Remove port if present
+    swaggerObject.host = hostname;
+    swaggerObject.schemes = ['https'];
+    
     // Remove the default tag and its routes
     if (swaggerObject.tags) {
       swaggerObject.tags = swaggerObject.tags.filter(tag => tag.name !== 'default');
