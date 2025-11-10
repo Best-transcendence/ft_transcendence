@@ -1,5 +1,9 @@
 // Authentication routes for user login and registration
+import { createLogger, ErrorType } from '../utils/logger.js';
+
 export default async function authRoutes(fastify) {
+  // Create structured logger instance
+  const logger = createLogger(fastify.log);
 
   // POST /auth/login - Authenticate user and return JWT token
   fastify.post('/login', {
@@ -273,6 +277,13 @@ export default async function authRoutes(fastify) {
         where: { email: normalizedEmail }
       });
       if (existingEmail) {
+        const correlationId = request.headers['x-correlation-id'] || `auth-${Date.now()}`;
+        logger.error(correlationId, `User with email '${normalizedEmail}' already exists`, {
+          errorType: ErrorType.DUPLICATE_EMAIL,
+          errorCode: 'EMAIL_ALREADY_EXISTS',
+          httpStatus: 400,
+          metadata: { email: normalizedEmail }
+        });
         return reply.status(400).send({ error: 'User with this email already exists' });
       }
 

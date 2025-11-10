@@ -1,4 +1,5 @@
 // User management routes for user service
+import { createLogger, ErrorType } from '../utils/logger.js';
 
 // Calculate user statistics from match history
 async function calculateUserStats(prisma, userId) {
@@ -69,6 +70,8 @@ async function calculateUserStats(prisma, userId) {
 
 
 export default async function (fastify, _opts) {
+  // Create structured logger instance
+  const logger = createLogger(fastify.log);
 
   // GET /users - Get all user profiles
   fastify.get('/', {
@@ -244,13 +247,23 @@ export default async function (fastify, _opts) {
 
       // Input validation
       if (!authUserId || !name || !email) {
-        console.error(`[${correlationId}] Bootstrap validation failed - missing required fields`);
+        logger.error(correlationId, 'Bootstrap validation failed - missing required fields', {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'MISSING_REQUIRED_FIELDS',
+          httpStatus: 400,
+          metadata: { authUserId, name, email }
+        });
         return reply.status(400).send({ error: 'authUserId, name, and email are required' });
       }
 
       // Email format validation (basic)
       if (!email.includes('@') || !email.includes('.')) {
-        console.error(`[${correlationId}] Bootstrap validation failed - invalid email format: ${email}`);
+        logger.error(correlationId, `Bootstrap validation failed - invalid email format: ${email}`, {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'INVALID_EMAIL_FORMAT',
+          httpStatus: 400,
+          metadata: { email }
+        });
         return reply.status(400).send({ error: 'Invalid email format' });
       }
 
@@ -267,7 +280,12 @@ export default async function (fastify, _opts) {
       // Check for existing users to prevent duplicates
       if (existingNameUser)
       {
-        console.error(`[${correlationId}] Username '${name}' already taken`);
+        logger.error(correlationId, `Username '${name}' already taken`, {
+          errorType: ErrorType.DUPLICATE_USERNAME,
+          errorCode: 'USERNAME_ALREADY_EXISTS',
+          httpStatus: 400,
+          metadata: { username: name, authUserId }
+        });
         return reply.status(400).send({ error: 'Username already taken' });
       }
 
