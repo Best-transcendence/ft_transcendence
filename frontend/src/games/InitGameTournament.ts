@@ -15,7 +15,7 @@ import { registerTournamentGame } from "./GameController";
 const DIFFICULTY = {
   easy: { 
     ballSpeed: 1.0, 
-    gameTime: 8 // TODO: Change back to 40 seconds
+    gameTime: 8 // TODO (Yulia): Change back to 40 seconds
   },
   medium: { 
     ballSpeed: 1.5, 
@@ -471,11 +471,9 @@ window.addEventListener("game:timeup", _timeupHandler);
     if (ballY <= 0) {
       ballY = 0;                    // Prevent ball from going above field
       ballVelY *= -1;               // Reverse vertical velocity
-      //playSound(wallSfx);         // TODO: Implement sound effects
     } else if (ballY >= FIELD - BALL_H) {
       ballY = FIELD - BALL_H;       // Prevent ball from going below field
       ballVelY *= -1;               // Reverse vertical velocity
-      //playSound(wallSfx);         // TODO: Implement sound effects
     }
 
     // Left paddle collision detection
@@ -488,7 +486,6 @@ window.addEventListener("game:timeup", _timeupHandler);
     ) {
       ballX = PADDLE_W;                       // Resolve penetration
       ballVelX *= -1;                         // Reverse horizontal velocity
-      //playSound(paddleSfx);                 // TODO: Implement sound effects
     }
 
     // Right paddle collision detection
@@ -501,7 +498,6 @@ window.addEventListener("game:timeup", _timeupHandler);
     ) {
       ballX = FIELD - PADDLE_W - BALL_W;       // Resolve penetration
       ballVelX *= -1;                          // Reverse horizontal velocity
-      //playSound(paddleSfx);                  // TODO: Implement sound effects
     }
 
     // Scoring detection using ball center for symmetric scoring
@@ -510,13 +506,11 @@ window.addEventListener("game:timeup", _timeupHandler);
       // Ball went past left side - Player 2 (right) scores
       s2++;
       score2.textContent = s2.toString();
-      //playSound(lossSfx);                    // TODO: Implement sound effects
       resetBall();
     } else if (ballCenterX > FIELD) {
       // Ball went past right side - Player 1 (left) scores
       s1++;
       score1.textContent = s1.toString();
-      //playSound(lossSfx);                    // TODO: Implement sound effects
       resetBall();
     }
 
@@ -551,12 +545,6 @@ window.addEventListener("game:timeup", _timeupHandler);
     ballVelX = direction * speed * Math.cos(angleVariation);
     ballVelY = speed * Math.sin(angleVariation);
   }
-
-  // TODO: Fix playSound function or remove from everywhere
-  //   function playSound(audio: HTMLAudioElement) {
-  //     audio.currentTime = 0;
-  //     audio.play();
-  //   }
 
   /**
    * Utility function to clamp a value between min and max

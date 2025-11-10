@@ -12,7 +12,7 @@ endif
 LAN_IP ?= localhost
 FRONTEND_PORT ?= 3000
 
-.PHONY: help build up down logs clean restart restart-services status rebuild rebuild-frontend rebuild-all clear-cache unseal vault-ready vault-setup up-elk up-elasticsearch up-logstash up-kibana up-filebeat
+.PHONY: help build up down logs clean restart restart-services status rebuild rebuild-frontend rebuild-all clear-cache unseal vault-ready vault-setup up-elk up-elasticsearch up-logstash up-kibana up-filebeat save-vault-keys auto-unseal dev start docker-no-logs fix-backend-deps
 
 # Default target
 docker:
@@ -72,6 +72,11 @@ docker:
 help:
 	@echo "🚀 ft_transcendence - Docker Management"
 	@echo ""
+	@echo "🎯 Quick Start (Recommended):"
+	@echo "  make dev             - Complete automated workflow (clean → docker → auto-unseal)"
+	@echo "  make start           - Quick start without cleaning (docker → auto-unseal)"
+	@echo "  make save-vault-keys - Save Vault keys for automation (one-time setup)"
+	@echo ""
 	@echo "Available commands:"
 	@echo "  make docker          - Stop, build, start all services and follow logs (DEFAULT)"
 	@echo "  make build           - Build all Docker images"
@@ -88,6 +93,7 @@ help:
 	@echo "  make rebuild-all      - Force rebuild ALL services without cache"
 	@echo "  make clear-cache      - Clear frontend build cache (dist, .vite)"
 	@echo "  make rebuild          - Alias for rebuild-frontend (common use case)"
+	@echo "  make fix-backend-deps - Fix backend ESLint dependency issues"
 	@echo ""
 	@echo "Individual service commands:"
 	@echo "  make up-vault        - Start only vault-service"
@@ -107,9 +113,144 @@ help:
 	@echo ""
 	@echo "Vault commands:"
 	@echo "  make vault-setup     - Complete first-time Vault setup (init + unseal + secrets)"
-	@echo "  make unseal          - Unseal Vault (needed after restart - requires 3 unseal keys)"
+	@echo "  make unseal          - Unseal Vault manually (requires 3 unseal keys)"
+	@echo "  make auto-unseal     - Unseal Vault automatically (uses saved keys)"
 	@echo "  make vault-ready     - Check if Vault is ready (initialized and unsealed)"
 	@echo ""
+
+# ============================================================================
+# 🎯 AUTOMATED WORKFLOW TARGETS
+# ============================================================================
+
+# Save Vault keys for automated workflow (one-time setup)
+save-vault-keys:
+	@echo "🔐 Saving Vault keys for automated workflow..."
+	@echo ""
+	@echo "⚠️  This file will store your VAULT_TOKEN and unseal keys"
+	@echo "⚠️  It's added to .gitignore for security"
+	@echo ""
+	@read -p "Enter your VAULT_TOKEN: " token; \
+	echo "VAULT_TOKEN=$$token" > .vault-keys
+	@echo ""
+	@echo "📝 Now enter 3 unseal keys (you only need 3 of the 5):"
+	@read -p "Enter Unseal Key 1: " key1; \
+	echo "UNSEAL_KEY_1=$$key1" >> .vault-keys
+	@read -p "Enter Unseal Key 2: " key2; \
+	echo "UNSEAL_KEY_2=$$key2" >> .vault-keys
+	@read -p "Enter Unseal Key 3: " key3; \
+	echo "UNSEAL_KEY_3=$$key3" >> .vault-keys
+	@chmod 600 .vault-keys
+	@echo ""
+	@echo "✅ Vault keys saved to .vault-keys (secure permissions set)"
+	@echo "🎯 You can now use 'make dev' or 'make start' for automated workflow!"
+
+# Automatically unseal Vault using saved keys
+auto-unseal:
+	@if [ ! -f .vault-keys ]; then \
+		echo "❌ .vault-keys file not found!"; \
+		echo "📝 Run 'make save-vault-keys' first to save your keys"; \
+		exit 1; \
+	fi
+	@echo "🔐 Auto-unsealing Vault..."
+	@if ! docker ps | grep -q vault_service; then \
+		echo "❌ Vault container is not running. Starting it now..."; \
+		docker compose up -d vault-service; \
+		sleep 5; \
+	fi
+	@. ./.vault-keys; \
+	echo "🔓 Unsealing with key 1..."; \
+	docker exec vault_service vault operator unseal $$UNSEAL_KEY_1 > /dev/null; \
+	echo "🔓 Unsealing with key 2..."; \
+	docker exec vault_service vault operator unseal $$UNSEAL_KEY_2 > /dev/null; \
+	echo "🔓 Unsealing with key 3..."; \
+	docker exec vault_service vault operator unseal $$UNSEAL_KEY_3 > /dev/null
+	@echo "✅ Vault unsealed successfully!"
+
+# Complete automated development workflow (clean → docker → auto-unseal)
+dev: clean
+	@echo ""
+	@echo "🎯 Starting automated development workflow..."
+	@echo ""
+	@$(MAKE) docker-no-logs
+	@echo ""
+	@if [ -f .vault-keys ]; then \
+		echo "🔐 Auto-unsealing Vault..."; \
+		$(MAKE) auto-unseal; \
+	else \
+		echo "⚠️  .vault-keys not found. Run 'make save-vault-keys' first for automation"; \
+		echo "📝 Or unseal manually now..."; \
+		echo ""; \
+		$(MAKE) unseal; \
+	fi
+	@echo ""
+	@echo "🚀 Starting all services now that Vault is unsealed..."
+	@docker compose up -d
+	@sleep 3
+	@echo ""
+	@echo "✅ Development environment ready!"
+	@echo ""
+	@echo "📋 Services available at:"
+	@echo "  Vault:     http://vault-service:8200"
+	@echo "  Frontend:  https://$(LAN_IP)"
+	@echo "  Gateway:   https://$(LAN_IP)/api/"
+	@echo "  WebSocket: wss://$(LAN_IP)/ws/"
+	@echo "  Kibana:    https://$(LAN_IP)/kibana/"
+	@echo ""
+	@echo "💡 Tip: Run 'make logs' to follow logs"
+
+# Quick start without cleaning (docker → auto-unseal)
+start:
+	@echo ""
+	@echo "🎯 Quick starting all services..."
+	@echo ""
+	@$(MAKE) docker-no-logs
+	@echo ""
+	@if [ -f .vault-keys ]; then \
+		echo "🔐 Auto-unsealing Vault..."; \
+		$(MAKE) auto-unseal; \
+	else \
+		echo "⚠️  .vault-keys not found. Run 'make save-vault-keys' first for automation"; \
+		echo "📝 Or unseal manually now..."; \
+		echo ""; \
+		$(MAKE) unseal; \
+	fi
+	@echo ""
+	@echo "🚀 Starting all services now that Vault is unsealed..."
+	@docker compose up -d
+	@sleep 3
+	@echo ""
+	@echo "✅ All services ready!"
+	@echo ""
+	@echo "📋 Services available at:"
+	@echo "  Vault:     http://vault-service:8200"
+	@echo "  Frontend:  https://$(LAN_IP)"
+	@echo "  Gateway:   https://$(LAN_IP)/api/"
+	@echo "  WebSocket: wss://$(LAN_IP)/ws/"
+	@echo "  Kibana:    https://$(LAN_IP)/kibana/"
+	@echo ""
+	@echo "💡 Tip: Run 'make logs' to follow logs"
+
+# Helper target: docker without following logs (used by dev and start)
+docker-no-logs:
+	@echo "🐳 Building and starting services with Docker Compose..."
+	@echo "🛑 Stopping existing containers if running..."
+	@docker compose down 2>/dev/null || true
+	@echo "🧹 Cleaning up individual service containers..."
+	@docker stop user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true
+	@docker rm user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true
+	@echo "🧹 Cleaning up existing network..."
+	@docker network rm ft_transcendence_network 2>/dev/null || true
+	@echo "🔨 Building images if needed..."
+	@docker compose build
+	@echo "🔐 Starting Vault first..."
+	@docker compose up -d vault-service
+	@echo "⏳ Waiting for Vault to be ready..."
+	@sleep 5
+	@echo "⏸️  Services will start after Vault is unsealed..."
+
+# ============================================================================
+# END AUTOMATED WORKFLOW TARGETS
+# ============================================================================
 
 # Build all images
 build:
@@ -484,3 +625,13 @@ rebuild-all: clear-cache
 	docker compose up -d
 	@echo "✅ All services rebuilt and started!"
 	@echo "📋 Hard refresh browser (Cmd+Shift+R / Ctrl+Shift+R)"
+
+# Fix backend ESLint dependencies (if you see module errors)
+fix-backend-deps:
+	@echo "🔧 Fixing backend ESLint dependencies..."
+	@echo "🧹 Cleaning backend node_modules..."
+	@cd backend && rm -rf node_modules package-lock.json
+	@echo "📦 Reinstalling backend dependencies..."
+	@cd backend && npm install
+	@echo "✅ Backend dependencies fixed!"
+	@echo "💡 If you still see errors, try: make fix-backend-deps"

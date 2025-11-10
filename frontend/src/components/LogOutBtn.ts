@@ -9,9 +9,8 @@ export function logOutBtn()
 	logoutBtn?.addEventListener("click", () =>
 	{
 		localStorage.removeItem("jwt");
-		//TODO: Make sure it fits Websocket implementation
+		//TODO (Camille): Make sure it fits Websocket implementation
 	    disconnectSocket();
-		//end:TODO
 		window.location.hash = "login";
 	});
 }
