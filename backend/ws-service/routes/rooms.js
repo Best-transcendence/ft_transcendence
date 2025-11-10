@@ -1,3 +1,5 @@
+import { createLogger, ErrorType } from '../utils/logger.js';
+
 export const rooms = new Map(); // roomId -> { players: [...], state, loopId }
 const queue = []; //Queu created to wait players for Quick Game
 
@@ -9,13 +11,17 @@ export function makeRoomId(a, b) {
 }
 
 export function registerRoomHandlers(wss, onlineUsers, app) {
+  const logger = createLogger(app.log);
   function handleInvite(ws, data) {
     const { to } = data;
     const target = onlineUsers.get(String(to));
 
     if (!target || target.readyState !== target.OPEN) {
       ws.send(JSON.stringify({ type: 'invite:error', reason: 'offline' }));
-      app.log.warn(`Invite failed: user ${to} not available`);
+      const correlationId = `invite-${ws.user.id}-${to}-${Date.now()}`;
+      logger.warn(correlationId, `Invite failed: user ${to} not available`, {
+        metadata: { from: ws.user.id, to }
+      });
       return;
     }
 
@@ -26,7 +32,13 @@ export function registerRoomHandlers(wss, onlineUsers, app) {
       }));
       app.log.info(`Invite sent from ${ws.user.id} to ${to}`);
     } catch (err) {
-      app.log.error({ err }, `Failed to send invite to ${to}`);
+      const correlationId = `invite-${ws.user.id}-${to}-${Date.now()}`;
+      logger.error(correlationId, `Failed to send invite to ${to}: ${err.message}`, {
+        errorType: ErrorType.ROOM_ERROR,
+        errorCode: 'INVITE_SEND_FAILED',
+        httpStatus: 500,
+        metadata: { from: ws.user.id, to, error: err.message }
+      });
     }
   }
 
@@ -73,7 +85,13 @@ export function registerRoomHandlers(wss, onlineUsers, app) {
           from: ws.user.id,
         }));
       } catch (err) {
-        app.log.error({ err }, 'Failed to notify invite declined');
+        const correlationId = `invite-decline-${ws.user.id}-${from}-${Date.now()}`;
+        logger.error(correlationId, `Failed to notify invite declined: ${err.message}`, {
+          errorType: ErrorType.ROOM_ERROR,
+          errorCode: 'INVITE_DECLINE_NOTIFY_FAILED',
+          httpStatus: 500,
+          metadata: { from: ws.user.id, to: from, error: err.message }
+        });
       }
     }
   }
