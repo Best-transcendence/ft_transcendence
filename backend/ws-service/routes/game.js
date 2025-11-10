@@ -1,6 +1,8 @@
 import { rooms } from './rooms.js';
+import { createLogger, ErrorType } from '../utils/logger.js';
 
 export function registerGameHandlers(wss, onlineUsers, app) {
+  const logger = createLogger(app.log);
   /**
    * Saves a remote 1v1 match to the user-service database
    *
@@ -63,10 +65,22 @@ export function registerGameHandlers(wss, onlineUsers, app) {
         app.log.info(`Match saved: Player ${player1.user.id} vs ${player2.user.id} (${score1}-${score2})`);
       } else {
         const errorText = await response.text();
-        app.log.error(`Failed to save match (HTTP ${response.status}): ${errorText}`);
+        const correlationId = `match-save-${player1.user.id}-${player2.user.id}-${Date.now()}`;
+        logger.error(correlationId, `Failed to save match (HTTP ${response.status}): ${errorText}`, {
+          errorType: ErrorType.EXTERNAL_SERVICE_ERROR,
+          errorCode: 'MATCH_SAVE_FAILED',
+          httpStatus: response.status,
+          metadata: { player1Id: player1.user.id, player2Id: player2.user.id, score1, score2, error: errorText }
+        });
       }
     } catch (error) {
-      app.log.error(`Error saving match: ${error.message}`);
+      const correlationId = `match-save-${player1.user.id}-${player2.user.id}-${Date.now()}`;
+      logger.error(correlationId, `Error saving match: ${error.message}`, {
+        errorType: ErrorType.EXTERNAL_SERVICE_ERROR,
+        errorCode: 'MATCH_SAVE_ERROR',
+        httpStatus: 500,
+        metadata: { player1Id: player1.user.id, player2Id: player2.user.id, score1, score2, error: error.message }
+      });
     }
   }
   function handleGameJoin(ws, data) {

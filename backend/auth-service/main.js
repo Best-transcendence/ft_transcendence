@@ -1,4 +1,4 @@
- import Fastify from 'fastify';
+import Fastify from 'fastify';
 //import dotenv from 'dotenv';
 import './env.js';
 import databasePlugin from './plugins/database.js';
