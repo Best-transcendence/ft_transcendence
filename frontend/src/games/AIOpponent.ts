@@ -130,7 +130,7 @@ export function GamePongAIOpponent(): string {
 			<!-- Action buttons -->
 			<div class="flex gap-4">
 				<button id="overlayExit"
-						class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-gray-600 hover:bg-gray-700">
+						class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
 				 ${t("backToArcade")} 
 				</button>
 			</div>
