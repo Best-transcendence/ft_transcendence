@@ -141,23 +141,6 @@ curl -X POST http://localhost:3001/auth/login \
 3. **Go to Discover** and select the `logs-*` index pattern
 4. **Search using the error codes** listed above:
    - Example: `error_code:EMAIL_ALREADY_EXISTS`
-5. **Check the fields**:
-   - `error_type` - Should match the error category
-   - `error_code` - Should match the specific error
-   - `http_status` - Should show the HTTP status code
-   - `correlation_id` - Should be present for tracing
-   - `metadata` - Should contain relevant context (username, email, etc.)
-   - `service` - Should show which service logged the error
-
-### Quick Verification Checklist
-
-- [ ] Can search by `error_code` and find specific errors
-- [ ] `error_type` field is populated correctly
-- [ ] `http_status` matches the HTTP response code
-- [ ] `correlation_id` is present for request tracing
-- [ ] `metadata` contains relevant context (username, email, userId, etc.)
-- [ ] `service` field shows the correct service name
-- [ ] Logs appear within 10-15 seconds of the error
 
 ## Benefits
 
