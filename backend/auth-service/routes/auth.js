@@ -1,5 +1,6 @@
 // Authentication routes for user login and registration
 import { createLogger, ErrorType } from '../utils/logger.js';
+import bcrypt from 'bcrypt';
 
 export default async function authRoutes(fastify) {
   // Create structured logger instance
@@ -123,9 +124,9 @@ export default async function authRoutes(fastify) {
         return reply.status(401).send({ error: 'Invalid credentials' });
       }
 
-      // TODO: Replace plain text password comparison with bcrypt hash comparison
-      // Password validation (currently plain text - should be hashed)
-      if (password !== user.password) {
+      // Password validation using bcrypt hash comparison
+      const passMatch = await bcrypt.compare(password, user.password);
+      if (!passMatch) {
         logger.error(correlationId, 'Login failed - invalid credentials (wrong password)', {
           errorType: ErrorType.AUTHENTICATION_ERROR,
           errorCode: 'INVALID_CREDENTIALS',
@@ -376,10 +377,12 @@ export default async function authRoutes(fastify) {
       }
 
       // === Create user in auth-service ===
+      const SALT_ROUNDS = 10;
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
       const newUser = await fastify.prisma.user.create({
         data: {
           email: normalizedEmail,
-          password // TODO: hash before storing
+          password: hashedPassword
         }
       });
 
