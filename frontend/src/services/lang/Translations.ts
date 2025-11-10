@@ -154,6 +154,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	bestScore: "Best Score",
 	pointsFor: "Points For",
 	pointsAgainst: "Points Against",
+	result: "Result",
   },
   fr: {
     continue: "Continuer",
@@ -307,6 +308,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	bestScore: "Meilleur score",
 	pointsFor: "Points marqués",
 	pointsAgainst: "Points encaissés",
+	result: "Résultat",
   },
   de: {
     continue: "Weiter",
@@ -460,6 +462,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	bestScore: "Bester Score",
 	pointsFor: "Punkte erzielt",
 	pointsAgainst: "Punkte kassiert",
+	result: "Ergebnis",
   },
   es: {
     continue: "Continuar",
@@ -613,6 +616,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	bestScore: "Mejor puntuación",
 	pointsFor: "Puntos a favor",
 	pointsAgainst: "Puntos en contra",
+	result: "Resultado",
   },
   pt: {
     continue: "Continuar",
@@ -766,6 +770,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 	bestScore: "Melhor pontuação",
 	pointsFor: "Pontos a favor",
 	pointsAgainst: "Pontos contra",
+	result: "Resultado",
   },
   hu: {
     continue: "Tovább",
@@ -919,5 +924,6 @@ export const translations: Record<Lang, Record<string, string>> = {
 	bestScore: "Legjobb pontszám",
 	pointsFor: "Szerzett pontok",
 	pointsAgainst: "Kapott pontok",
+	result: "Eredmény",
   }
 };

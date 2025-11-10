@@ -6,7 +6,6 @@ import { profilePopup , inputPopup } from "../components/Popups"
 import { thisUser, fetchUser } from "../router"
 import { addTheme } from "../components/Theme"
 import { t } from "../services/lang/LangEngine";
-import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 // Manages Profile page display
 export function ProfilePage()
@@ -21,9 +20,8 @@ export function ProfilePage()
 	<!-- Protected pages components -->
 		${ profileDivDisplay() }
 		${ sidebarDisplay() }
-        <!-- Group Language and Logout on the right -->
+        <!-- Group Logout on the right -->
         <div class="flex gap-2 items-center">
-            ${LanguageSwitcher()}
              ${LogOutBtnDisplay()}
         </div>
      </div>

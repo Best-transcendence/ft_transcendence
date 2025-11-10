@@ -73,16 +73,21 @@ export function GamePongRemote(): string {
         const overlay = document.getElementById("timeUpOverlay");
         if (overlay) {
           overlay.classList.remove("hidden");
-          const textEl = overlay.querySelector("p");
-          if (textEl) {
-            textEl.textContent =
-              msg.winner === "draw"
-                ? t("itsATie")
-                : msg.winner === "p1"
-                ? `${currentPlayers[0]?.name ?? "Player 1"} ${t("win")}`
-                : `${currentPlayers[1]?.name ?? "Player 2"} ${t("win")}`;
-          }
-        }
+        const textEl = document.getElementById("resultText");
+		if (textEl) {
+		const p1Name = currentPlayers[0]?.name ?? t("player1") ?? "Player 1";
+		const p2Name = currentPlayers[1]?.name ?? t("player2") ?? "Player 2";
+		const win = t("win") ?? " wins 🥇";
+		const tie = t("itsATie") ?? "It's a draw 🤝";
+
+		textEl.textContent =
+			msg.winner === "draw"
+			? tie
+			: msg.winner === "p1"
+			? `${p1Name}${win}`
+			: `${p2Name}${win}`;
+		}
+	}
         break;
 
       case "game:update":
@@ -116,7 +121,7 @@ export function GamePongRemote(): string {
        <div id="player-cards" class="absolute left-1/2 -translate-x-1/2 flex gap-4">
             ${playerCardsHTML}
        </div>
-    	<!-- Group Language and Logout on the right -->
+    	<!-- Group Logout on the right -->
         <div class="flex gap-2 items-center">
              ${LogOutBtnDisplay()}
 		</div>
@@ -148,7 +153,7 @@ export function GamePongRemote(): string {
             style="border-radius: inherit; background: inherit;">
             <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
               <h2 class="text-2xl font-bold text-white">${t("timeUp")}</h2>
-			  <p class="text-lg text-gray-200 mt-2 mb-6">Result</p>
+			  <p id="resultText" class="text-lg text-gray-200 mt-2 mb-6">${t("result")}</p>
               <button id="overlayExit"
                 class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
                 ${t("backToArcade")}

@@ -116,7 +116,6 @@ export async function protectedPage(
     sideBar(); // Navigation sidebar
     logOutBtn(); // Logout button
 
-	setupLanguageSwitcher();  // i18n: wire up the language switcher
     // Execute page-specific initialization functions
     postRender?.forEach((fn) => fn());
   } else {
@@ -210,7 +209,10 @@ export function router() {
       break;
 
     case "intro":
-      protectedPage(() => GameIntroPage());
+		protectedPage(
+			() => GameIntroPage(),
+			() => setupLanguageSwitcher() // language switcher setup after rendering
+		)
       break;
 
     case "remote":

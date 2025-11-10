@@ -4,7 +4,6 @@ import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { t } from "../services/lang/LangEngine";
-import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 import { thisUser } from "../router";
 import DOMPurify from "dompurify";
@@ -49,9 +48,8 @@ export function LobbyPage() {
 		<!-- Protected pages components -->
 		${ profileDivDisplay() }
 		${ sidebarDisplay() }
-		<!-- Group Language and Logout on the right -->
+		<!-- Group Logout on the right -->
 		<div class="flex gap-2 items-center">
-			${LanguageSwitcher()}
 			 ${LogOutBtnDisplay()}
 		</div>
 	 </div>

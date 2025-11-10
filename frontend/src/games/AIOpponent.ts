@@ -19,7 +19,6 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { TimerDisplay, startTimer, resetTimer } from "../components/Timer";
 import { createAIGame, destroyAIGame, isGameRunning } from "./AIGameController";
 import { t } from "../services/lang/LangEngine"; // ✅
-import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 /**
  * Generates the HTML template for the AI opponent game page
@@ -48,9 +47,8 @@ export function GamePongAIOpponent(): string {
 		<!-- Protected pages components -->
 		${ profileDivDisplay() }
 		${ sidebarDisplay() }
-        <!-- Group Language and Logout on the right -->
+        <!-- Group Logout on the right -->
         <div class="flex gap-2 items-center">
-            ${LanguageSwitcher()}
              ${LogOutBtnDisplay()}
         </div>
      </div>
