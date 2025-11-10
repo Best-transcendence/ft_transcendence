@@ -11,13 +11,22 @@ import { onSocketMessage } from "../services/ws";
 
 let unsubscribeGame: (() => void) | null = null;
 let currentPlayers: { id: string; name: string }[] = [];
+let isInValidGame: boolean = false; // Track if we're in a valid game state
 
 export function GamePongRemote(): string {
+  isInValidGame = true; // Mark that we're entering a valid game
   if (unsubscribeGame) unsubscribeGame(); // clean old listener
   unsubscribeGame = onSocketMessage((msg) => {
+    // Only process messages if we're in a valid game state
+    if (!isInValidGame) return;
+
+    // Additional validation: check roomId for room-specific messages
+    if (msg.roomId && currentRoomId && msg.roomId !== currentRoomId) return;
+
     switch (msg.type) {
       case "game:ready":
-        document.getElementById("startPress")?.classList.remove("hidden");
+        const startPress = document.getElementById("startPress");
+        if (startPress) startPress.classList.remove("hidden");
         break;
 
       case "room:start":
@@ -72,13 +81,24 @@ export function GamePongRemote(): string {
         }
         break;
 
-      case "game:update":
-        updateGameState(msg.state);
-        break;
+       case "game:update":
+         updateGameState(msg.state);
+         break;
 
-      case "game:end":
-        showGameOver(msg.winner);
-        break;
+        case "game:end":
+          const disconnectOverlay = document.getElementById("timeUpOverlay");
+          if (disconnectOverlay) {
+            disconnectOverlay.classList.remove("hidden");
+            const textEl = disconnectOverlay.querySelector("p");
+            if (textEl) {
+              textEl.textContent =
+                msg.winner === "p1"
+                  ? `${currentPlayers[0]?.name ?? "Player 1"} wins 🥇`
+                  : `${currentPlayers[1]?.name ?? "Player 2"} wins 🥇`;
+            }
+          }
+          isInValidGame = false; // Mark game as ended
+         break;
     }
   });
 
@@ -216,6 +236,21 @@ export function initRemoteGame(roomId: string) {
   document.addEventListener("keydown", keydownHandler);
   document.addEventListener("keyup", keyupHandler);
 
+  // Add navigation cleanup listeners
+  const handleBeforeUnload = () => {
+    leaveRemoteGame();
+  };
+
+  const handleHashChange = () => {
+    leaveRemoteGame();
+  };
+
+  window.addEventListener('beforeunload', handleBeforeUnload);
+  window.addEventListener('hashchange', handleHashChange);
+
+  // Store handlers for cleanup
+  (window as any).gameNavigationHandlers = { handleBeforeUnload, handleHashChange };
+
   const overlayExit = document.getElementById("overlayExit");
   overlayExit?.addEventListener("click", () => {
     window.location.hash = "intro";
@@ -223,31 +258,34 @@ export function initRemoteGame(roomId: string) {
 }
 
 function updateGameState(state: any) {
-  const paddle1 = document.getElementById("paddle1")!;
-  const paddle2 = document.getElementById("paddle2")!;
-  const ball = document.getElementById("ball")!;
-  const score1 = document.getElementById("score1")!;
-  const score2 = document.getElementById("score2")!;
+  // Only update if we're in a valid game state and elements exist
+  if (!isInValidGame) return;
 
-  paddle1.style.top = state.p1Y + "%";
-  paddle2.style.top = state.p2Y + "%";
-  if ("ballX" in state && "ballY" in state) {
-    ball.style.left = state.ballX + "%";
-    ball.style.top = state.ballY + "%";
-    ball.style.opacity = "1";
-  } else {
-    ball.style.opacity = "0";
+  const paddle1 = document.getElementById("paddle1");
+  const paddle2 = document.getElementById("paddle2");
+  const ball = document.getElementById("ball");
+  const score1 = document.getElementById("score1");
+  const score2 = document.getElementById("score2");
+
+  if (paddle1) paddle1.style.top = state.p1Y + "%";
+  if (paddle2) paddle2.style.top = state.p2Y + "%";
+  if (ball) {
+    if ("ballX" in state && "ballY" in state) {
+      ball.style.left = state.ballX + "%";
+      ball.style.top = state.ballY + "%";
+      ball.style.opacity = "1";
+    } else {
+      ball.style.opacity = "0";
+    }
   }
-  score1.textContent = state.s1.toString();
-  score2.textContent = state.s2.toString();
+  if (score1) score1.textContent = state.s1.toString();
+  if (score2) score2.textContent = state.s2.toString();
 }
 
-function showGameOver(winner: string) {
-  alert(`Game Over! Winner: ${winner}`);
-  window.location.hash = "intro";
-}
+
 
 export function leaveRemoteGame() {
+  isInValidGame = false; // Clear game state flag
   const socket = getSocket();
   if (currentRoomId) {
     socket?.send(JSON.stringify({ type: "game:leave", roomId: currentRoomId }));
@@ -257,4 +295,12 @@ export function leaveRemoteGame() {
   if (keyupHandler) document.removeEventListener("keyup", keyupHandler);
   keydownHandler = null;
   keyupHandler = null;
+
+  // Remove navigation listeners
+  const handlers = (window as any).gameNavigationHandlers;
+  if (handlers) {
+    window.removeEventListener('beforeunload', handlers.handleBeforeUnload);
+    window.removeEventListener('hashchange', handlers.handleHashChange);
+    delete (window as any).gameNavigationHandlers;
+  }
 }

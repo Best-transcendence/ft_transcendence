@@ -2,8 +2,8 @@
 import jwt from 'jsonwebtoken';
 import Vault from 'node-vault';
 import { WebSocket } from 'ws';
-import { registerRoomHandlers } from './rooms.js';
-import { registerGameHandlers } from './game.js';
+import { registerRoomHandlers, rooms } from './rooms.js';
+import { registerGameHandlers, saveRemoteMatch } from './game.js';
 import { createLogger, ErrorType } from '../utils/logger.js';
 
 const namesCache = new Map(); // userId(string) name
@@ -272,11 +272,15 @@ export async function registerWebsocketHandlers(wss, app) {
               direction: data.direction,
             });
             break;
-          case 'game:begin':
-            gameHandlers.handleGameBegin(ws, data);
-            break;
+           case 'game:begin':
+             gameHandlers.handleGameBegin(ws, data);
+             break;
 
-          case "lobby:leave":
+           case 'game:leave':
+             gameHandlers.handleGameLeave(ws, { ...data, roomId: String(data.roomId) });
+             break;
+
+           case "lobby:leave":
             lobbyUsers.delete(ws.user.id);
             broadcastLobby();
             break;
@@ -300,6 +304,45 @@ export async function registerWebsocketHandlers(wss, app) {
       lobbyUsers.delete(ws.user.id);
       const current = onlineUsers.get(String(ws.user.id));
       if (current === ws) onlineUsers.delete(String(ws.user.id));
+
+      // NEW: Handle game disconnection
+      if (ws.roomId) {
+        const room = rooms.get(ws.roomId);
+        if (room && room.state && room.state.active) {
+          // Clear game timers
+          if (room.loopId) clearInterval(room.loopId);
+          if (room.timerId) clearInterval(room.timerId);
+          room.loopId = null;
+          room.timerId = null;
+
+          // Find remaining player
+          const remainingPlayer = room.players.find(p => p !== ws);
+          if (remainingPlayer) {
+            // Declare remaining player as winner
+            const winner = room.players.indexOf(remainingPlayer) === 0 ? 'p1' : 'p2';
+
+            // Send game:end to remaining player
+            remainingPlayer.send(JSON.stringify({
+              type: 'game:end',
+              winner: winner
+            }));
+
+            // Save match result
+            const [p1, p2] = room.players;
+            const sortedPlayers = [p1, p2].sort((a, b) => b.user.id - a.user.id);
+            const [higherIdPlayer, lowerIdPlayer] = sortedPlayers;
+            const score1 = higherIdPlayer === p1 ? room.state.s1 : room.state.s2;
+            const score2 = higherIdPlayer === p1 ? room.state.s2 : room.state.s1;
+
+            // Note: saveRemoteMatch is async, but we don't await in close handler
+            saveRemoteMatch(app, higherIdPlayer, lowerIdPlayer, score1, score2);
+          }
+
+          // Clean up room
+          room.state.active = false;
+          rooms.delete(ws.roomId);
+        }
+      }
 
       broadcastLobby(); // update lists
       app.log.info({ userId: ws.user.id }, 'WS disconnected');
