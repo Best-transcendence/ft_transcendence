@@ -161,7 +161,7 @@ export function GamePongRemote(): string {
 
 		<!-- Time Up Overlay -->
 			<div id="timeUpOverlay"
-				class="absolute inset-0 z-10 hidden"
+				class="absolute inset-0 z-60 hidden"
 				style="border-radius: inherit;">
 			
 			<!-- background layer inside the game area -->
