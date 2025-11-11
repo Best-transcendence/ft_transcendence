@@ -265,7 +265,6 @@ export function setupAIOpponent() {
 		// --- GAME INITIALIZATION ---
 		// Create new game instance using singleton pattern
 		createAIGame(level);
-		gameInitialized = true;
 		console.log("=== NEW GAME STARTED ===");
 	}
 
