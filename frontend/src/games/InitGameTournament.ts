@@ -1,4 +1,3 @@
-import { thisUser } from "../router";
 import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
 import { registerTournamentGame } from "./GameController";

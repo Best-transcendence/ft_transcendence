@@ -1,5 +1,3 @@
-import { thisUser } from "../router";
-import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
 import { t } from "../services/lang/LangEngine";
 
@@ -12,7 +10,6 @@ let currentInstanceId = 0; // Track which instance is active
 
 // Overlay gating
 let modalActive = false;          // true when any blocking overlay is visible
-let allowKeyboardStart = true;    // only allow starting via Space when true
 
 function isVisible(el: HTMLElement | null): boolean {
   return !!el && !el.classList.contains("hidden");
@@ -295,33 +292,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		
 		console.log("Running after stop:", running);
 		console.log("=== GAME STOPPED ===");
-	}
-
-	/**
-	 * Resets the entire game to initial state
-	 * Stops the game, resets all scores and positions, and shows start button
-	 */
-	function resetGame() {
-		console.log("=== RESET GAME CALLED ===");
-		stopGame();
-		lastTime = 0;
-		globalScoreAI = 0;
-		globalScorePlayer = 0;
-		lastScorer = null;
-		ballScored = false;
-		score1.textContent = "0";
-		score2.textContent = "0";
-		p1Y = 37.5;
-		p2Y = 37.5;
-		ballX = 50;
-		ballY = 50;
-		ballVelX = 0;
-		ballVelY = 0;
-		p1Vel = 0;
-		p2Vel = 0;
-		startPress.classList.remove("hidden");
-		resetBall();
-		console.log("=== RESET GAME COMPLETE ===");
 	}
 
 	/**

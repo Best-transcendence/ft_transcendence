@@ -1,5 +1,3 @@
-// timer.ts
-import { MatchObject, saveMatch } from "../services/matchActions"
 export function TimerDisplay(): string {
   return `
     <div id="timer"

@@ -37,7 +37,7 @@ export function GamePongRemote(): string {
         break;
       }
 
-      case "game:ready":
+      case "game:ready": {
 		resetTimer(30);
 		const { players, playerIndex } = msg;
         currentPlayers = players;
@@ -51,19 +51,20 @@ export function GamePongRemote(): string {
           `);
         }
         break;
-
-      case "room:start":
+	}
+    
+	case "room:start": {
         initRemoteGame(msg.roomId);
         break;
+	}
 
-
-      case "game:start": {
+    case "game:start": {
         document.getElementById("startPress")?.remove();
 
         break;
-      }
+    }
 
-      case "game:timer":
+    case "game:timer": {
         // authoritative countdown from server
         const timerEl = document.getElementById("timer");
         if (timerEl) {
@@ -74,37 +75,39 @@ export function GamePongRemote(): string {
             .padStart(2, "0")}`;
         }
         break;
+	}
 
-      case "game:timeup":
+    case "game:timeup": {
         const overlay = document.getElementById("timeUpOverlay");
         if (overlay) {
-          overlay.classList.remove("hidden");
+			overlay.classList.remove("hidden");
 
-		 //block keyboard while overlay is up
-        modalActive = true;
+			//block keyboard while overlay is up
+			modalActive = true;
 
-        const textEl = document.getElementById("resultText");
-		if (textEl) {
-		const p1Name = currentPlayers[0]?.name ?? t("player1") ?? "Player 1";
-		const p2Name = currentPlayers[1]?.name ?? t("player2") ?? "Player 2";
-		const win = t("win") ?? " wins 🥇";
-		const tie = t("itsATie") ?? "It's a draw 🤝";
+			const textEl = document.getElementById("resultText");
+			if (textEl) {
+			const p1Name = currentPlayers[0]?.name ?? t("player1") ?? "Player 1";
+			const p2Name = currentPlayers[1]?.name ?? t("player2") ?? "Player 2";
+			const win = t("win") ?? " wins 🥇";
+			const tie = t("itsATie") ?? "It's a draw 🤝";
 
-		textEl.textContent =
-			msg.winner === "draw"
-			? tie
-			: msg.winner === "p1"
-			? `${p1Name}${win}`
-			: `${p2Name}${win}`;
+			textEl.textContent =
+				msg.winner === "draw"
+				? tie
+				: msg.winner === "p1"
+				? `${p1Name}${win}`
+				: `${p2Name}${win}`;
+			}
 		}
+	    break;
 	}
-    break;
 
-      case "game:update":
+    case "game:update":
         updateGameState(msg.state);
         break;
 
-      case "game:end":
+    case "game:end":
         showGameOver(msg.winner);
         break;
     }

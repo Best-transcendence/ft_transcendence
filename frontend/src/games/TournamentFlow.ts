@@ -6,9 +6,9 @@ import {
   createFourPlayerTournament,
   reportMatchResult,
 } from "../tournament/TournamentEngine";
-import { myName, ensureMeFirst } from "../tournament/utils"; // reuse shared helpers
+import { ensureMeFirst } from "../tournament/utils"; // reuse shared helpers
 import { resetTimer } from "../components/Timer";
-import { difficulty, resetDifficulty, getDisplayName } from "../tournament/InitTournamentLobby";
+import { resetDifficulty, getDisplayName } from "../tournament/InitTournamentLobby";
 import { t } from "../services/lang/LangEngine";
 import DOMPurify from "dompurify";
 
@@ -26,7 +26,6 @@ import DOMPurify from "dompurify";
 
 // Space-key overlay control (two-space flow: Space #1 hides overlay, Space #2
 // is handled inside the game module via window.beginTournamentRound?())
-let onSpaceStartRef: (() => void) | undefined; // kept for parity, not used elsewhere
 let spaceHandler: ((e: KeyboardEvent) => void) | null = null;  // Space key event handler
 let inTieBreaker = false;  // Flag to track if we're in a tie-breaker round
 let overlayModal = false;                     // champion overlay modal flag
@@ -45,11 +44,9 @@ function detachSpaceHandler() {
 /**
  * Attaches space key handler to capture space presses while overlay is visible
  * Implements two-space flow: Space #1 hides overlay, Space #2 starts the game
- * @param onSpaceStart - Optional callback for space start (stored but not used)
  */
-function attachSpaceToStart(onSpaceStart?: () => void) {
+function attachSpaceToStart() {
    if (overlayModal) return;
-  if (onSpaceStart) onSpaceStartRef = onSpaceStart; // stored for parity, not invoked here
 
   detachSpaceHandler();
   spaceHandler = (e: KeyboardEvent) => {
@@ -114,7 +111,7 @@ function mountOverlay() {
     const wrongParent = overlay.parentElement !== gameWin;
     const detached = !overlay.isConnected;
     if (wrongParent || detached) {
-      try { overlay.remove(); } catch {}
+      try { overlay.remove(); } catch (err) { }
       overlay = null;
       nameLeftEl = nameRightEl = roundLabelEl = championEl = null;
     }
@@ -295,7 +292,7 @@ function labelFor(m: Match, mode: "2" | "4"): string {
  * @param winnerId - ID of the winning player
  * @param winnerName - Name of the winning player (for 2-player tournaments)
  */
-function acceptGameResultWithPlayer(winnerId: string, winnerName: string) {
+function acceptGameResultWithPlayer(winnerId: string) {
   if (!bracket || !currentMatch) return;
 
   const seed = loadSeed()!;
@@ -410,9 +407,8 @@ function acceptGameResult(winnerName: string) {
 /**
  * Initializes the tournament flow system
  * Creates tournament bracket, sets up event handlers, and displays first match
- * @param onSpaceStart - Optional callback for space start events
  */
-export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void } = {}) {
+export function bootTournamentFlow() {
   teardownTournamentFlow();   // Start fresh every time
   inTieBreaker = false;
 
@@ -559,7 +555,7 @@ export function teardownTournamentFlow() {
   overlay = null;
   nameLeftEl = nameRightEl = roundLabelEl = championEl = null;
 
-overlayModal = false;
+  overlayModal = false;
   (window as any).tournamentOverlayModal = false;
 
   // Clear global hooks so a new session starts clean

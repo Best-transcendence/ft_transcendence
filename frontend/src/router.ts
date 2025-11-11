@@ -145,9 +145,6 @@ export function router() {
 
   const page = route || "login"; // Default to login page if no route specified
 
-  // Parse query parameters for route-specific data
-  const params = new URLSearchParams(query || "");
-
   // Skip routing for asset requests (CSS, JS, images, etc.)
   if (window.location.pathname.startsWith("/assets/")) return;
 

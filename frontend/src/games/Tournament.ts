@@ -2,7 +2,7 @@ import { addTheme } from "../components/Theme"
 import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
-import { TimerDisplay, startTimer } from "../components/Timer";
+import { TimerDisplay } from "../components/Timer";
 import { t } from "../services/lang/LangEngine"
 
 /**

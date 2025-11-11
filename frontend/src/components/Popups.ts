@@ -80,7 +80,7 @@ function initInputPopup(action: string, popup: HTMLElement, config: any)
 {
 	switch (action)
 	{
-		case "save":
+		case "save": {
 			const input = popup.querySelector("input") as HTMLInputElement;
 			const v = input.value.trim();
 
@@ -106,9 +106,11 @@ function initInputPopup(action: string, popup: HTMLElement, config: any)
 			else if (config.buttonId == "edit-bio-button")
 				editBio(input.value);
 			break;
+		}
 
-		case "cancel":
+		case "cancel": {
 			break;
+		}
 	}
 }
 
@@ -131,7 +133,7 @@ function initProfilePopup(action: any)
 }
 
 // Confirm/cancel popup
-function initConfirmPopup(action: any, popup: HTMLElement)
+function initConfirmPopup(action: any)
 {
 	const clickedButton = document.querySelector('[id^="friend-button--"]:focus')
 						|| document.querySelector('[id^="friend-button--"]'); // Retrieves the friend id
@@ -146,6 +148,7 @@ function initConfirmPopup(action: any, popup: HTMLElement)
 	{
 		case "confirm":
 			removeFriend(friendId);
+			break;
 
 		case "cancel":
 			break;

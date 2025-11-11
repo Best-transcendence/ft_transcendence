@@ -16,8 +16,8 @@ import { addTheme } from "../components/Theme"
 import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
-import { TimerDisplay, startTimer, resetTimer } from "../components/Timer";
-import { createAIGame, destroyAIGame, isGameRunning } from "./AIGameController";
+import { TimerDisplay, resetTimer } from "../components/Timer";
+import { createAIGame, destroyAIGame } from "./AIGameController";
 import { t } from "../services/lang/LangEngine"; // ✅
 
 /**
@@ -185,19 +185,6 @@ export function GamePongAIOpponent(): string {
 	</div>
 	`;
 }
-
-// --- GLOBAL STATE VARIABLES ---
-/**
- * Currently selected difficulty level
- * Used to track which difficulty was chosen for the current game session
- */
-let currentDifficulty: "easy" | "medium" | "hard" = "medium";
-
-/**
- * Flag indicating whether a game has been initialized
- * Used to prevent multiple game initializations and manage state transitions
- */
-let gameInitialized = false;
 
 /**
  * Sets up the AI opponent game interface and event handlers
