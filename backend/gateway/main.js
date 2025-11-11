@@ -180,6 +180,20 @@ await app.register(fastifySwaggerUI, {
     swaggerObject.host = hostname;
     swaggerObject.schemes = ['https'];
     
+    // Set basePath for reverse proxy (WAF routes /api/ to gateway)
+    // Check X-Forwarded-Prefix header or Referer to determine base path
+    const forwardedPrefix = request?.headers?.['x-forwarded-prefix'];
+    const referer = request?.headers?.referer || '';
+    let basePath = '';
+    
+    if (forwardedPrefix) {
+      basePath = forwardedPrefix;
+    } else if (referer.includes('/api/')) {
+      basePath = '/api';
+    }
+    
+    swaggerObject.basePath = basePath;
+    
     // Remove the default tag and its routes
     if (swaggerObject.tags) {
       swaggerObject.tags = swaggerObject.tags.filter(tag => tag.name !== 'default');
