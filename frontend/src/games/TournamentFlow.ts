@@ -221,8 +221,7 @@ function showChampion(name: string) {
       <div class="text-xl text-emerald-300 font-semibold mb-6">${t("champion")}: ${name}</div>
 
         <button id="btn-back-arcade"
-          class="px-5 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-100
-                 border border-white/10">
+			class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
           ${t("backToArcade")}
         </button>
       </div>

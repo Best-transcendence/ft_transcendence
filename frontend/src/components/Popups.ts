@@ -82,8 +82,24 @@ function initInputPopup(action: string, popup: HTMLElement, config: any)
 	{
 		case "save":
 			const input = popup.querySelector("input") as HTMLInputElement;
-			if (input.value.trim() == "")
+			const v = input.value.trim();
+
+			if (v === "")
 				return;
+	
+			if (config.buttonId === "edit-name-button") {
+				if (!/^[a-z0-9._-]+$/.test(v)) {
+					alert("Username can only use: a–z, 0–9, _, -, . (lowercase only)");
+					return;
+				}
+			}
+
+			if (config.buttonId === "edit-bio-button") {
+				if (v.length > 100) {
+					alert("Bio must be at most 100 characters.");
+					return;
+				}
+			}
 
 			if (config.buttonId == "edit-name-button")
 				editName(input.value);
