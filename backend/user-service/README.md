@@ -17,13 +17,7 @@ npm install
 
 ### Database Setup
 ```bash
-# Generate Prisma client
-npx prisma generate
-
-# Run migrations
-npx prisma migrate dev --name init
-
-# Seed the database
+# Seed the database (creates database and tables automatically)
 npm run seed
 ```
 
@@ -106,37 +100,53 @@ Check if the service is running.
 
 ## 🗃️ Database Schema
 
-```prisma
-model UserProfile {
-  id          Int      @id @default(autoincrement())
-  authUserId  Int      @unique  // References auth-service user ID
-  name        String   // Duplicated from auth-service for performance
-  email       String   // Duplicated from auth-service for performance
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Profile information
-  profilePicture String?  // URL to profile picture
-  bio           String?   // User bio/description
-  
-  // Friends relationships (many-to-many)
-  friends       UserProfile[] @relation("UserFriends")
-  friendOf      UserProfile[] @relation("UserFriends")
-  
-  // Game data
-  matchHistory  Json?     // Game match history (empty object initially)
-  stats         Json?     // User statistics (empty object initially)
-}
+The service uses SQLite with the following schema:
+
+```sql
+CREATE TABLE UserProfile (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  authUserId INTEGER UNIQUE NOT NULL,  -- References auth-service user ID
+  name TEXT UNIQUE NOT NULL,           -- Duplicated from auth-service for performance
+  email TEXT NOT NULL,                 -- Duplicated from auth-service for performance
+  profilePicture TEXT DEFAULT '/assets/default-avatar.jpeg',
+  bio TEXT DEFAULT 'Hi, I''m playing Arcade Clash',
+  createdAt TEXT DEFAULT (datetime('now')),
+  updatedAt TEXT DEFAULT (datetime('now'))
+);
+
+-- Join table for many-to-many friends relationship
+CREATE TABLE _UserFriends (
+  userProfileId INTEGER NOT NULL,
+  friendId INTEGER NOT NULL,
+  PRIMARY KEY (userProfileId, friendId),
+  FOREIGN KEY (userProfileId) REFERENCES UserProfile(id) ON DELETE CASCADE,
+  FOREIGN KEY (friendId) REFERENCES UserProfile(id) ON DELETE CASCADE
+);
+
+-- Match table
+CREATE TABLE Match (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,
+  date TEXT DEFAULT (datetime('now')),
+  player1Id INTEGER,
+  player2Id INTEGER,
+  winnerId INTEGER,
+  player1Score INTEGER NOT NULL,
+  player2Score INTEGER NOT NULL,
+  FOREIGN KEY (player1Id) REFERENCES UserProfile(id),
+  FOREIGN KEY (player2Id) REFERENCES UserProfile(id),
+  FOREIGN KEY (winnerId) REFERENCES UserProfile(id)
+);
 ```
 
 ## 🔧 Environment Variables
 
 ```bash
-# Database
-USER_DATABASE_URL="file:./prisma/user.db"
+# Database (SQLite file path)
+USER_DATABASE_URL="file:./data/user.db"
 
 # JWT (shared with auth-service)
-JWT_SECRET="your-jwt-secret"
+JWT_SECRET= fetched from `vault-service`
 
 # Service
 USER_SERVICE_PORT=3002
@@ -227,25 +237,25 @@ async function testUserService() {
         password: 'q'
       })
     });
-    
+
     const { token } = await loginResponse.json();
     console.log('✅ Login successful, token:', token);
-    
+
     // Step 2: Get public profiles
     const profilesResponse = await fetch('http://localhost:3002/users');
     const profiles = await profilesResponse.json();
     console.log('✅ Public profiles:', profiles);
-    
+
     // Step 3: Get my profile
     const myProfileResponse = await fetch('http://localhost:3002/users/me', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const myProfile = await myProfileResponse.json();
     console.log('✅ My profile:', myProfile);
-    
+
   } catch (error) {
     console.error('❌ Test failed:', error);
   }
@@ -289,9 +299,7 @@ This service is part of a microservices architecture:
 
 - `npm run dev` - Start development server
 - `npm run start` - Start production server
-- `npm run seed` - Seed the database with test data
-- `npm run prisma:generate` - Generate Prisma client
-- `npm run prisma:migrate` - Run database migrations
+- `npm run seed` - Seed the database with test data (creates DB and tables if needed)
 
 ## 🔒 Security Notes
 
@@ -315,7 +323,7 @@ This service is part of a microservices architecture:
    - Check if authUserId in token matches existing profile
 
 3. **Database Connection Error:**
-   - Run `npx prisma migrate dev --name init`
+   - Run `npm run seed` to create database and tables
    - Check USER_DATABASE_URL in .env file
 
 4. **Service Not Starting:**

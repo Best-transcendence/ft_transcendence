@@ -1,6 +1,7 @@
 import { thisUser } from "../router";
 import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
+import { t } from "../services/lang/LangEngine";
 
 // Global variables for scores and game state
 let globalScoreAI = 0;
@@ -8,6 +9,14 @@ let globalScorePlayer = 0;
 let globalAnimationFrameId: number | null = null;
 let globalGameRunning = false;
 let currentInstanceId = 0; // Track which instance is active
+
+// Overlay gating
+let modalActive = false;          // true when any blocking overlay is visible
+let allowKeyboardStart = true;    // only allow starting via Space when true
+
+function isVisible(el: HTMLElement | null): boolean {
+  return !!el && !el.classList.contains("hidden");
+}
 
 /*
  * AI Opponent Implementation
@@ -130,11 +139,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	const score2 = $("score2"); // Player score display
 	const startPress = $("startPress"); // Start game button
 
-	// Audio elements for sound effects
-	const paddleSfx = $("paddleSound") as HTMLAudioElement;
-	const wallSfx = $("wallSound") as HTMLAudioElement;
-	const lossSfx = $("lossSound") as HTMLAudioElement;
-
 	// --- GAME CONSTANTS ---
 	// Field dimensions and object sizes (matches CSS percentages)
 	const FIELD = 100; // Field width/height in percentage
@@ -171,7 +175,7 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 	let p1Up = false, p1Down = false, p2Up = false, p2Down = false;
 
 	// --- AI FSM: periodic view (1Hz) ---
-	aiIntervalId = setInterval(() => {
+	aiIntervalId = window.setInterval(() => {
 		// Only run if this is still the active instance
 		if (myInstanceId !== currentInstanceId) return;
 		if (!aiEnabled || !running) return;
@@ -191,13 +195,16 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		if (overlay) {
 			// Determine winner based on final scores
 			if (globalScoreAI > globalScorePlayer) {
-				winnerText!.textContent = "AI won 🤖";
+				winnerText!.textContent = t("aiWon");
 			} else if (globalScorePlayer > globalScoreAI) {
-				winnerText!.textContent = "You won 🥇";
+				winnerText!.textContent = t("youWon");
 			} else {
-				winnerText!.textContent = "It's a tie! 🤝";
+				winnerText!.textContent = t("itsATie");
 			}
 			overlay.classList.remove("hidden");
+		    // block keyboard while overlay is up
+			modalActive = true;
+            allowKeyboardStart = false;
 		}
 	}
 
@@ -205,10 +212,24 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 
 	const overlayExit = document.getElementById("overlayExit");
 	overlayExit?.addEventListener("click", () => {
-		window.location.hash = "intro";
+		  const overlay = document.getElementById("timeUpOverlay");
+          overlay?.classList.add("hidden");
+          modalActive = false;
+          allowKeyboardStart = true;
+
+		 window.location.hash = "intro";
 	});
 
 	document.addEventListener("keydown", (e) => {
+		// If overlay is visible, swallow Space so it can't restart anything
+		const timeUp = document.getElementById("timeUpOverlay");
+		if (modalActive || isVisible(timeUp)) {
+			if (e.code === "Space") {
+			e.preventDefault();
+			e.stopPropagation();
+			}
+		return; // don't process movement keys either while modal is active
+		}
 		if (e.code === "Space" && !running) {
 			startTimer(aiLevel.gameTime);
 			startGame();
@@ -428,13 +449,11 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		if (ballY <= 0) {
 			ballY = 0; // Prevent ball from going above field
 			ballVelY *= -1; // Reverse vertical velocity
-			//playSound(wallSfx);
 		} 
 		// Bottom wall collision (accounting for ball height)
 		else if (ballY >= FIELD - BALL_H) {
 			ballY = FIELD - BALL_H; // Prevent ball from going below field
 			ballVelY *= -1; // Reverse vertical velocity
-			//playSound(wallSfx);
 		}
 
 		// --- PADDLE COLLISION DETECTION ---
@@ -449,7 +468,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		) {
 			ballX = PADDLE_W; // Resolve penetration by placing ball at paddle edge
 			ballVelX *= -1; // Reverse horizontal velocity
-			//playSound(paddleSfx);
 		}
 
 		// Right paddle (Player) collision
@@ -463,7 +481,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		) {
 			ballX = FIELD - PADDLE_W - BALL_W; // Resolve penetration
 			ballVelX *= -1; // Reverse horizontal velocity
-			//playSound(paddleSfx);
 		}
 	}
 
@@ -506,7 +523,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 			globalScorePlayer++; // Player scores because AI missed
 			score2.textContent = globalScorePlayer.toString();
 			lastScorer = "player"; // Track who scored for next serve direction
-			//playSound(lossSfx);
 			resetBall();
 		} 
 		// Right side - ball exits right, Player (right paddle) missed, so AI scores
@@ -515,7 +531,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 			globalScoreAI++; // AI scores because Player missed
 			score1.textContent = globalScoreAI.toString();
 			lastScorer = "ai"; // Track who scored for next serve direction
-			//playSound(lossSfx);
 			resetBall();
 		}
 	}
@@ -623,12 +638,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		}
 	}
 	// --- END AI FSM ---
-
-// TODO fix playsound function or delete from everywhere
-//   function playSound(audio: HTMLAudioElement) {
-//     audio.currentTime = 0;
-//     audio.play();
-//   }
 
 	/**
 	 * Utility function to clamp a value between min and max

@@ -1,5 +1,33 @@
 services:
   # =============================================================================
+  # Vault (dev) - HashiCorp Vault server
+  # =============================================================================
+  vault-service:
+    image: hashicorp/vault:1.14.0
+    container_name: vault_service
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "8200:8200"
+    env_file:
+      - .env
+    environment:
+    - VAULT_TOKEN=${VAULT_TOKEN:-}
+    volumes:
+      - ./vault:/vault/config
+      - ./vault/data:/vault/file
+    command:
+      - "server"
+    restart: unless-stopped
+    networks:
+      - ft_transcendence_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sSf http://127.0.0.1:8200/v1/sys/health || exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  # =============================================================================
   # BACKEND SERVICES
   # =============================================================================
 
@@ -15,13 +43,15 @@ services:
       - USER_SERVICE_PORT=${USER_SERVICE_PORT}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
       - USER_DATABASE_URL=${USER_DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
-    ports:
-      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
+      - VAULT_TOKEN=${VAULT_TOKEN:-}
+    expose:
+      - "${USER_SERVICE_PORT}"
     volumes:
       - user_data:/app/data
+    depends_on:
+      vault-service:
+        condition: service_healthy
     networks:
       - ft_transcendence_network
     restart: unless-stopped
@@ -45,14 +75,15 @@ services:
       - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
       - AUTH_DATABASE_URL=${AUTH_DATABASE_URL}
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
-    ports:
-      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
+      - VAULT_TOKEN=${VAULT_TOKEN:-}
+    expose:
+      - "${AUTH_SERVICE_PORT}"
     volumes:
       - auth_data:/app/data
     depends_on:
+      vault-service:
+        condition: service_healthy
       user-service:
         condition: service_healthy
     networks:
@@ -79,12 +110,13 @@ services:
       - AUTH_SERVICE_URL=http://auth_service:${AUTH_SERVICE_PORT}
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
       - WS_SERVICE_URL=http://ws_service:${WS_PORT}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
-    ports:
-      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+      - VAULT_TOKEN=${VAULT_TOKEN:-}
+    expose:
+      - "${GATEWAY_PORT}"
     depends_on:
+      vault-service:
+        condition: service_healthy
       auth-service:
         condition: service_healthy
       user-service:
@@ -114,12 +146,13 @@ services:
       - GATEWAY_URL=http://gateway_service:${GATEWAY_PORT}
       - AUTH_SERVICE_URL=http://auth_service:${AUTH_SERVICE_PORT}
       - USER_SERVICE_URL=http://user_service:${USER_SERVICE_PORT}
-      - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=${NODE_ENV}
-      # TODO: Move JWT_SECRET and other sensitive values to Docker secrets for production
-    ports:
-      - "${WS_PORT}:${WS_PORT}"
+      - VAULT_TOKEN=${VAULT_TOKEN:-}
+    expose:
+      - "${WS_PORT}"
     depends_on:
+      vault-service:
+        condition: service_healthy
       auth-service:
         condition: service_healthy
       user-service:
@@ -137,6 +170,132 @@ services:
       start_period: 40s
 
   # =============================================================================
+  # ELK STACK SERVICES
+  # =============================================================================
+
+  # Elasticsearch - Log storage and indexing
+  elasticsearch:
+    image: elasticsearch:7.17.9
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - xpack.license.self_generated.type=basic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - ft_transcendence_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -u elastic:${ELASTIC_PASSWORD:-changeme} -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Logstash - Log processing and transformation
+  logstash:
+    image: logstash:7.17.9
+    container_name: logstash
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - XPACK_MONITORING_ENABLED=false
+      - ELASTICSEARCH_USER=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+    ports:
+      - "${LOGSTASH_PORT:-5044}:5044"
+    volumes:
+      - ./backend/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - logstash_data:/usr/share/logstash/data
+    networks:
+      - ft_transcendence_network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Filebeat - Log collection from Docker containers
+  filebeat:
+    image: elastic/filebeat:7.17.9
+    container_name: filebeat
+    user: root
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+    volumes:
+      - ./backend/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - ft_transcendence_network
+    depends_on:
+      logstash:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f filebeat || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Kibana - Log visualization and dashboards
+  kibana:
+    image: kibana:7.17.9
+    container_name: kibana
+    ports:
+      - "${KIBANA_PORT:-5601}:5601"
+    networks:
+      - ft_transcendence_network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      # Mount Kibana configuration file
+      - ./backend/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+      # Mount folder with setup-script and dashboard-export
+      - ./backend/kibana:/usr/share/kibana/elk-setup
+      # (this folder will contain elk-setup.sh, dashboard-import-with-id.ndjson, ilm-policy.json)
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -u elastic:${ELASTIC_PASSWORD:-changeme} -f http://localhost:5601/kibana/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Kibana Setup - Automatically creates index patterns and imports dashboards
+  kibana-setup:
+    image: curlimages/curl:latest
+    container_name: kibana_setup
+    networks:
+      - ft_transcendence_network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    volumes:
+      - ./backend/kibana:/elk-setup:ro
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+    entrypoint: ["/bin/sh"]
+    command: ["/elk-setup/elk-setup.sh"]
+    restart: "no"
+
+
+  # =============================================================================
   # FRONTEND SERVICE
   # =============================================================================
 
@@ -152,8 +311,8 @@ services:
       - .env
     environment:
       - FRONTEND_PORT=${FRONTEND_PORT}
-    ports:
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    expose:
+      - "${FRONTEND_PORT}"
     depends_on:
       gateway-service:
         condition: service_healthy
@@ -168,6 +327,42 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+# =============================================================================
+  # PROXY SERVICE
+ # =============================================================================
+  waf:
+    build:
+      context: ./waf
+      dockerfile: Dockerfile
+    container_name: waf_service
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - .env
+    environment:
+      VAULT_ADDR: http://vault-service:8200
+      VAULT_TOKEN: ${VAULT_TOKEN:-}
+    volumes:
+      - ./waf/modsec_logs:/var/log/modsec
+      - ./waf/nginx_logs:/var/log/nginx
+      - ./waf/nginx.conf:/etc/nginx/templates/conf.d/default.conf.template:ro
+      - ./waf/modsecurity.conf:/etc/nginx/templates/modsecurity.d/setup.conf.template:ro
+      - ./waf/crs:/etc/nginx/modsec/crs:ro
+      - ./waf/exception-rules.conf:/etc/nginx/modsec/exception-rules.conf:ro
+    depends_on:
+      vault-service:
+        condition: service_healthy
+      gateway-service:
+        condition: service_healthy
+      ws-service:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      - ft_transcendence_network
+    restart: unless-stopped
 
 # =============================================================================
 # NETWORKS
@@ -186,4 +381,8 @@ volumes:
   user_data:
     driver: local
   auth_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  logstash_data:
     driver: local

@@ -1,0 +1,23 @@
+# Basic ModSecurity config
+SecRuleEngine DetectionOnly # -> only logs, doesn't block. TODO (Camille) change to SecRuleEngine On for final version
+SecRequestBodyAccess On 	# -> allows ModSecurity to inspect HTTP requests bodies
+
+SecAuditEngine RelevantOnly # -> only log actions that triggered rules
+SecAuditLog /var/log/modsec_audit.log # -> path to audit log file
+SecAuditLogParts ABIJDEFHZ # -> what sections are shown in log
+# A = audit log header
+# B = request headers
+# I = request body
+# J = response headers
+# D = response body
+# E = engine details
+# F = final actions
+# H = response headers (again, optional depending on config)
+# Z = end of log marker
+
+# Include Core Rule Set
+Include /etc/nginx/modsec/crs/crs-setup.conf # OWASP CRS
+Include /etc/nginx/modsec/crs/rules/*.conf # Custom CRS
+
+# Custom overrides
+Include /etc/nginx/modsec/exception-rules.conf

@@ -1,28 +1,24 @@
 import Fastify from 'fastify';
-// import dotenv from 'dotenv';
 import './env.js';
-import prismaPlugin from './plugins/prisma.js';
+import databasePlugin from './plugins/database.js';
 import userRoutes from './routes/users.js';
 import fastifyJwt from '@fastify/jwt';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUI from '@fastify/swagger-ui';
 import fastifyCors from '@fastify/cors';
-
-// Load environment variables from local .env file
-// dotenv.config();
+import Vault from 'node-vault';
 
 // Create Fastify server instance with logging
 const app = Fastify({
   logger: true,
   ajv: false,
+  trustProxy: false, // Don't trust proxy headers, always use HTTP
   // Critical fix — keep full objects in responses
   serializerOpts: {
     removeAdditional: false,
     skipNull: false
   }
 });
-
-
 
 // Register Swagger for API documentation
 await app.register(fastifySwagger, {
@@ -32,8 +28,8 @@ await app.register(fastifySwagger, {
       description: 'User management microservice for ft_transcendence - handles user profiles, friends, and statistics',
       version: '1.0.0',
     },
-    // We clean the URL from the protocol to avoid issues with Swagger UI
-    host: (process.env.USER_SERVICE_URL || 'localhost:3002').replace(/^https?:\/\//, ''),
+    // Swagger will auto-detect host from request
+    // Schemes allowed for API calls
     schemes: ['http'],
     consumes: ['application/json'],
     produces: ['application/json'],
@@ -58,27 +54,97 @@ await app.register(fastifySwaggerUI, {
     docExpansion: 'full',
     deepLinking: false,
   },
-  staticCSP: true,
+  staticCSP: {
+    'default-src': ['\'self\''],
+    'script-src': ['\'self\'', '\'unsafe-inline\'', '\'unsafe-eval\''],
+    'style-src': ['\'self\'', '\'unsafe-inline\''],
+    'img-src': ['\'self\'', 'data:', 'https:'],
+    'font-src': ['\'self\'', 'data:'],
+    // Explicitly allow HTTP (no upgrade-insecure-requests)
+  },
   transformSpecificationClone: true,
+  transformSpecification: (swaggerObject, request, _reply) => {
+    // Dynamically set host from request, always use HTTP
+    const host = request.headers.host || 'localhost:3002';
+    swaggerObject.host = host;
+    swaggerObject.schemes = ['http']; // Force HTTP since we don't use HTTPS
+    // Ensure basePath is set correctly
+    if (!swaggerObject.basePath) {
+      swaggerObject.basePath = '';
+    }
+    return swaggerObject;
+  },
 });
 
 // Register CORS plugin
+// Build origin array to support both localhost and LAN_IP with HTTP and HTTPS
+const buildOrigins = () => {
+  const origins = [];
+  const lanIp = process.env.LAN_IP;
+  const frontendPort = process.env.FRONTEND_PORT || 3000;
+  const gatewayPort = process.env.GATEWAY_PORT || 3003;
+  const authServicePort = process.env.AUTH_SERVICE_PORT || 3001;
+  
+  // Add localhost origins (HTTP and HTTPS)
+  origins.push(`http://localhost:${frontendPort}`);
+  origins.push(`https://localhost:${frontendPort}`);
+  origins.push(`http://localhost:${gatewayPort}`);
+  origins.push(`https://localhost:${gatewayPort}`);
+  origins.push(`http://localhost:${authServicePort}`);
+  origins.push(`https://localhost:${authServicePort}`);
+  
+  // Add LAN_IP origins if set (HTTP and HTTPS)
+  if (lanIp) {
+    origins.push(`http://${lanIp}:${frontendPort}`);
+    origins.push(`https://${lanIp}:${frontendPort}`);
+    origins.push(`http://${lanIp}:${gatewayPort}`);
+    origins.push(`https://${lanIp}:${gatewayPort}`);
+    origins.push(`http://${lanIp}:${authServicePort}`);
+    origins.push(`https://${lanIp}:${authServicePort}`);
+  }
+  
+  // Also add any explicit URLs from env if they differ
+  if (process.env.FRONTEND_URL && !origins.includes(process.env.FRONTEND_URL)) {
+    origins.push(process.env.FRONTEND_URL);
+  }
+  if (process.env.GATEWAY_URL && !origins.includes(process.env.GATEWAY_URL)) {
+    origins.push(process.env.GATEWAY_URL);
+  }
+  if (process.env.AUTH_SERVICE_URL && !origins.includes(process.env.AUTH_SERVICE_URL)) {
+    origins.push(process.env.AUTH_SERVICE_URL);
+  }
+  
+  return origins;
+};
+
 await app.register(fastifyCors, {
-  origin: [
-    'http://localhost:3000',  // Frontend
-    'http://localhost:3003',  // Gateway
-    'http://localhost:3001'   // Auth service
-  ],
+  origin: buildOrigins(),
   credentials: true
 });
 
 // Register JWT plugin for token validation (shared secret with auth-service)
-await app.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET || 'super-secret-pass',
-});
+// Register JWT plugin for token generation and verification
+const vault = Vault(
+  {
+    endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
+    token: process.env.VAULT_TOKEN
+  });
 
-// Register Prisma plugin to connect to user database
-app.register(prismaPlugin);
+let jwtSecret;
+try
+{
+  const secret = await vault.read('secret/data/jwt');
+  jwtSecret = secret.data.data.JWT_SECRET;
+}
+catch (err)
+{
+  console.error('Failed to read JWT secret from Vault:', err);
+  process.exit(1);
+}
+await app.register(fastifyJwt, { secret: jwtSecret });
+
+// Register database plugin to connect to user database
+app.register(databasePlugin);
 
 // Register user routes with /users prefix
 app.register(userRoutes, { prefix: '/users' });

@@ -1,9 +1,9 @@
 /**
  * AI Opponent Game Module
- * 
+ *
  * This module handles the UI and user interaction for the AI opponent Pong game.
  * It provides the HTML template, difficulty selection, and game lifecycle management.
- * 
+ *
  * Key features:
  * - Difficulty selection overlay (Easy, Medium, Hard)
  * - Game timer integration
@@ -18,19 +18,18 @@ import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { TimerDisplay, startTimer, resetTimer } from "../components/Timer";
 import { createAIGame, destroyAIGame, isGameRunning } from "./AIGameController";
-import { t } from "../i18n/lang"; // ✅
-import { LanguageSwitcher, setupLanguageSwitcher } from "../i18n/LanguageSwitcher";
+import { t } from "../services/lang/LangEngine"; // ✅
 
 /**
  * Generates the HTML template for the AI opponent game page
- * 
+ *
  * Creates a complete game interface with:
  * - Arcade machine background
  * - Game window with paddles, ball, and scores
  * - Difficulty selection overlay
  * - Time up overlay for game end
  * - Audio elements for sound effects
- * 
+ *
  * @returns HTML string for the game page
  */
 export function GamePongAIOpponent(): string {
@@ -48,9 +47,8 @@ export function GamePongAIOpponent(): string {
 		<!-- Protected pages components -->
 		${ profileDivDisplay() }
 		${ sidebarDisplay() }
-        <!-- Group Language and Logout on the right -->
+        <!-- Group and Logout on the right -->
         <div class="flex gap-2 items-center">
-            ${LanguageSwitcher()}
              ${LogOutBtnDisplay()}
         </div>
      </div>
@@ -131,10 +129,6 @@ export function GamePongAIOpponent(): string {
 
 			<!-- Action buttons -->
 			<div class="flex gap-4">
-				<button id="playAgain"
-						class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-purple-600 hover:bg-purple-700">
-				 ${t("playAgain")}
-				</button>
 				<button id="overlayExit"
 						class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-gray-600 hover:bg-gray-700">
 				 ${t("backToArcade")} 
@@ -144,7 +138,7 @@ export function GamePongAIOpponent(): string {
 		</div>
 
 		<!-- GAME ELEMENTS -->
-		
+
 		<!-- Center net dividing the field -->
 		<div class="absolute border-r-[0.8vw] border-dotted border-[rgba(255,255,255,0.3)]
 		h-[96%] top-[2%] left-[calc(50%-0.4vw)]"></div>
@@ -212,7 +206,7 @@ let gameInitialized = false;
 
 /**
  * Sets up the AI opponent game interface and event handlers
- * 
+ *
  * This function is called when the AI opponent page is loaded and handles:
  * - DOM element references
  * - Event listener setup for difficulty selection
@@ -223,21 +217,18 @@ let gameInitialized = false;
 export function setupAIOpponent() {
 	console.log("Setting up AI opponent game");
 	
-	setupLanguageSwitcher();
-
 	// --- DOM ELEMENT REFERENCES ---
 	// Get references to all interactive elements
 	const difficultyOverlay = document.getElementById("difficultySelectionOverlay");
 	const timeUpOverlay = document.getElementById("timeUpOverlay");
 	const startPress = document.getElementById("startPress");
 	const keyboardHint = document.getElementById("keyboardHintAI");
-	
+
 	// Difficulty selection buttons
 	const btnEasy = document.getElementById("btnEasy");
 	const btnMedium = document.getElementById("btnMedium");
 	const btnHard = document.getElementById("btnHard");
 	const backToIntro = document.getElementById("backToIntro");
-	const playAgain = document.getElementById("playAgain");
 	const overlayExit = document.getElementById("overlayExit");
 
 	// --- INITIAL UI STATE ---
@@ -253,26 +244,29 @@ export function setupAIOpponent() {
 	// Initialize timer with medium difficulty (default) instead of hardcoded 1:30
 	resetTimer(30);
 
+	// Initialize timer with medium difficulty (default) instead of hardcoded 1:30
+	resetTimer(30);
+
 	// --- DIFFICULTY SELECTION HANDLER ---
 	/**
 	 * Handles difficulty selection and game initialization
-	 * 
+	 *
 	 * @param level - Selected difficulty level ("easy", "medium", or "hard")
 	 */
 	function selectDifficulty(level: "easy" | "medium" | "hard") {
 		console.log("=== DIFFICULTY SELECTED ===", level);
 		currentDifficulty = level;
-		
+
 		// --- GAME CLEANUP ---
 		// Destroy any existing game to prevent conflicts
 		destroyAIGame();
-		
+
 		// --- UI STATE TRANSITION ---
 		// Hide difficulty selection overlay
 		if (difficultyOverlay) {
 			difficultyOverlay.classList.add("hidden");
 		}
-		
+
 		// Show game interface elements
 		if (startPress) {
 			startPress.classList.remove("hidden");
@@ -280,13 +274,13 @@ export function setupAIOpponent() {
 		if (keyboardHint) {
 			keyboardHint.classList.remove("hidden");
 		}
-		
+
 		// --- TIMER SETUP ---
 		// Set timer duration based on difficulty level
 		const difficultyTimes = { easy: 40, medium: 30, hard: 20 };
 		const duration = difficultyTimes[level];
 		resetTimer(duration);
-		
+
 		// --- GAME INITIALIZATION ---
 		// Create new game instance using singleton pattern
 		createAIGame(level);
@@ -303,67 +297,6 @@ export function setupAIOpponent() {
 	// Navigation back to main menu
 	backToIntro?.addEventListener("click", () => {
 		window.location.hash = "intro";
-	});
-
-	// --- PLAY AGAIN HANDLER ---
-	/**
-	 * Handles the "Play Again" button click
-	 * Resets the game state and returns to difficulty selection
-	 */
-	playAgain?.addEventListener("click", () => {
-		console.log("=== PLAY AGAIN CLICKED ===");
-		
-		// --- GAME CLEANUP ---
-		// Destroy any existing game instance
-		destroyAIGame();
-		
-		// Hide time up overlay
-		if (timeUpOverlay) {
-			timeUpOverlay.classList.add("hidden");
-		}
-		
-		// --- STATE RESET ---
-		// Reset game initialization flag
-		gameInitialized = false;
-		console.log("Game state reset, gameInitialized:", gameInitialized);
-		
-		// --- VISUAL ELEMENT RESET ---
-		// Reset all game elements to initial positions and scores
-		const score1 = document.getElementById("score1");
-		const score2 = document.getElementById("score2");
-		const ball = document.getElementById("ball");
-		const paddle1 = document.getElementById("paddle1");
-		const paddle2 = document.getElementById("paddle2");
-		
-		console.log("Resetting visual elements");
-		if (score1) {
-			console.log("Resetting score1 from", score1.textContent, "to 0");
-			score1.textContent = "0";
-		}
-		if (score2) {
-			console.log("Resetting score2 from", score2.textContent, "to 0");
-			score2.textContent = "0";
-		}
-		if (ball) {
-			ball.style.left = "48.3%";
-			ball.style.top = "47.5%";
-		}
-		if (paddle1) paddle1.style.top = "37.5%";
-		if (paddle2) paddle2.style.top = "37.5%";
-		
-		// --- UI STATE RESTORATION ---
-		// Return to difficulty selection screen
-		if (difficultyOverlay) {
-			difficultyOverlay.classList.remove("hidden");
-		}
-		if (startPress) {
-			startPress.classList.add("hidden");
-		}
-		if (keyboardHint) {
-			keyboardHint.classList.add("hidden");
-		}
-		
-		console.log("=== PLAY AGAIN COMPLETE ===");
 	});
 
 	// --- EXIT HANDLER ---

@@ -1,6 +1,11 @@
 // Authentication routes for user login and registration
-export default async function authRoutes(fastify) {
+import { createLogger, ErrorType } from '../utils/logger.js';
+import bcrypt from 'bcrypt';
 
+export default async function authRoutes(fastify) {
+  // Create structured logger instance
+  const logger = createLogger(fastify.log);
+  const SALT_ROUNDS = 10;
   // POST /auth/login - Authenticate user and return JWT token
   fastify.post('/login', {
     // Everything in schema is public information only, for documentation purposes (Swagger).
@@ -70,39 +75,65 @@ export default async function authRoutes(fastify) {
     }
   }, async (request, reply) => {
     try {
-      console.log('Login attempt received:', request.body); // Debug log for login attempts
-
+      const correlationId = request.headers['x-correlation-id'] || `login-${Date.now()}`;
       const { email, password } = request.body;
 
       // Input validation - ensure required fields are present
-      console.log('Validating credentials - email:', !!email, 'password:', !!password);
-
       if (!email || !password) {
-        console.log('Validation failed - missing required fields');
+        logger.error(correlationId, 'Login validation failed - missing required fields', {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'MISSING_REQUIRED_FIELDS',
+          httpStatus: 400,
+          metadata: { email: !!email, password: !!password }
+        });
         return reply.status(400).send({ error: 'Email and password are required' });
       }
 
       // Email format validation (basic)
       if (!email.includes('@') || !email.includes('.')) {
+        logger.error(correlationId, `Login validation failed - invalid email format: ${email}`, {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'INVALID_EMAIL_FORMAT',
+          httpStatus: 400,
+          metadata: { email }
+        });
         return reply.status(400).send({ error: 'Please enter a valid email address' });
       }
 
       // Password length validation
       if (password.length < 1) {
+        logger.error(correlationId, 'Login validation failed - password cannot be empty', {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'PASSWORD_EMPTY',
+          httpStatus: 400
+        });
         return reply.status(400).send({ error: 'Password cannot be empty' });
       }
 
       // Look up user in database by email
-      const user = await fastify.prisma.user.findUnique({ where: { email } });
+      const getUserStmt = fastify.db.prepare('SELECT * FROM User WHERE email = ?');
+      const user = getUserStmt.get(email);
 
       if (!user) {
         // Don't reveal if email exists - use generic error for security
+        logger.error(correlationId, 'Login failed - invalid credentials (user not found)', {
+          errorType: ErrorType.AUTHENTICATION_ERROR,
+          errorCode: 'INVALID_CREDENTIALS',
+          httpStatus: 401,
+          metadata: { email }
+        });
         return reply.status(401).send({ error: 'Invalid credentials' });
       }
 
-      // TODO: Replace plain text password comparison with bcrypt hash comparison
-      // Password validation (currently plain text - should be hashed)
-      if (password !== user.password) {
+      // Password validation using bcrypt hash comparison
+      const passMatch = await bcrypt.compare(password, user.password);
+      if (!passMatch) {
+        logger.error(correlationId, 'Login failed - invalid credentials (wrong password)', {
+          errorType: ErrorType.AUTHENTICATION_ERROR,
+          errorCode: 'INVALID_CREDENTIALS',
+          httpStatus: 401,
+          metadata: { userId: user.id, email }
+        });
         return reply.status(401).send({ error: 'Invalid credentials' });
       }
 
@@ -110,17 +141,16 @@ export default async function authRoutes(fastify) {
       const token = fastify.jwt.sign({ id: user.id });
 
       // === Bootstrap/verify profile in user-service (ensure profile exists) ===
-      const correlationId = `login-${user.id}-${Date.now()}`;
       const axios = (await import('axios')).default;
       const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
 
       try {
         console.log(`[${correlationId}] Bootstrapping/verifying user profile for authUserId ${user.id}`);
-        
+
         // Try to get the user profile first
         const profileCheckResponse = await axios.get(
           `${userServiceUrl}/users/public/${user.id}`,
-          { 
+          {
             timeout: 3000,
             validateStatus: (status) => status < 500 // Accept 404 as valid response
           }
@@ -129,10 +159,10 @@ export default async function authRoutes(fastify) {
         // If profile doesn't exist (404), create it
         if (profileCheckResponse.status === 404) {
           console.log(`[${correlationId}] Profile not found, creating new profile`);
-          
+
           // Extract username from email as fallback (will be user-editable)
           const defaultName = user.email.split('@')[0];
-          
+
           await axios.post(
             `${userServiceUrl}/users/bootstrap`,
             {
@@ -155,9 +185,12 @@ export default async function authRoutes(fastify) {
       } catch (profileError) {
         // Log error but don't fail login - user can still access the app
         // Frontend will handle missing profile gracefully with our fix
-        console.error(
-          `[${correlationId}] Failed to bootstrap profile (non-fatal): ${profileError.message}`
-        );
+        logger.error(correlationId, `Failed to bootstrap profile (non-fatal): ${profileError.message}`, {
+          errorType: ErrorType.EXTERNAL_SERVICE_ERROR,
+          errorCode: 'PROFILE_BOOTSTRAP_FAILED',
+          httpStatus: 500,
+          metadata: { userId: user.id, error: profileError.message }
+        });
       }
 
       // Return token and safe user data (no password)
@@ -167,8 +200,13 @@ export default async function authRoutes(fastify) {
       };
 
     } catch (error) {
-      // Log the error for debugging
-      fastify.log.error('Login error:', error);
+      const correlationId = request.headers['x-correlation-id'] || `login-${Date.now()}`;
+      logger.error(correlationId, `Login error: ${error.message}`, {
+        errorType: ErrorType.INTERNAL_ERROR,
+        errorCode: 'LOGIN_ERROR',
+        httpStatus: 500,
+        metadata: { error: error.message }
+      });
 
       // Return generic error to client (don't expose internal details)
       return reply.status(500).send({ error: 'Internal server error' });
@@ -208,36 +246,65 @@ export default async function authRoutes(fastify) {
     }
   }, async (request, reply) => {
     try {
-      console.log('User registration attempt:', request.body);
-
+      const correlationId = request.headers['x-correlation-id'] || `signup-${Date.now()}`;
       const { name, email, password, confirmPassword } = request.body;
 
       // === Input validation ===
       if (!name || !email || !password || !confirmPassword) {
+        logger.error(correlationId, 'Signup validation failed - missing required fields', {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'MISSING_REQUIRED_FIELDS',
+          httpStatus: 400,
+          metadata: { name: !!name, email: !!email, password: !!password, confirmPassword: !!confirmPassword }
+        });
         return reply.status(400).send({ error: 'All fields are required' });
       }
 
       // Normalize and validate lowercase only
       const normalizedEmail = email.toLowerCase();
-	
+
       // Normalize to avoid e.g.: É Á...
       const nName  = name.normalize('NFC');
       const nEmail = email.normalize('NFC');
 
       if (nName !== nName.toLowerCase()) {
+        logger.error(correlationId, `Signup validation failed - username contains capital letters: ${name}`, {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'INVALID_USERNAME_FORMAT',
+          httpStatus: 400,
+          metadata: { username: name }
+        });
         return reply.status(400).send({ error: 'Username cannot contain capital letters' });
       }
 
       if (nEmail !== nEmail.toLowerCase()) {
+        logger.error(correlationId, `Signup validation failed - email contains capital letters: ${email}`, {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'INVALID_EMAIL_FORMAT',
+          httpStatus: 400,
+          metadata: { email }
+        });
         return reply.status(400).send({ error: 'Email cannot contain capital letters' });
       }
 
       // Space checks
       if (/\s/.test(name)) {
+        logger.error(correlationId, `Signup validation failed - username contains spaces: ${name}`, {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'INVALID_USERNAME_FORMAT',
+          httpStatus: 400,
+          metadata: { username: name }
+        });
         return reply.status(400).send({ error: 'Username cannot contain spaces' });
       }
 
       if (/\s/.test(email)) {
+        logger.error(correlationId, `Signup validation failed - email contains spaces: ${email}`, {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'INVALID_EMAIL_FORMAT',
+          httpStatus: 400,
+          metadata: { email }
+        });
         return reply.status(400).send({ error: 'Email cannot contain spaces' });
       }
 
@@ -246,46 +313,81 @@ export default async function authRoutes(fastify) {
 	  const allowedEmailChars = /^[a-z0-9_.@-]+$/;
 
       if (!email.includes('@') || !email.includes('.')) {
+        logger.error(correlationId, `Signup validation failed - invalid email format: ${email}`, {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'INVALID_EMAIL_FORMAT',
+          httpStatus: 400,
+          metadata: { email }
+        });
         return reply.status(400).send({ error: 'Please enter a valid email address' });
       }
 
       if (!allowedChars.test(name)) {
+        logger.error(correlationId, `Signup validation failed - username contains invalid characters: ${name}`, {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'INVALID_USERNAME_FORMAT',
+          httpStatus: 400,
+          metadata: { username: name }
+        });
         return reply.status(400).send({
           error: 'Username cannot contain special characters - only letters, numbers, _, - and .'
         });
       }
 
 	  if (!allowedEmailChars.test(email)) {
+        logger.error(correlationId, `Signup validation failed - email contains invalid characters: ${email}`, {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'INVALID_EMAIL_FORMAT',
+          httpStatus: 400,
+          metadata: { email }
+        });
         return reply.status(400).send({
           error: 'Email cannot contain special characters - only letters, numbers, _, -, @ and .'
         });
       }
 
       if (normalizedEmail.length < 3 || password.length < 1) {
+        logger.error(correlationId, 'Signup validation failed - password cannot be empty', {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'PASSWORD_EMPTY',
+          httpStatus: 400
+        });
         return reply.status(400).send({ error: 'Password cannot be empty' });
       }
 
       if (password !== confirmPassword) {
+        logger.error(correlationId, 'Signup validation failed - passwords do not match', {
+          errorType: ErrorType.VALIDATION_ERROR,
+          errorCode: 'PASSWORDS_DO_NOT_MATCH',
+          httpStatus: 400
+        });
         return reply.status(400).send({ error: 'Passwords do not match' });
       }
 
-      const existingEmail = await fastify.prisma.user.findUnique({
-        where: { email: normalizedEmail } 
-      });
+      // Check if email already exists
+      const checkEmailStmt = fastify.db.prepare('SELECT * FROM User WHERE email = ?');
+      const existingEmail = checkEmailStmt.get(normalizedEmail);
       if (existingEmail) {
+        logger.error(correlationId, `User with email '${normalizedEmail}' already exists`, {
+          errorType: ErrorType.DUPLICATE_EMAIL,
+          errorCode: 'EMAIL_ALREADY_EXISTS',
+          httpStatus: 400,
+          metadata: { email: normalizedEmail }
+        });
         return reply.status(400).send({ error: 'User with this email already exists' });
       }
 
       // === Create user in auth-service ===
-      const newUser = await fastify.prisma.user.create({
-        data: {
-          email: normalizedEmail,
-          password // TODO: hash before storing
-        }
-      });
+      const hashedPass = await bcrypt.hash(password, SALT_ROUNDS);
+      const insertUserStmt = fastify.db.prepare('INSERT INTO User (email, password) VALUES (?, ?)');
+      const result = insertUserStmt.run(normalizedEmail, hashedPass);
+      const newUser = {
+        id: Number(result.lastInsertRowid),
+        email: normalizedEmail,
+        password: hashedPass,
+      };
 
       // === Bootstrap profile in user-service with retry ===
-      const correlationId = `auth-${newUser.id}-${Date.now()}`;
       const axios = (await import('axios')).default;
       const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
 
@@ -322,13 +424,23 @@ export default async function authRoutes(fastify) {
           const status = profileError.response?.status;
           const msg = profileError.response?.data?.error || profileError.message;
 
-          console.error(
-            `[${correlationId}] Attempt ${attempt} failed (${status || 'no status'}): ${msg}`
-          );
+          logger.error(correlationId, `Attempt ${attempt} failed to bootstrap profile: ${msg}`, {
+            errorType: ErrorType.EXTERNAL_SERVICE_ERROR,
+            errorCode: 'PROFILE_BOOTSTRAP_FAILED',
+            httpStatus: status || 500,
+            metadata: { attempt, userId: newUser.id, error: msg }
+          });
 
           // unrecoverable client-side error (e.g., username conflict)
           if (status === 400) {
-            await fastify.prisma.user.delete({ where: { id: newUser.id } });
+            const deleteUserStmt = fastify.db.prepare('DELETE FROM User WHERE id = ?');
+            deleteUserStmt.run(newUser.id);
+            logger.error(correlationId, `Signup failed - username conflict, rolled back user ${newUser.id}`, {
+              errorType: ErrorType.DUPLICATE_USERNAME,
+              errorCode: 'USERNAME_ALREADY_EXISTS',
+              httpStatus: 400,
+              metadata: { userId: newUser.id, error: msg }
+            });
             return reply
               .status(400)
               .send({ error: msg || 'Username already taken in user-service' });
@@ -336,10 +448,14 @@ export default async function authRoutes(fastify) {
 
           // last retry failed → rollback and report error
           if (attempt >= maxRetries) {
-            await fastify.prisma.user.delete({ where: { id: newUser.id } });
-            console.error(
-              `[${correlationId}] All ${maxRetries} attempts failed, rolled back user ${newUser.id}`
-            );
+            const deleteUserStmt = fastify.db.prepare('DELETE FROM User WHERE id = ?');
+            deleteUserStmt.run(newUser.id);
+            logger.error(correlationId, `All ${maxRetries} attempts failed, rolled back user ${newUser.id}`, {
+              errorType: ErrorType.EXTERNAL_SERVICE_ERROR,
+              errorCode: 'PROFILE_BOOTSTRAP_FAILED',
+              httpStatus: 500,
+              metadata: { userId: newUser.id, attempts: maxRetries }
+            });
             return reply.status(500).send({
               error:
                 'Failed to create user profile after multiple attempts. Please try again later.'
@@ -357,7 +473,13 @@ export default async function authRoutes(fastify) {
       }
 
     } catch (error) {
-      fastify.log.error('Signup error:', error);
+      const correlationId = request.headers['x-correlation-id'] || `signup-${Date.now()}`;
+      logger.error(correlationId, `Signup error: ${error.message}`, {
+        errorType: ErrorType.INTERNAL_ERROR,
+        errorCode: 'SIGNUP_ERROR',
+        httpStatus: 500,
+        metadata: { error: error.message }
+      });
       return reply.status(500).send({ error: 'Internal server error' });
     }
   });

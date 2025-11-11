@@ -10,7 +10,9 @@
 import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
 import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
-
+import { setupLanguageSwitcher } from "./services/lang/LanguageSwitcher";
+import { t } from "./services/lang/LangEngine";
+import DOMPurify from "dompurify";
 // Page component imports for different application views
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
@@ -18,17 +20,17 @@ import { GameIntroPage } from "./pages/GameIntroPage";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { destroyCurrentGame } from "./games/GameController";
 import { GamePongTournament } from "./games/Tournament";
-import { LobbyPageTournament } from "./pages/TournamentLobby";
+import { LobbyPageTournament } from "./tournament/TournamentLobby";
 import { initLobbyPageTournament } from "./tournament/InitTournamentLobby";
 import { initGameTournament } from "./games/InitGameTournament";
 import {
   bootTournamentFlow,
   teardownTournamentFlow,
 } from "./games/TournamentFlow";
-import { ProfilePage } from "./pages/ProfilePage";
+import { ProfilePage, profileStatsEvents } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents, resetHistoryPageState } from "./pages/HistoryPage";
-import { DashboardPage } from "./pages/Dashboard";
+import { DashboardPage, initDashboard, resetDashboardState } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { LoadingPage, initLoadingPage } from "./pages/LoadingPage";
 
@@ -59,7 +61,7 @@ export interface User {
   friends?: any[];
   friendOf?: any[];
   matches?: any[];
-  stats?: UserStats;   // ✅ tell TS that stats exists
+  stats?: UserStats;   // tell TS that stats exists
   createdAt?: string;
   updatedAt?: string;
 }
@@ -103,7 +105,7 @@ export async function protectedPage(
 
   // Fetch and validate user authentication
   await fetchUser();
-  
+
   // Check if user is properly authenticated with valid data
   if (thisUser && thisUser.id && thisUser.name && thisUser.email) {
     // Render the page content
@@ -133,6 +135,7 @@ export async function protectedPage(
  * Supports both public routes (login) and protected routes (authenticated pages).
  */
 let lastPage: string | null = null;
+let isInRemoteGame: boolean = false;
 
 export function router() {
   const app = document.getElementById("app")!;
@@ -176,7 +179,9 @@ export function router() {
   // If we’re leaving the remote page, clean it up
   if (lastPage === "remote" && page !== "remote") {
     console.log("Leaving remote game, cleaning up");
-    leaveRemoteGame();
+    isInRemoteGame = false;
+    // Use setTimeout to ensure cleanup happens after DOM changes
+    setTimeout(() => leaveRemoteGame(), 0);
   }
 
   lastPage = page;
@@ -184,8 +189,9 @@ export function router() {
   switch (page) {
     // Public routes (no authentication required)
     case "login":
-      app.innerHTML = LoginPage();
+      app.innerHTML = DOMPurify.sanitize(LoginPage());
       attachLoginListeners(); // Set up login form event listeners
+	  setupLanguageSwitcher();
       break;
 
     // Protected routes (authentication required)
@@ -206,7 +212,10 @@ export function router() {
       break;
 
     case "intro":
-      protectedPage(() => GameIntroPage());
+		protectedPage(
+			() => GameIntroPage(),
+			() => setupLanguageSwitcher() // language switcher setup after rendering
+		)
       break;
 
     case "remote":
@@ -214,9 +223,11 @@ export function router() {
       const roomId = query ? new URLSearchParams(query).get("room") : null;
       if (roomId) localStorage.setItem("roomId", roomId); // Store room ID for game
       if (!roomId) {
-        app.innerHTML = NotFoundPage(); // Show 404 if no room ID provided
+        app.innerHTML = DOMPurify.sanitize(NotFoundPage()); // Show 404 if no room ID provided
         return;
       }
+
+      isInRemoteGame = true;
       protectedPage(
         () => GamePongRemote(),
         () => initRemoteGame(roomId) // Initialize remote game with room ID
@@ -251,7 +262,7 @@ export function router() {
 
     // User management routes
     case "profile":
-      protectedPage(() => ProfilePage(), triggerPopup); // User profile page
+      protectedPage(() => ProfilePage(), profileStatsEvents, triggerPopup); // User profile page
       break;
 
     case "friends":
@@ -259,7 +270,9 @@ export function router() {
       break;
 
     case "dashboard":
-      protectedPage(() => DashboardPage()); // User dashboard
+      // Reset dashboard state to show Statistics Overview on fresh navigation
+      resetDashboardState();
+      protectedPage(() => DashboardPage(), initDashboard); // User dashboard
       break;
 
     case "history":
@@ -270,7 +283,7 @@ export function router() {
 
     // Fallback for unknown routes
     default:
-      app.innerHTML = NotFoundPage(); // 404 page for invalid routes
+      app.innerHTML = DOMPurify.sanitize(NotFoundPage()); // 404 page for invalid routes
   }
 }
 
@@ -380,18 +393,21 @@ function attachLoginListeners() {
       nameField?.classList.remove("hidden");
       confirmPasswordField?.classList.remove("hidden");
       // Update UI text for signup mode
-      if (submitButton) submitButton.textContent = "Register";
-      if (title) title.textContent = "Sign Up";
-      signupToggle.innerHTML = `Already have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign In</span>`;
+      if (submitButton) submitButton.textContent = t("register");
+      if (title) title.textContent = t("signUp");
+      signupToggle.innerHTML = DOMPurify.sanitize(`${t("alreadyHaveAccount")} <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">${t("signIn")}</span>`);
     } else {
       // Hide signup fields for login mode
       nameField?.classList.add("hidden");
       confirmPasswordField?.classList.add("hidden");
       // Update UI text for login mode
-      if (submitButton) submitButton.textContent = "Login";
-      if (title) title.textContent = "Sign In";
-      signupToggle.innerHTML =
-        'Don\'t have an account? <span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">Sign Up</span>';
+      if (submitButton) submitButton.textContent = t("login");
+      if (title) title.textContent = t("signIn");
+      signupToggle.innerHTML = DOMPurify.sanitize(`
+		${t("dontHaveAccount")}
+		<span class="font-bold text-accent hover:text-accent-hover transition-colors duration-200">
+			${t("signUp")}
+		</span>`);
     }
   }
 

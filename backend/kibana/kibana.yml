@@ -1,0 +1,28 @@
+server.name: kibana
+server.host: 0.0.0.0
+server.basePath: "/kibana"
+server.rewriteBasePath: true
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+elasticsearch.username: elastic
+elasticsearch.password: changeme
+elasticsearch.ssl.verificationMode: none
+
+# Security settings - Enable authentication and disable anonymous access
+xpack.security.enabled: true
+xpack.security.encryptionKey: changemechangemechangemechangemechangeme
+xpack.encryptedSavedObjects.encryptionKey: changemechangemechangemechangemechangeme
+xpack.reporting.encryptionKey: changemechangemechangemechangemechangeme
+
+# Authentication providers - only allow basic authentication (username/password)
+xpack.security.authc.providers:
+  basic.basic1:
+    order: 0
+    enabled: true
+
+# Session settings for security
+xpack.security.session.idleTimeout: "8h"
+xpack.security.session.lifespan: "30d"
+
+# Monitoring
+monitoring.ui.container.elasticsearch.enabled: true
+

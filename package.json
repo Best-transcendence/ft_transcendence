@@ -1,7 +1,7 @@
 {
   "devDependencies": {
-    "eslint": "^9.37.0",
     "autoprefixer": "^10.4.21",
+    "eslint": "^9.37.0",
     "husky": "^9.1.7",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.13"
@@ -9,5 +9,9 @@
   "scripts": {
     "prepare": "husky",
     "dev": "vite --host"
+  },
+  "dependencies": {
+    "node-vault": "^0.10.9",
+    "ws": "^8.18.3"
   }
 }

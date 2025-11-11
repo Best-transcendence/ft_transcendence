@@ -5,6 +5,7 @@ import { sidebarDisplay } from "../components/SideBar"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { friendRequestCard } from "../components/FriendRequestDiv"
 import { confirmPopup } from "../components/Popups"
+import { t } from "../services/lang/LangEngine";
 
 // Interface for friend (safer than using "any")
 export interface Friend
@@ -46,7 +47,7 @@ function noFriends()
 	</div>
 	<div flex items-center>
 	<br>
-		<h3 class="text-2xl text-gray-400 text-center font-bold mb-5">No friends yet</h3>
+		<h3 class="text-2xl text-gray-400 text-center font-bold mb-5">${t("noFriendsTitle")}</h3>
 		<h1 class="text-7xl text-gray-400 text-center font-bold mb-1">:'(</h1>
 	</div>
 	<div>`
@@ -69,7 +70,8 @@ function friendCard(friend: Friend)
 			</div>
 			<div class="absolute bottom-5 right-6">
 				<button id="friend-button--${friend.id}" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">
-				Unfriend</button>
+					${t("unfriend")}
+				</button>
 			</div>
 		</div>`;
 }
@@ -82,21 +84,22 @@ export function FriendsPage()
 		${ addTheme() }
 
 <!-- Header with user info -->
-	<div class="w-full
-		flex justify-between items-center
-		mb-10">
+	<div class="w-full flex justify-between items-center mb-10">
 
-<!-- Protected pages components -->
+	<!-- Protected pages components -->
 		${ profileDivDisplay() }
 		${ sidebarDisplay() }
-		${ LogOutBtnDisplay() }
-	</div>
+        <!-- Group Logout on the right -->
+        <div class="flex gap-2 items-center">
+             ${LogOutBtnDisplay()}
+        </div>
+     </div>
 
 	<!-- Title -->
 	<div flex items-center>
-		<h1 class="text-4xl text-gray-200 text-center font-heading font-bold mb-1">Friends</h1>
+		<h1 class="text-4xl text-gray-200 text-center font-heading font-bold mb-1">${t("friends")}</h1>
 		<p class="text-lg text-gray-400 max-w-xl text-center mb-16">
-			Keep them close, but keep your Clasher enemies closer!
+			${t("friendsSubtitle")}
 		</p>
 	</div>
 

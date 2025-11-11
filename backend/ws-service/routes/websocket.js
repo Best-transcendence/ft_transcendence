@@ -1,8 +1,10 @@
 // ws-service/routes/websocket.js
 import jwt from 'jsonwebtoken';
+import Vault from 'node-vault';
 import { WebSocket } from 'ws';
-import { registerRoomHandlers } from './rooms.js';
-import { registerGameHandlers } from './game.js';
+import { registerRoomHandlers, rooms } from './rooms.js';
+import { registerGameHandlers, saveRemoteMatch } from './game.js';
+import { createLogger, ErrorType } from '../utils/logger.js';
 
 const namesCache = new Map(); // userId(string) name
 
@@ -16,28 +18,14 @@ async function fetchUserName(app, userId) {
     if (name) namesCache.set(String(userId), name);
     return name;
   } catch (err) {
+    const correlationId = `fetch-user-${userId}-${Date.now()}`;
     app.log.warn({ userId, err: err.message }, 'Failed to fetch username');
     return null;
   }
 }
 
-//TODO show friends' online status
 const onlineUsers = new Map();
 
-// TODO delete if you don't use for checking online friends
-function getAllUsers() {
-  return [...onlineUsers.values()].map(s => {
-    const id = s.user.id;
-    const name = s.user.name ?? namesCache.get(String(id)) ?? null;
-    return { id, name };
-  });
-}
-
-function sendUserList(ws) {
-  const all = getAllUsers();
-  const filtered = all.filter(u => u.id !== ws.user.id); // hide self
-  ws.send(JSON.stringify({ type: 'user:list', users: filtered }));
-}
 const lobbyUsers = new Map(); // track only users who are on lobby page
 
 
@@ -66,7 +54,34 @@ function broadcastLobby() {
   }
 }
 
-export function registerWebsocketHandlers(wss, app) {
+export async function registerWebsocketHandlers(wss, app) {
+  const logger = createLogger(app.log);
+
+	const vault = Vault(
+	{
+		endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
+		token: process.env.VAULT_TOKEN,
+	});
+
+	let jwtSecret;
+	try
+	{
+		const secret = await vault.read('secret/data/jwt');
+		jwtSecret = secret.data.data.JWT_SECRET;
+	}
+	catch (err)
+	{
+		const correlationId = `vault-${Date.now()}`;
+		logger.error(correlationId, `Failed to read JWT secret from Vault: ${err.message}`, {
+			errorType: ErrorType.EXTERNAL_SERVICE_ERROR,
+			errorCode: 'VAULT_READ_ERROR',
+			httpStatus: 500,
+			metadata: { error: err.message }
+		});
+		console.error('Failed to read JWT secret from Vault:', err);
+		process.exit(1);
+	}
+
   const roomHandlers = registerRoomHandlers(wss, onlineUsers, app);
   const gameHandlers = registerGameHandlers(wss, onlineUsers, app);
 
@@ -75,7 +90,13 @@ export function registerWebsocketHandlers(wss, app) {
     const token = url.searchParams.get('token');
 
     if (!token) {
-      app.log.warn({ ip: req.socket.remoteAddress }, 'Missing WebSocket token — closing connection');
+      const correlationId = `ws-auth-${Date.now()}`;
+      logger.error(correlationId, 'Missing WebSocket token — closing connection', {
+        errorType: ErrorType.AUTHENTICATION_ERROR,
+        errorCode: 'MISSING_WEBSOCKET_TOKEN',
+        httpStatus: 401,
+        metadata: { ip: req.socket.remoteAddress }
+      });
       ws.close();
       return;
     }
@@ -83,9 +104,15 @@ export function registerWebsocketHandlers(wss, app) {
     // Verify & normalize JWT
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      decoded = jwt.verify(token, jwtSecret);
     } catch (err) {
-      app.log.error({ error: err.message, ip: req.socket.remoteAddress }, 'Invalid WebSocket Token — closing');
+      const correlationId = `ws-auth-${Date.now()}`;
+      logger.error(correlationId, `Invalid WebSocket Token — closing: ${err.message}`, {
+        errorType: ErrorType.AUTHENTICATION_ERROR,
+        errorCode: 'INVALID_WEBSOCKET_TOKEN',
+        httpStatus: 401,
+        metadata: { ip: req.socket.remoteAddress, error: err.message }
+      });
       ws.close(1008, 'Invalid or expired token');
       return;
     }
@@ -117,7 +144,13 @@ export function registerWebsocketHandlers(wss, app) {
     }
 
     if (!userId || Number.isNaN(userId)) {
-      app.log.warn({ decoded }, 'JWT missing user id — closing connection');
+      const correlationId = `ws-auth-${Date.now()}`;
+      logger.error(correlationId, 'JWT missing user id — closing connection', {
+        errorType: ErrorType.AUTHENTICATION_ERROR,
+        errorCode: 'INVALID_TOKEN_PAYLOAD',
+        httpStatus: 401,
+        metadata: { decoded }
+      });
       ws.close(1008, 'Invalid token payload');
       return;
     }
@@ -134,13 +167,19 @@ export function registerWebsocketHandlers(wss, app) {
       try {
         data = JSON.parse(raw.toString());
       } catch {
-        app.log.warn({ raw: raw?.toString() }, 'Invalid JSON message');
+        const correlationId = `ws-msg-${Date.now()}`;
+        logger.warn(correlationId, 'Invalid JSON message', {
+          metadata: { raw: raw?.toString() }
+        });
         return;
       }
 
       const type = data?.type;
       if (!type) {
-        app.log.warn({ raw: raw?.toString() }, 'Missing message type');
+        const correlationId = `ws-msg-${Date.now()}`;
+        logger.warn(correlationId, 'Missing message type', {
+          metadata: { raw: raw?.toString() }
+        });
         return;
       }
 
@@ -233,11 +272,15 @@ export function registerWebsocketHandlers(wss, app) {
               direction: data.direction,
             });
             break;
-          case 'game:begin':
-            gameHandlers.handleGameBegin(ws, data);
-            break;
+           case 'game:begin':
+             gameHandlers.handleGameBegin(ws, data);
+             break;
 
-          case "lobby:leave":
+           case 'game:leave':
+             gameHandlers.handleGameLeave(ws, { ...data, roomId: String(data.roomId) });
+             break;
+
+           case "lobby:leave":
             lobbyUsers.delete(ws.user.id);
             broadcastLobby();
             break;
@@ -246,7 +289,13 @@ export function registerWebsocketHandlers(wss, app) {
             app.log.warn({ type }, 'Unhandled WS message');
         }
       } catch (err) {
-        app.log.error({ error: err.message, type }, 'Error handling WS message');
+        const correlationId = `ws-handler-${Date.now()}`;
+        logger.error(correlationId, `Error handling WS message: ${err.message}`, {
+          errorType: ErrorType.WEBSOCKET_ERROR,
+          errorCode: 'MESSAGE_HANDLER_ERROR',
+          httpStatus: 500,
+          metadata: { type, error: err.message, userId: ws.user?.id }
+        });
       }
     });
 
@@ -255,6 +304,45 @@ export function registerWebsocketHandlers(wss, app) {
       lobbyUsers.delete(ws.user.id);
       const current = onlineUsers.get(String(ws.user.id));
       if (current === ws) onlineUsers.delete(String(ws.user.id));
+
+      // NEW: Handle game disconnection
+      if (ws.roomId) {
+        const room = rooms.get(ws.roomId);
+        if (room && room.state && room.state.active) {
+          // Clear game timers
+          if (room.loopId) clearInterval(room.loopId);
+          if (room.timerId) clearInterval(room.timerId);
+          room.loopId = null;
+          room.timerId = null;
+
+          // Find remaining player
+          const remainingPlayer = room.players.find(p => p !== ws);
+          if (remainingPlayer) {
+            // Declare remaining player as winner
+            const winner = room.players.indexOf(remainingPlayer) === 0 ? 'p1' : 'p2';
+
+            // Send game:end to remaining player
+            remainingPlayer.send(JSON.stringify({
+              type: 'game:end',
+              winner: winner
+            }));
+
+            // Save match result
+            const [p1, p2] = room.players;
+            const sortedPlayers = [p1, p2].sort((a, b) => b.user.id - a.user.id);
+            const [higherIdPlayer, lowerIdPlayer] = sortedPlayers;
+            const score1 = higherIdPlayer === p1 ? room.state.s1 : room.state.s2;
+            const score2 = higherIdPlayer === p1 ? room.state.s2 : room.state.s1;
+
+            // Note: saveRemoteMatch is async, but we don't await in close handler
+            saveRemoteMatch(app, higherIdPlayer, lowerIdPlayer, score1, score2);
+          }
+
+          // Clean up room
+          room.state.active = false;
+          rooms.delete(ws.roomId);
+        }
+      }
 
       broadcastLobby(); // update lists
       app.log.info({ userId: ws.user.id }, 'WS disconnected');

@@ -1,9 +1,12 @@
-import { connectSocket, onSocketMessage, sendWSMessage } from "../services/ws";
+import { connectSocket, onSocketMessage, sendWSMessage, getSocket } from "../services/ws";
 import { addTheme } from "../components/Theme";
 import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
+import { t } from "../services/lang/LangEngine";
+
 import { thisUser } from "../router";
+import DOMPurify from "dompurify";
 import {
   triggerInvitePopup,
   closeInvitePopup,
@@ -31,25 +34,29 @@ export function emojiForId(id: number) {
 
 function escapeHTML(s: string) {
   return s
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 export function LobbyPage() {
   return `
     ${addTheme()}
     <div class="w-full flex justify-between items-center mb-10">
-      ${profileDivDisplay()}
-      ${sidebarDisplay()}
-      ${LogOutBtnDisplay()}
-    </div>
+		<!-- Protected pages components -->
+		${ profileDivDisplay() }
+		${ sidebarDisplay() }
+		<!-- Group Logout on the right -->
+		<div class="flex gap-2 items-center">
+			 ${LogOutBtnDisplay()}
+		</div>
+	 </div>
     <div class="flex flex-col gap-3 mb-10"
          style="position: relative; display: inline-block; width: 50vw; height: 11vw; min-width: 120px; min-height: 120px;">
-      <h1 class="text-4xl font-bold mb-4">🎮 Lobby</h1>
-      <p class="from-theme-bg1 mb-6">See who’s online and ready to play!</p>
+      <h1 class="text-4xl font-bold mb-4">🎮 ${t("lobbyTitle")}</h1>
+      <p class="from-theme-bg1 mb-6">${t("lobbySubtitle")}</p>
       <div id="online-users" class="grid gap-3"></div>
     </div>
   `;
@@ -66,7 +73,7 @@ export async function initLobby() {
   if (!usersContainer) return;
 
   const selfId = String(thisUser?.id ?? "");
-  usersContainer.innerHTML = `<p class="text-gray-400">Waiting for online users…</p>`;
+  usersContainer.innerHTML = DOMPurify.sanitize(`<p class="text-gray-400">${t("waitingForUsers")}</p>`);
 
   const socket = connectSocket(token);
   const unsuscribe = onSocketMessage((msg) => {
@@ -76,18 +83,18 @@ export async function initLobby() {
         const others = list.filter((u: any) => String(u?.id ?? "") !== selfId);
 
         if (others.length === 0) {
-          usersContainer.innerHTML = `<p class="text-gray-400">No other players online</p>`;
+          usersContainer.innerHTML = DOMPurify.sanitize(`<p class="text-gray-400">${t("noOtherPlayers")}</p>`);
           return;
         }
 
-        usersContainer.innerHTML = others
+        usersContainer.innerHTML = DOMPurify.sanitize(others
           .map((u: any) => {
             const id = String(u?.id ?? "");
             const idNum = Number(id) || 0;
 
             // prefer username; fallback to "Player {id}"
             const rawName = (u?.name ?? "").trim();
-            const displayName = rawName ? escapeHTML(rawName) : `Player ${id}`;
+            const displayName = rawName ? escapeHTML(rawName) : `${t("playerLabel")} ${id}`;
 
             // small avatar circle with emoji
             const avatar = emojiForId(idNum);
@@ -100,16 +107,16 @@ export async function initLobby() {
 				</div>
 				<div class="flex flex-col">
 					<span class="text-gray-200 font-medium">${displayName}</span>
-					<span class="text-gray-500 text-xs">ID: ${id}</span>
+					<span class="text-gray-500 text-xs">${t("idLabel")}: ${id}</span>
 				</div>
 				</div>
 				<button class="invite-btn px-3 py-1 text-sm rounded bg-purple-600 text-white hover:bg-purple-700"
 						data-user-id="${id}">
-				Invite
+					${t("inviteBtn")}
 				</button>
 			</div>`;
           })
-          .join("");
+          .join(""));
 
         usersContainer.querySelectorAll(".invite-btn").forEach((btn) => {
           btn.addEventListener("click", () => {
@@ -148,19 +155,32 @@ export async function initLobby() {
   });
 
   // tell server: joined lobby
-  // tell server: joined lobby
-  if (socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({ type: "lobby:join" }));
-    socket.send(JSON.stringify({ type: "user:list:request" }));
-  } else {
-    socket.addEventListener(
-      "open",
-      () => {
-        socket.send(JSON.stringify({ type: "lobby:join" }));
-        socket.send(JSON.stringify({ type: "user:list:request" }));
-      },
-      { once: true }
-    );
+  const sendLobbyJoin = () => {
+    const currentSocket = getSocket();
+    if (currentSocket && currentSocket.readyState === WebSocket.OPEN) {
+      currentSocket.send(JSON.stringify({ type: "lobby:join" }));
+      currentSocket.send(JSON.stringify({ type: "user:list:request" }));
+    } else if (currentSocket) {
+      currentSocket.addEventListener(
+        "open",
+        () => {
+          const s = getSocket();
+          if (s && s.readyState === WebSocket.OPEN) {
+            s.send(JSON.stringify({ type: "lobby:join" }));
+            s.send(JSON.stringify({ type: "user:list:request" }));
+          }
+        },
+        { once: true }
+      );
+    }
+  };
+
+  // Try to send immediately, or wait for connection
+  sendLobbyJoin();
+  
+  // Also try when socket opens (in case it's still connecting)
+  if (socket) {
+    socket.addEventListener("open", sendLobbyJoin, { once: true });
   }
 
   // LEAVE lobby when navigating away from lobby route
@@ -169,7 +189,10 @@ export async function initLobby() {
     const route = hash.split("?")[0];
     if (route !== "lobby") {
       try {
-        socket.send(JSON.stringify({ type: "lobby:leave" }));
+        const currentSocket = getSocket();
+        if (currentSocket && currentSocket.readyState === WebSocket.OPEN) {
+          currentSocket.send(JSON.stringify({ type: "lobby:leave" }));
+        }
       } catch {}
       closeInvitePopup(); //  hide any open invite popup
       window.removeEventListener("hashchange", leaveIfNotLobby);

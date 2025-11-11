@@ -10,7 +10,6 @@ export function TimerDisplay(): string {
   `;
 }
 
-							// TODO setup to 90
 let currentTimerInterval: number | null = null;
 
 export function startTimer(duration: number = 5): void {

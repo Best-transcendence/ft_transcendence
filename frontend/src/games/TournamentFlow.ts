@@ -5,14 +5,16 @@ import {
   createTwoPlayerTournament,
   createFourPlayerTournament,
   reportMatchResult,
-} from "../tournament/engine";
+} from "../tournament/TournamentEngine";
 import { myName, ensureMeFirst } from "../tournament/utils"; // reuse shared helpers
 import { resetTimer } from "../components/Timer";
 import { difficulty, resetDifficulty, getDisplayName } from "../tournament/InitTournamentLobby";
+import { t } from "../services/lang/LangEngine";
+import DOMPurify from "dompurify";
 
 /**
  * Tournament Flow Controller
- * 
+ *
  * This module manages the complete tournament flow including:
  * - Tournament bracket creation and management
  * - Match progression and result handling
@@ -124,26 +126,26 @@ function mountOverlay() {
   overlay.setAttribute("style", "border-radius: inherit; background: inherit;");
 
   // Overlay HTML template with match information and controls
-  overlay.innerHTML = `
+  overlay.innerHTML = DOMPurify.sanitize(`
     <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
       <h2 id="round-label" class="text-2xl font-bold text-white"></h2>
       <div class="relative mt-6 w-full h-full flex items-center justify-between px-6">
         <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-white/20"></div>
         <div class="w-1/2 pr-8 flex flex-col items-start">
           <div class="text-xl font-bold text-violet-400 break-words" id="name-left"></div>
-          <div class="mt-2 text-xs text-gray-300">Controls: W • S</div>
+          <div class="mt-2 text-xs text-gray-300">${t("controlsLetter")}</div>
         </div>
         <div class="w-1/2 pl-8 flex flex-col items-end">
           <div class="text-xl font-bold text-violet-400 text-right break-words" id="name-right"></div>
-          <div class="mt-2 text-xs text-gray-300 text-right">Controls: ↑ • ↓</div>
+          <div class="mt-2 text-xs text-gray-300 text-right">${t("controlsArrow")}</div>
         </div>
       </div>
       <div id="champion-banner" class="hidden mt-4 rounded-2xl border border-emerald-300/30 bg-emerald-600/10 text-emerald-200 px-4 py-3 text-center text-lg font-semibold"></div>
       <div class="mt-4 flex justify-center">
-        <div class="text-gray-400 text-sm">Press <span class="text-white font-semibold">SPACE</span> to start</div>
+        <div class="text-gray-400 text-sm">${t("pressSpace")}</div>
       </div>
     </div>
-  `;
+  `);
   gameWin.appendChild(overlay);
 
   // Cache DOM element references for efficient updates
@@ -156,7 +158,7 @@ function mountOverlay() {
 /**
  * Displays the tournament overlay with match information
  * @param left - Left player name
- * @param right - Right player name  
+ * @param right - Right player name
  * @param label - Round label (e.g., "Round 1", "Final")
  * @param leftPlayer - Full left Player object (optional)
  * @param rightPlayer - Full right Player object (optional)
@@ -179,9 +181,9 @@ function showOverlay(left: string, right: string, label: string, leftPlayer?: Pl
   currentRightName = rightPlayer ? getDisplayName(rightPlayer) : right;
   currentLeftPlayer = leftPlayer;
   currentRightPlayer = rightPlayer;
-  (window as any).tournamentCurrentPlayers = { 
-    left, 
-    right, 
+  (window as any).tournamentCurrentPlayers = {
+    left,
+    right,
     label,
     leftPlayer,   // Full Player object
     rightPlayer   // Full Player object
@@ -204,40 +206,24 @@ function showChampion(name: string) {
   if (!overlay) return;
 
   // Rebuild overlay as tournament completion view
-  overlay.innerHTML = `
+  overlay.innerHTML = DOMPurify.sanitize(`
     <div class="relative h-full w-full flex flex-col items-center justify-center px-6 animate-zoomIn">
-      <h2 class="text-3xl font-bold text-white mb-2">Tournament Complete</h2>
-      <div class="text-xl text-emerald-300 font-semibold mb-6">Champion: ${name}</div>
-
-      <div class="flex gap-3">
-        <button id="btn-new-tourney"
-          class="px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white
-                 border border-violet-400/30 shadow-[0_0_16px_2px_#7037d355]">
-          New Tournament
-        </button>
+      <h2 class="text-3xl font-bold text-white mb-2">${t("tournamentComplete")}</h2>
+      <div class="text-xl text-emerald-300 font-semibold mb-6">${t("champion")}: ${name}</div>
 
         <button id="btn-back-arcade"
           class="px-5 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-100
                  border border-white/10">
-          Back to Arcade Clash
+          ${t("backToArcade")}
         </button>
       </div>
     </div>
-  `;
+  `);
 
   overlay.classList.remove("hidden");
 
   // Set up completion screen button handlers
-  const btnNew  = overlay.querySelector("#btn-new-tourney") as HTMLButtonElement;
   const btnBack = overlay.querySelector("#btn-back-arcade") as HTMLButtonElement;
-
-  // New tournament button - return to tournament lobby
-  btnNew?.addEventListener("click", () => {
-    teardownTournamentFlow();
-    localStorage.removeItem("tournamentSeed");
-    resetDifficulty(); // Reset difficulty to medium
-    window.location.hash = "#lobbytournament";
-  });
 
   // Back to arcade button - return to main menu
   btnBack?.addEventListener("click", () => {
@@ -272,8 +258,8 @@ function nextMatch(b: Bracket): Match | null {
  * @returns {string} Round label
  */
 function labelFor2pBo3(gamesPlayed: number): string {
-  if (gamesPlayed === 0) return "Round 1";
-  if (gamesPlayed === 1) return "Round 2";
+  if (gamesPlayed === 0) return `${t("round")} 1`;
+  if (gamesPlayed === 1) return `${t("round")} 2`;
   return "Final";
 }
 
@@ -288,9 +274,9 @@ function labelFor(m: Match, mode: "2" | "4"): string {
     const played = m.winsA + m.winsB;
     return labelFor2pBo3(played);
   }
-  if (m.round === 1) return m.index === 0 ? "Round 1" : "Round 2";
-  if (m.round === 2) return "Final";
-  return `Round ${m.round}`;
+  if (m.round === 1) return m.index === 0 ? `${t("round")} 1` : `${t("round")} 2`;
+  if (m.round === 2) return `${t("final")}`;
+  return `${t("round")} ${m.round}`;
 }
 
 
@@ -324,7 +310,7 @@ function acceptGameResultWithPlayer(winnerId: string, winnerName: string) {
     if (!m.winnerId) m.winnerId = m.winsA > m.winsB ? m.playerA.id : m.playerB.id;
     bracket.championId = m.winnerId;
     const champ = bracket.players.find(p => p.id === bracket!.championId)!.name;
-    
+
     showChampion(champ);
     return;
   }
@@ -379,7 +365,7 @@ function acceptGameResult(winnerName: string) {
     if (!m.winnerId) m.winnerId = m.winsA > m.winsB ? m.playerA.id : m.playerB.id;
     bracket.championId = m.winnerId;
     const champ = bracket.players.find(p => p.id === bracket!.championId)!.name;
-    
+
     showChampion(champ);
     return;
   }
@@ -428,7 +414,7 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
 
   // Use difficulty from saved seed (set when tournament was created)
   const currentDifficulty: "easy" | "medium" | "hard" = seed.difficulty || "medium";
-  
+
   console.log("🔍 DIFFICULTY DEBUG - Seed data:");
   console.log("  Saved difficulty:", seed.difficulty);
   console.log("🎯 SELECTED DIFFICULTY:", currentDifficulty);
@@ -492,17 +478,17 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
   (window as any).reportTournamentGameResult = (winnerName: string) => {
     acceptGameResult(winnerName);
   };
-  
+
   // Expose current match for match saving logic
   (window as any).tournamentCurrentMatch = currentMatch;
   console.log("Set tournamentCurrentMatch:", currentMatch);
-  
+
   // Expose tournament difficulty for game to access
   const tournamentDifficulty = bracket?.difficulty || "medium";
   (window as any).tournamentDifficulty = tournamentDifficulty;
-  
+
   // Initialize timer display with correct difficulty time
-  const difficultyTimes = { easy: 8, medium: 30, hard: 20 }; // TODO: Change easy back to 40 seconds
+  const difficultyTimes = { easy: 8, medium: 30, hard: 20 }; // TODO (Yulia): Change easy back to 40 seconds
   const gameTime = difficultyTimes[tournamentDifficulty];
   resetTimer(gameTime);
 
@@ -514,7 +500,7 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
     if (L === R) {
       if (!inTieBreaker) {
         inTieBreaker = true;
-        showOverlay(currentLeftName, currentRightName, "Tie-breaker", currentLeftPlayer, currentRightPlayer);
+        showOverlay(currentLeftName, currentRightName, `${t("tieBreaker")}`, currentLeftPlayer, currentRightPlayer);
         attachSpaceToStart();   // Space #1 hides overlay; Space #2 starts round (handled by game)
       } else {
         // Still tied in tie-breaker → sudden-death restart (no overlay)
@@ -531,12 +517,12 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
       console.error("tournamentTimeUp: No currentMatch available");
       return;
     }
-    
+
     // Determine winner based on scores: L > R means left player (playerA) wins, else right player (playerB) wins
     // Since showOverlay maps playerA to left and playerB to right, we can use currentMatch directly
     const winnerId = L > R ? currentMatch.playerA.id : currentMatch.playerB.id;
     const winnerName = L > R ? currentMatch.playerA.name : currentMatch.playerB.name;
-    
+
     acceptGameResultWithPlayer(winnerId, winnerName);
   };
 }
@@ -548,7 +534,7 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
 export function teardownTournamentFlow() {
   // Reset difficulty to medium when leaving tournament
   resetDifficulty();
-  
+
   // Stop the game loop
   if (typeof (window as any).stopTournamentGame === 'function') {
     (window as any).stopTournamentGame();

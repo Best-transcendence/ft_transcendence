@@ -1,4 +1,4 @@
-import { Player } from "./engine";
+import { Player } from "./TournamentEngine";
 import {
   Mode,
   myName,
@@ -9,11 +9,13 @@ import {
   byId,
   currentMax,
 } from "./utils";
-import { verifyUserForTournament } from "../services/api"; 
+import { verifyUserForTournament } from "../services/api";
+import { t } from "../services/lang/LangEngine";
+import DOMPurify from "dompurify";
 
 /**
  * Tournament Lobby Initialization and Management
- * 
+ *
  * This module handles the tournament lobby interface including:
  * - Player management (adding friends and guests)
  * - Tournament mode selection (2-player or 4-player)
@@ -60,9 +62,9 @@ function buildFourPlayerPairs(): [Player, Player][] {
     .filter(p => p.name.toLowerCase() !== me.name.toLowerCase())
     .slice(0, 3);
   const bag = shuffle(rest); // Randomize the other three players
-  
+
   if (bag.length < 3) return []; // Not enough players for 4-player tournament
-  
+
   const semi1: [Player, Player] = [me, bag[0]!]; // Current user always in first semifinal
   const semi2: [Player, Player] = [bag[1]!, bag[2]!]; // Other two players in second semifinal
   return [semi1, semi2];
@@ -81,23 +83,23 @@ function updateCounters() {
 
   const startBtn = byId<HTMLButtonElement>("btn-start");
   const isFull = players.length >= max;
-  
+
   // Enable Matchmaking button only when we have enough players
   // "Let's start" button only appears after Matchmaking is clicked (in renderMatchmakerPreview)
   startBtn.disabled = !isFull;
-  
+
   // Disable add buttons if we're at capacity
   const addGuestBtn = byId<HTMLButtonElement>("btn-add-guest");
   const addUserBtn = byId<HTMLButtonElement>("btn-add-user");
   addGuestBtn.disabled = isFull;
   addUserBtn.disabled = isFull;
-  
+
   // Disable toggle buttons if we're at capacity
   const toggleGuestBtn = byId<HTMLButtonElement>("btn-toggle-guest");
   const toggleUserBtn = byId<HTMLButtonElement>("btn-toggle-user");
   toggleGuestBtn.disabled = isFull;
   toggleUserBtn.disabled = isFull;
-  
+
   // Disable input fields if we're at capacity
   const guestNameInput = byId<HTMLInputElement>("guest-name");
   const userEmailInput = byId<HTMLInputElement>("user-email");
@@ -105,32 +107,32 @@ function updateCounters() {
   guestNameInput.disabled = isFull;
   userEmailInput.disabled = isFull;
   userPasswordInput.disabled = isFull;
-  
+
   // Add visual feedback by reducing opacity when disabled and prevent hover
   if (isFull) {
     // Use inline styles to guarantee override
     addGuestBtn.style.opacity = '0.5';
     addGuestBtn.style.cursor = 'not-allowed';
     addGuestBtn.style.pointerEvents = 'none';
-    
+
     addUserBtn.style.opacity = '0.5';
     addUserBtn.style.cursor = 'not-allowed';
     addUserBtn.style.pointerEvents = 'none';
-    
+
     toggleGuestBtn.style.opacity = '0.5';
     toggleGuestBtn.style.cursor = 'not-allowed';
     toggleGuestBtn.style.pointerEvents = 'none';
-    
+
     toggleUserBtn.style.opacity = '0.5';
     toggleUserBtn.style.cursor = 'not-allowed';
     toggleUserBtn.style.pointerEvents = 'none';
-    
+
     guestNameInput.style.opacity = '0.5';
     guestNameInput.style.cursor = 'not-allowed';
-    
+
     userEmailInput.style.opacity = '0.5';
     userEmailInput.style.cursor = 'not-allowed';
-    
+
     userPasswordInput.style.opacity = '0.5';
     userPasswordInput.style.cursor = 'not-allowed';
   } else {
@@ -138,25 +140,25 @@ function updateCounters() {
     addGuestBtn.style.opacity = '';
     addGuestBtn.style.cursor = '';
     addGuestBtn.style.pointerEvents = '';
-    
+
     addUserBtn.style.opacity = '';
     addUserBtn.style.cursor = '';
     addUserBtn.style.pointerEvents = '';
-    
+
     toggleGuestBtn.style.opacity = '';
     toggleGuestBtn.style.cursor = '';
     toggleGuestBtn.style.pointerEvents = '';
-    
+
     toggleUserBtn.style.opacity = '';
     toggleUserBtn.style.cursor = '';
     toggleUserBtn.style.pointerEvents = '';
-    
+
     guestNameInput.style.opacity = '';
     guestNameInput.style.cursor = '';
-    
+
     userEmailInput.style.opacity = '';
     userEmailInput.style.cursor = '';
-    
+
     userPasswordInput.style.opacity = '';
     userPasswordInput.style.cursor = '';
   }
@@ -172,7 +174,7 @@ function showErrorMessage(message: string) {
   const errorDiv = byId<HTMLDivElement>("player-error");
   errorDiv.textContent = message;
   errorDiv.classList.remove("hidden");
-  
+
   // Hide error after 5 seconds
   setTimeout(() => {
     errorDiv.classList.add("hidden");
@@ -191,16 +193,16 @@ async function addAuthenticatedPlayer(email: string, password: string) {
   try {
     // Verify user credentials
     const userData = await verifyUserForTournament(email, password);
-    
+
     // Prevent adding current user
     if (userData.id === myPlayer().id) {
-      showErrorMessage("You cannot add yourself to the tournament");
+      showErrorMessage(t("errorSelfAdd"));
       return;
     }
 
     // Prevent duplicate authenticated users by authUserId
     if (players.some(p => p.authUserId === userData.id)) {
-      showErrorMessage("This user is already in the tournament");
+      showErrorMessage(t("errorUserAlreadyIn"));
       return;
     }
 
@@ -217,17 +219,17 @@ async function addAuthenticatedPlayer(email: string, password: string) {
     plannedPairs = null;
     updateCounters();
     renderMatchmakerPreview();
-    
+
     // Clear form
     byId<HTMLInputElement>("user-email").value = "";
     byId<HTMLInputElement>("user-password").value = "";
-    
+
   } catch (error) {
-    console.error("Authentication failed:", error);
+    console.error(`${t("authFailedPrefix")}`, error);
     if (error instanceof Error) {
       showErrorMessage(error.message);
     } else {
-      showErrorMessage("Authentication failed. Please try again.");
+      showErrorMessage(t("authFailedGeneric"));
     }
   }
 }
@@ -243,7 +245,7 @@ function addPlayer(name: string) {
 
   const trimmed = name.trim();
   if (!trimmed) return;
-  
+
   // Limit guest names to 9 characters to accommodate "(G)" suffix
   const finalName = trimmed.length > 9 ? trimmed.substring(0, 9) : trimmed;
 
@@ -297,7 +299,7 @@ function startTournamentAndGo() {
     })),
     pairs: plannedPairs?.map(([a, b]) => [a.id, b.id]) ?? null,
   };
-  
+
   // Store tournament configuration and navigate to game
   localStorage.setItem("tournamentSeed", JSON.stringify(payload));
   window.location.hash = "#tournament";
@@ -325,7 +327,7 @@ function createStackedVsBlock(top: string, bottom: string, highlight = false) {
   topName.className = `font-bold text-lg ${baseColor} ${highlightGlow}`;
 
   const vs = document.createElement("div");
-  vs.textContent = "vs";
+  vs.textContent = t("vs");
   vs.className = "text-gray-400 my-1 text-sm";
 
   const bottomName = document.createElement("div");
@@ -367,7 +369,7 @@ function makeRoundCard(title: string, top: string, bottom: string, highlight = f
  */
 function renderMatchmakerPreview() {
   const host = byId<HTMLDivElement>("matchgenerator");
-  host.innerHTML = "";
+  host.innerHTML = DOMPurify.sanitize("");
 
   const max = currentMax(mode);
 
@@ -379,7 +381,7 @@ function renderMatchmakerPreview() {
 
   const participantsTitle = document.createElement("div");
   participantsTitle.className = "text-sm text-gray-300 mb-2";
-  participantsTitle.textContent = "Participants";
+  participantsTitle.textContent = t("participants");
   participantsCard.appendChild(participantsTitle);
 
   // Player chips display
@@ -388,26 +390,26 @@ function renderMatchmakerPreview() {
   if (players.length) {
     sortForRender(players).forEach(pl => {
       const chip = document.createElement("span");
-      
+
       // Different styling for authenticated vs guest users
       if (pl.isAuthenticated) {
         chip.className =
           "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
           "bg-emerald-500/15 text-emerald-100 border border-emerald-400/20";
-        chip.innerHTML = `${getDisplayName(pl)} <span class="ml-1">✓</span>`;
+        chip.innerHTML = DOMPurify.sanitize(`${getDisplayName(pl)} <span class="ml-1">✓</span>`);
       } else {
         chip.className =
           "inline-flex items-center rounded-lg px-3 py-1 text-sm " +
           "bg-violet-500/15 text-violet-100 border border-violet-400/20";
         chip.textContent = getDisplayName(pl);
       }
-      
+
       chips.appendChild(chip);
     });
   } else {
     const none = document.createElement("div");
     none.className = "text-base text-gray-100";
-    none.textContent = "No participants yet.";
+    none.textContent = t("participantsNone");
     chips.appendChild(none);
   }
   participantsCard.appendChild(chips);
@@ -415,8 +417,7 @@ function renderMatchmakerPreview() {
   // User instruction hint
   const hint = document.createElement("div");
   hint.className = "text-xs text-gray-400 mt-3";
-  hint.textContent =
-    "You will see your matchups once you reach the required players and press Matchmaking!";
+  hint.textContent = t("participantsHint");
   participantsCard.appendChild(hint);
 
   // Stop rendering if not enough players
@@ -432,13 +433,13 @@ function renderMatchmakerPreview() {
     if (playerSlice.length >= 2) {
       const [a, b] = playerSlice;
       if (paired) {
-        grid.appendChild(makeRoundCard("Round 1", getDisplayName(a!), getDisplayName(b!)));
-        grid.appendChild(makeRoundCard("Round 2", getDisplayName(a!), getDisplayName(b!)));
-        grid.appendChild(makeRoundCard("Final Round", getDisplayName(a!), getDisplayName(b!), true));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 1`, getDisplayName(a!), getDisplayName(b!)));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 2`, getDisplayName(a!), getDisplayName(b!)));
+        grid.appendChild(makeRoundCard(t("finalRound"), getDisplayName(a!), getDisplayName(b!), true));
       } else {
-        grid.appendChild(makeRoundCard("Round 1", "?", "?"));
-        grid.appendChild(makeRoundCard("Round 2", "?", "?"));
-        grid.appendChild(makeRoundCard("Final Round", "?", "?", true));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 1`, "?", "?"));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 2`, "?", "?"));
+        grid.appendChild(makeRoundCard(t("finalRound"), "?", "?", true));
       }
     }
   } else {
@@ -449,19 +450,19 @@ function renderMatchmakerPreview() {
         const [s1a, s1b] = plannedPairs[0]!;
         const [s2a, s2b] = plannedPairs[1]!;
 
-        grid.appendChild(makeRoundCard("Round 1", getDisplayName(s1a), getDisplayName(s1b)));
-        grid.appendChild(makeRoundCard("Round 2", getDisplayName(s2a), getDisplayName(s2b)));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 1`, getDisplayName(s1a), getDisplayName(s1b)));
+        grid.appendChild(makeRoundCard(`${t("roundLabel")} 2`, getDisplayName(s2a), getDisplayName(s2b)));
       }
     } else {
-      grid.appendChild(makeRoundCard("Round 1", "?", "?"));
-      grid.appendChild(makeRoundCard("Round 2", "?", "?"));
+      grid.appendChild(makeRoundCard(`${t("roundLabel")} 1`, "?", "?"));
+      grid.appendChild(makeRoundCard(`${t("roundLabel")} 2`, "?", "?"));
     }
 
-    grid.appendChild(makeRoundCard("Final Round", "?", "?", true));
+    grid.appendChild(makeRoundCard(t("finalRound"), "?", "?", true));
 
     const note = document.createElement("div");
     note.className = "text-xs text-gray-300 mt-1";
-    note.textContent = "Winners of Round 1 and Round 2 will be selected in the Final!";
+    note.textContent = t("winnersNote");
     host.appendChild(note);
   }
 
@@ -473,7 +474,7 @@ function renderMatchmakerPreview() {
     cta.className =
       "px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white " +
       "border border-violet-400/30 shadow-[0_0_16px_2px_#7037d355]";
-    cta.textContent = "Let's start 🕹️";
+    cta.textContent = t("letsStart");
     cta.onclick = () => startTournamentAndGo();
     ctaWrap.appendChild(cta);
     host.appendChild(ctaWrap);
@@ -492,7 +493,7 @@ function resetPageState() {
   paired = false;
 
   players = ensureMeFirst(players);
-  byId<HTMLDivElement>("matchgenerator").innerHTML = "";
+  byId<HTMLDivElement>("matchgenerator").innerHTML = DOMPurify.sanitize("");
   renderMatchmakerPreview();
   updateCounters();
 }
@@ -517,7 +518,7 @@ function setMode(newMode: "2" | "4") {
 export function initLobbyPageTournament() {
   // Clear any existing tournament seed to ensure fresh start
   localStorage.removeItem("tournamentSeed");
-  
+
   // Initialize tournament mode from radio button defaults
   mode = (document.getElementById("mode-4") as HTMLInputElement).checked ? "4" : "2";
 
@@ -541,11 +542,11 @@ export function initLobbyPageTournament() {
   function showGuestMode() {
     guestInputs.classList.remove('hidden');
     userInputs.classList.add('hidden');
-    
+
     // Update button styles
     toggleGuestBtn.className = "flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-violet-600 text-white border border-violet-400";
     toggleUserBtn.className = "flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-transparent text-gray-300 border border-white/10 hover:border-violet-400";
-    
+
     // Clear any error messages
     const errorDiv = byId<HTMLDivElement>("player-error");
     errorDiv.classList.add('hidden');
@@ -555,11 +556,11 @@ export function initLobbyPageTournament() {
   function showUserMode() {
     guestInputs.classList.add('hidden');
     userInputs.classList.remove('hidden');
-    
+
     // Update button styles
     toggleGuestBtn.className = "flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-transparent text-gray-300 border border-white/10 hover:border-violet-400";
     toggleUserBtn.className = "flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-emerald-600 text-white border border-emerald-400";
-    
+
     // Clear any error messages
     const errorDiv = byId<HTMLDivElement>("player-error");
     errorDiv.classList.add('hidden');
@@ -573,25 +574,25 @@ export function initLobbyPageTournament() {
   addGuestBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const name = guestInput.value.trim();
-    
+
     if (!name) {
-      showErrorMessage("Please enter a guest username");
+      showErrorMessage(t("guestUsernameRequired"));
       return;
     }
-    
+
     // Validate username: only letters, max 12 characters
     if (!/^[A-Za-z]+$/.test(name)) {
-      showErrorMessage("Username must contain only letters");
+      showErrorMessage(t("usernameLettersOnly"));
       return;
     }
-    
+
     if (name.length > 12) {
-      showErrorMessage("Username must be 12 characters or less");
+      showErrorMessage(t("usernameMaxLen"));
       return;
     }
-    
+
     addPlayer(name);
     guestInput.value = "";
   });
@@ -600,20 +601,20 @@ export function initLobbyPageTournament() {
   addUserBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const email = userEmailInput.value.trim();
     const password = userPasswordInput.value;
-    
+
     if (!email || !password) {
-      showErrorMessage("Please enter both email and password");
+      showErrorMessage(t("credentialsRequired"));
       return;
     }
-    
+
     if (!email.includes('@') || !email.includes('.')) {
-      showErrorMessage("Please enter a valid email address");
+      showErrorMessage(t("invalidEmail"));
       return;
     }
-    
+
     addAuthenticatedPlayer(email, password);
   });
 
@@ -622,34 +623,19 @@ export function initLobbyPageTournament() {
   mode4.onchange = () => { if (mode4.checked) setMode("4"); };
 
   // Difficulty selection with info update
-  const difficultyEasy = byId<HTMLInputElement>("difficulty-easy");
+    const difficultyEasy = byId<HTMLInputElement>("difficulty-easy");
   const difficultyMedium = byId<HTMLInputElement>("difficulty-medium");
   const difficultyHard = byId<HTMLInputElement>("difficulty-hard");
   const difficultyInfo = byId<HTMLSpanElement>("difficulty-info");
-  
-  const difficultyDescriptions = {
-    easy: "8s · Slower ball speed", // TODO: Change back to 40s
-    medium: "30s · Normal ball speed",
-    hard: "20s · Faster ball speed"
+
+  difficultyEasy.onchange = () => {
+    if (difficultyEasy.checked) { difficulty = "easy"; difficultyInfo.textContent = t("difficultyInfoEasy"); }
   };
-  
-  difficultyEasy.onchange = () => { 
-    if (difficultyEasy.checked) {
-      difficulty = "easy";
-      difficultyInfo.textContent = difficultyDescriptions.easy;
-    }
+  difficultyMedium.onchange = () => {
+    if (difficultyMedium.checked) { difficulty = "medium"; difficultyInfo.textContent = t("difficultyInfoMedium"); }
   };
-  difficultyMedium.onchange = () => { 
-    if (difficultyMedium.checked) {
-      difficulty = "medium";
-      difficultyInfo.textContent = difficultyDescriptions.medium;
-    }
-  };
-  difficultyHard.onchange = () => { 
-    if (difficultyHard.checked) {
-      difficulty = "hard";
-      difficultyInfo.textContent = difficultyDescriptions.hard;
-    }
+  difficultyHard.onchange = () => {
+    if (difficultyHard.checked) { difficulty = "hard"; difficultyInfo.textContent = t("difficultyInfoHard"); }
   };
 
   // Matchmaking button - generates tournament pairs
