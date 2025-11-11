@@ -8,9 +8,10 @@
   },
   "scripts": {
     "prepare": "husky",
-	"dev": "vite --host"
+    "dev": "vite --host"
   },
   "dependencies": {
-    "node-vault": "^0.10.9"
+    "node-vault": "^0.10.9",
+    "ws": "^8.18.3"
   }
 }

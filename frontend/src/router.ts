@@ -135,6 +135,7 @@ export async function protectedPage(
  * Supports both public routes (login) and protected routes (authenticated pages).
  */
 let lastPage: string | null = null;
+let isInRemoteGame: boolean = false;
 
 export function router() {
   const app = document.getElementById("app")!;
@@ -178,7 +179,9 @@ export function router() {
   // If we’re leaving the remote page, clean it up
   if (lastPage === "remote" && page !== "remote") {
     console.log("Leaving remote game, cleaning up");
-    leaveRemoteGame();
+    isInRemoteGame = false;
+    // Use setTimeout to ensure cleanup happens after DOM changes
+    setTimeout(() => leaveRemoteGame(), 0);
   }
 
   lastPage = page;
@@ -223,6 +226,8 @@ export function router() {
         app.innerHTML = DOMPurify.sanitize(NotFoundPage()); // Show 404 if no room ID provided
         return;
       }
+
+      isInRemoteGame = true;
       protectedPage(
         () => GamePongRemote(),
         () => initRemoteGame(roomId) // Initialize remote game with room ID

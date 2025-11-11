@@ -1,88 +1,91 @@
 import { rooms } from './rooms.js';
 import { createLogger, ErrorType } from '../utils/logger.js';
 
-export function registerGameHandlers(wss, onlineUsers, app) {
+/**
+ * Saves a remote 1v1 match to the user-service database
+ *
+ * This function implements race condition prevention by ensuring only the player
+ * with the higher user ID saves the match. Since both players' browsers might
+ * trigger save attempts simultaneously, this deterministic approach guarantees
+ * only one match record is created.
+ *
+ * The match is saved with type "ONE_VS_ONE" and includes both players' scores.
+ * The winner is automatically calculated by the backend based on score comparison.
+ *
+ * @param {Object} app - Fastify app instance for logging
+ * @param {Object} player1 - WebSocket connection object for first player (must have higher ID)
+ * @param {Object} player1.user - User object containing id and token
+ * @param {Object} player2 - WebSocket connection object for second player
+ * @param {Object} player2.user - User object containing id
+ * @param {number} score1 - Score achieved by player1
+ * @param {number} score2 - Score achieved by player2
+ *
+ * @returns {Promise<void>} Resolves when save completes (or is skipped)
+ *
+ * @example
+ * // Player 10 vs Player 5: Player 10 saves
+ * await saveRemoteMatch(app, player10, player5, 5, 3);
+ * // Player 5 vs Player 10: Skipped (will be saved by higher ID player)
+ */
+export async function saveRemoteMatch(app, player1, player2, score1, score2) {
   const logger = createLogger(app.log);
-  /**
-   * Saves a remote 1v1 match to the user-service database
-   *
-   * This function implements race condition prevention by ensuring only the player
-   * with the higher user ID saves the match. Since both players' browsers might
-   * trigger save attempts simultaneously, this deterministic approach guarantees
-   * only one match record is created.
-   *
-   * The match is saved with type "ONE_VS_ONE" and includes both players' scores.
-   * The winner is automatically calculated by the backend based on score comparison.
-   *
-   * @param {Object} player1 - WebSocket connection object for first player (must have higher ID)
-   * @param {Object} player1.user - User object containing id and token
-   * @param {Object} player2 - WebSocket connection object for second player
-   * @param {Object} player2.user - User object containing id
-   * @param {number} score1 - Score achieved by player1
-   * @param {number} score2 - Score achieved by player2
-   *
-   * @returns {Promise<void>} Resolves when save completes (or is skipped)
-   *
-   * @example
-   * // Player 10 vs Player 5: Player 10 saves
-   * await saveRemoteMatch(player10, player5, 5, 3);
-   * // Player 5 vs Player 10: Skipped (will be saved by higher ID player)
-   */
-  async function saveRemoteMatch(player1, player2, score1, score2) {
-    try {
-      // Prevent race condition: only player with higher ID saves
-      // This ensures deterministic saving and prevents duplicate match records
-      if (player1.user.id <= player2.user.id) {
-        return; // Let the other player save (they will be passed as player1)
-      }
+  try {
+    // Prevent race condition: only player with higher ID saves
+    // This ensures deterministic saving and prevents duplicate match records
+    if (player1.user.id <= player2.user.id) {
+      return; // Let the other player save (they will be passed as player1)
+    }
 
-      const matchData = {
-        type: "ONE_VS_ONE",
-        date: new Date().toISOString(),
-        player1Id: player1.user.id,
-        player2Id: player2.user.id,
-        player1Score: score1,
-        player2Score: score2
-      };
+    const matchData = {
+      type: "ONE_VS_ONE",
+      date: new Date().toISOString(),
+      player1Id: player1.user.id,
+      player2Id: player2.user.id,
+      player1Score: score1,
+      player2Score: score2
+    };
 
-      // Get user-service URL from environment or use default
-      const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-service:3002';
+    // Get user-service URL from environment or use default
+    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-service:3002';
 
-      // Call user-service to save the match
-      const response = await fetch(`${userServiceUrl}/users/me`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${player1.user.token}` // Use token from higher ID player
-        },
-        body: JSON.stringify({
-          action: 'create_match',
-          matchData
-        })
-      });
+    // Call user-service to save the match
+    const response = await fetch(`${userServiceUrl}/users/me`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${player1.user.token}` // Use token from higher ID player
+      },
+      body: JSON.stringify({
+        action: 'create_match',
+        matchData
+      })
+    });
 
-      if (response.ok) {
-        app.log.info(`Match saved: Player ${player1.user.id} vs ${player2.user.id} (${score1}-${score2})`);
-      } else {
-        const errorText = await response.text();
-        const correlationId = `match-save-${player1.user.id}-${player2.user.id}-${Date.now()}`;
-        logger.error(correlationId, `Failed to save match (HTTP ${response.status}): ${errorText}`, {
-          errorType: ErrorType.EXTERNAL_SERVICE_ERROR,
-          errorCode: 'MATCH_SAVE_FAILED',
-          httpStatus: response.status,
-          metadata: { player1Id: player1.user.id, player2Id: player2.user.id, score1, score2, error: errorText }
-        });
-      }
-    } catch (error) {
+    if (response.ok) {
+      app.log.info(`Match saved: Player ${player1.user.id} vs ${player2.user.id} (${score1}-${score2})`);
+    } else {
+      const errorText = await response.text();
       const correlationId = `match-save-${player1.user.id}-${player2.user.id}-${Date.now()}`;
-      logger.error(correlationId, `Error saving match: ${error.message}`, {
+      logger.error(correlationId, `Failed to save match (HTTP ${response.status}): ${errorText}`, {
         errorType: ErrorType.EXTERNAL_SERVICE_ERROR,
-        errorCode: 'MATCH_SAVE_ERROR',
-        httpStatus: 500,
-        metadata: { player1Id: player1.user.id, player2Id: player2.user.id, score1, score2, error: error.message }
+        errorCode: 'MATCH_SAVE_FAILED',
+        httpStatus: response.status,
+        metadata: { player1Id: player1.user.id, player2Id: player2.user.id, score1, score2, error: errorText }
       });
     }
+  } catch (error) {
+    const correlationId = `match-save-${player1.user.id}-${player2.user.id}-${Date.now()}`;
+    logger.error(correlationId, `Error saving match: ${error.message}`, {
+      errorType: ErrorType.EXTERNAL_SERVICE_ERROR,
+      errorCode: 'MATCH_SAVE_ERROR',
+      httpStatus: 500,
+      metadata: { player1Id: player1.user.id, player2Id: player2.user.id, score1, score2, error: error.message }
+    });
   }
+}
+
+export function registerGameHandlers(wss, onlineUsers, app) {
+
   function handleGameJoin(ws, data) {
     const { roomId } = data;
     const room = rooms.get(roomId);
@@ -367,7 +370,7 @@ export function registerGameHandlers(wss, onlineUsers, app) {
           const score1 = higherIdPlayer === p1 ? room.state.s1 : room.state.s2;
           const score2 = higherIdPlayer === p1 ? room.state.s2 : room.state.s1;
 
-          await saveRemoteMatch(higherIdPlayer, lowerIdPlayer, score1, score2);
+          await saveRemoteMatch(app, higherIdPlayer, lowerIdPlayer, score1, score2);
         }
       }
     }, 1000);
@@ -398,10 +401,57 @@ export function registerGameHandlers(wss, onlineUsers, app) {
     }, 1000);
   }
 
+  function handleGameLeave(ws, data) {
+    const { roomId } = data;
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    // Remove player from room
+    room.players = room.players.filter(p => p !== ws);
+    ws.roomId = null;
+
+    // If room is empty, delete it
+    if (room.players.length === 0) {
+      rooms.delete(roomId);
+      return;
+    }
+
+    // If game was active, end it
+    if (room.state && room.state.active) {
+      // Clear timers
+      if (room.loopId) clearInterval(room.loopId);
+      if (room.timerId) clearInterval(room.timerId);
+      room.loopId = null;
+      room.timerId = null;
+
+      // Declare remaining player as winner
+      const remainingPlayer = room.players[0];
+      const winner = room.players.indexOf(remainingPlayer) === 0 ? 'p1' : 'p2';
+
+      // Send game:end to remaining player
+      remainingPlayer.send(JSON.stringify({
+        type: 'game:end',
+        winner: winner
+      }));
+
+      // Save match
+      const [p1, p2] = [ws, remainingPlayer]; // ws is leaving, remainingPlayer is staying
+      const sortedPlayers = [p1, p2].sort((a, b) => b.user.id - a.user.id);
+      const [higherIdPlayer, lowerIdPlayer] = sortedPlayers;
+      const score1 = higherIdPlayer === p1 ? room.state.s1 : room.state.s2;
+      const score2 = higherIdPlayer === p1 ? room.state.s2 : room.state.s1;
+
+      saveRemoteMatch(app, higherIdPlayer, lowerIdPlayer, score1, score2);
+
+      // Clean up
+      room.state.active = false;
+    }
+  }
 
   return {
     handleGameJoin,
     handleGameMove,
     handleGameBegin,
+    handleGameLeave,
   };
 }
