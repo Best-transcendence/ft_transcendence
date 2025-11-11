@@ -392,11 +392,14 @@ export function leaveRemoteGame() {
     joinTimeout = null;
   }
 
+  // link to your backend
   const socket = getSocket();
+  // game room ID
   if (currentRoomId) {
-    socket?.send(JSON.stringify({ type: "game:leave", roomId: currentRoomId }));
+    socket?.send(JSON.stringify({ type: "game:leave", roomId: currentRoomId }));   // send leaving message to the server
     currentRoomId = null;
   }
+  // stop listening key presses
   if (keydownHandler) document.removeEventListener("keydown", keydownHandler);
   if (keyupHandler) document.removeEventListener("keyup", keyupHandler);
   keydownHandler = null;

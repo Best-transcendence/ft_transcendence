@@ -15,7 +15,8 @@ export default {
     'bg-theme-button',
     'hover:bg-theme-button-hover',
   ],
-  theme: {
+    // customize Tailwind’s default design system from styles.css
+	theme: {
     extend: {
       colors: {
         'theme-bg1': 'var(--color-bg-1)',
@@ -35,6 +36,7 @@ export default {
         heading: ['Poppins', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
       },
+	  // movement
       keyframes: {
         zoomIn: {
           '0%': { transform: 'scale(0.8)', opacity: '0' },
@@ -45,6 +47,7 @@ export default {
           '100%': { transform: 'scale(0.8)', opacity: '0' },
         },
       },
+	  // duration
       animation: {
         zoomIn: 'zoomIn 0.5s ease-out forwards',
         zoomOut: 'zoomOut 0.5s ease-in forwards',

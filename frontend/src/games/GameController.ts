@@ -153,7 +153,7 @@ export function destroyCurrentGame() {
   console.log(`=== ${wasType?.toUpperCase()} GAME DESTROYED ===`);
   
   // Clean up any remaining global animation frames
-  // This prevents orphaned animation loops from continuing to run
+  // This prevents orphaned animation loops from continuing to run, no waste on CPU
   if ((window as any).globalAnimationFrameId) {
     console.log("Cleaning up global animation frame:", (window as any).globalAnimationFrameId);
     cancelAnimationFrame((window as any).globalAnimationFrameId);

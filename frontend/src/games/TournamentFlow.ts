@@ -552,8 +552,10 @@ export function teardownTournamentFlow() {
     try { overlay.remove(); } catch {}
   }
   overlay = null;
+  // elements to default
   nameLeftEl = nameRightEl = roundLabelEl = championEl = null;
 
+  // no modal (overlays)
   overlayModal = false;
   (window as any).tournamentOverlayModal = false;
 

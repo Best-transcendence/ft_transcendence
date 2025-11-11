@@ -9,24 +9,24 @@
 // Service imports for API communication and WebSocket connection
 import { getCurrentUser, login, signup } from "./services/api";
 import { connectSocket } from "./services/ws";
-import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
+import DOMPurify from "dompurify";
+
+// Translation
 import { setupLanguageSwitcher } from "./services/lang/LanguageSwitcher";
 import { t } from "./services/lang/LangEngine";
-import DOMPurify from "dompurify";
-// Page component imports for different application views
+
+// Pages and game logic
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
+import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { destroyCurrentGame } from "./games/GameController";
 import { GamePongTournament } from "./games/Tournament";
 import { LobbyPageTournament } from "./tournament/TournamentLobby";
 import { initLobbyPageTournament } from "./tournament/InitTournamentLobby";
 import { initGameTournament } from "./games/InitGameTournament";
-import {
-  bootTournamentFlow,
-  teardownTournamentFlow,
-} from "./games/TournamentFlow";
+import { bootTournamentFlow, teardownTournamentFlow, } from "./games/TournamentFlow";
 import { ProfilePage, profileStatsEvents } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents, resetHistoryPageState } from "./pages/HistoryPage";
@@ -138,6 +138,7 @@ let lastPage: string | null = null;
 let isInRemoteGame: boolean = false;
 
 export function router() {
+  // fill from index.html
   const app = document.getElementById("app")!;
 
   // Parse URL hash to extract route and query parameters

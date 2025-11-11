@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    // Output modern JS (Parcel handles transpile/bundle)
+    // Modern JS usage, browser-friendly
     "target": "es6",
     "lib": ["es2017", "dom"],
     "module": "esnext",
@@ -8,18 +8,20 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
 
-    // Strict type checking
+    // Strict type checking for TypeScript
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
 
-    // Output options (Parcel ignores but good practice)
+    // Keeps .map files so you can debug TypeScript in your browser
     "sourceMap": true,
     "declaration": false,
 
     // Keep simple, no React/Node stuff
     "skipLibCheck": true
   },
+  // Check TypeScript files in src folder and include custom types
   "include": ["src", "src/types/assets.d.ts"],
+  // Ignore dependencies
   "exclude": ["node_modules", "dist"]
 }
