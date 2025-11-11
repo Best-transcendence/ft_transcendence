@@ -234,10 +234,10 @@ export function registerGameHandlers(wss, onlineUsers, app) {
   }
 
   function applyInput(up, down, vel) {
-    if (up) vel -= 0.3;
-    if (down) vel += 0.3;
+    if (up) vel -= 0.8;
+    if (down) vel += 0.8;
     if (!up && !down) vel *= 0.9; // Apply friction
-    return clamp(vel, -1.5, 1.5);
+    return clamp(vel, -3.0, 3.0);
   }
 
   function clamp(val, min, max) {

@@ -20,7 +20,6 @@ import { t } from "../services/lang/LangEngine"
  * - Arcade machine background image
  * - Game area with paddles, ball, and scoring
  * - User interface components (profile, sidebar, logout)
- * - Audio elements for game sound effects
  * - Responsive design with proper aspect ratios
  * 
  * @returns {string} Complete HTML template for the tournament game
@@ -100,25 +99,39 @@ export function GamePongTournament(): string {
 					${t("pressReady")}
 					</p>
 
-	<!-- Game sound effects -->
-					<audio id="paddleSound" src="/assets/paddle.wav"></audio>
-					<audio id="lossSound" src="/assets/loss.wav"></audio>
-					<audio id="wallSound" src="/assets/wall.wav"></audio>
+	<!-- Game Over Overlay (shown when time runs out) -->
+	<div id="timeUpOverlay"
+		class="hidden fixed inset-0 flex items-center justify-center z-50">
 
-				</div>
-			</div>
+	<!-- Dimmed frosted background -->
+	<div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+	<!-- Foreground card -->
+	<div
+		class="relative bg-slate-900/90 backdrop-blur-md
+			rounded-2xl w-[90%] max-w-[500px] p-8 space-y-6 text-center
+			border border-violet-400/30
+			shadow-[0_0_30px_10px_#7037d3]
+			animate-zoomIn">
+
+		<h2 class="text-3xl font-bold text-white mb-4">
+		${t("timeUp")}
+		</h2>
+
+		<div id="winnerText"
+			class="text-2xl font-semibold text-emerald-300 mb-6">
 		</div>
 
-		<!-- Game Over Overlay (shown when time runs out) -->
-		<div id="timeUpOverlay" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-			<div class="bg-gradient-to-br from-violet-600/20 to-purple-600/20 border border-violet-400/30 rounded-2xl p-8 max-w-md text-center">
-				<h2 class="text-3xl font-bold text-white mb-4">${t("timeUp")}</h2>
-				<div id="winnerText" class="text-2xl font-semibold text-emerald-300 mb-6"></div>
-				<button id="continueToResults" class="px-6 py-3 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-500 transition cursor-pointer">
-					${t("continue")}
-				</button>
-			</div>
-		</div>
+		<button id="continueToResults"
+				class="px-6 py-3 rounded-xl font-semibold text-white
+					bg-violet-600 hover:bg-violet-500
+					transition cursor-pointer">
+		${t("continue")}
+		</button>
+
+	</div>
+	</div>
+
 		`;
 	}
 	

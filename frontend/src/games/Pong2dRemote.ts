@@ -162,7 +162,7 @@ export function GamePongRemote(): string {
           <!-- Time Up Overlay -->
           <div id="timeUpOverlay"
             class="absolute inset-0 z-20 hidden"
-            style="border-radius: inherit; background: inherit;">
+            style="border-radius: inherit;">
             <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
               <h2 class="text-2xl font-bold text-white">${t("timeUp")}</h2>
 			  <p id="resultText" class="text-lg text-gray-200 mt-2 mb-6">${t("result")}</p>
@@ -200,10 +200,6 @@ export function GamePongRemote(): string {
             ${t("pressStart")}
           </p>
 
-          <!-- Audio -->
-          <audio id="paddleSound" src="/assets/paddle.wav"></audio>
-          <audio id="lossSound" src="/assets/loss.wav"></audio>
-          <audio id="wallSound" src="/assets/wall.wav"></audio>
         </div>
       </div>
     </div>

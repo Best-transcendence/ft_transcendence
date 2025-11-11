@@ -28,7 +28,6 @@ import { t } from "../services/lang/LangEngine"; // ✅
  * - Game window with paddles, ball, and scores
  * - Difficulty selection overlay
  * - Time up overlay for game end
- * - Audio elements for sound effects
  *
  * @returns HTML string for the game page
  */
@@ -180,10 +179,6 @@ export function GamePongAIOpponent(): string {
 
 		</p>
 
-		<!-- Audio elements for sound effects -->
-		<audio id="paddleSound" src="/assets/paddle.wav"></audio>
-		<audio id="lossSound" src="/assets/loss.wav"></audio>
-		<audio id="wallSound" src="/assets/wall.wav"></audio>
 
 			</div>
 		</div>

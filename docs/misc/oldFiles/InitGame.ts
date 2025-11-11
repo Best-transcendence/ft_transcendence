@@ -12,10 +12,6 @@ export function initGame(): void {
   const score2 = $("score2");
   const startPress = $("startPress");
 
-  const paddleSfx = $("paddleSound") as HTMLAudioElement;
-  const wallSfx = $("wallSound") as HTMLAudioElement;
-  const lossSfx = $("lossSound") as HTMLAudioElement;
-
   // NEW: size matches GamePong2D CSS
   const FIELD = 100;
   const BALL_W = 3.3, BALL_H = 5;      // #ball: w-[3.3%], h-[5%]
@@ -116,7 +112,6 @@ export function initGame(): void {
     } else if (ballY >= FIELD - BALL_H) {
       ballY = FIELD - BALL_H;
       ballVelY *= -1;
-      //playSound(wallSfx);
     }
 
     // Paddle hitboxes with sizes

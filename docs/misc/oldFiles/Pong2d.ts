@@ -95,11 +95,6 @@ ${ TimerDisplay() }
 				Press Space To Start The Game
 				</p>
 
-<!-- Audio -->
-				<audio id="paddleSound" src="/assets/paddle.wav"></audio>
-				<audio id="lossSound" src="/assets/loss.wav"></audio>
-				<audio id="wallSound" src="/assets/wall.wav"></audio>
-
 			</div>
 		</div>
 	</div>

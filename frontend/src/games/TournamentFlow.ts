@@ -29,7 +29,8 @@ import DOMPurify from "dompurify";
 let onSpaceStartRef: (() => void) | undefined; // kept for parity, not used elsewhere
 let spaceHandler: ((e: KeyboardEvent) => void) | null = null;  // Space key event handler
 let inTieBreaker = false;  // Flag to track if we're in a tie-breaker round
-
+let overlayModal = false;                     // champion overlay modal flag
+(Object.assign(window as any, { tournamentOverlayModal: false })); // global mirror
 /**
  * Removes the space key event handler to prevent duplicate listeners
  * Called when transitioning between tournament states
@@ -47,6 +48,7 @@ function detachSpaceHandler() {
  * @param onSpaceStart - Optional callback for space start (stored but not used)
  */
 function attachSpaceToStart(onSpaceStart?: () => void) {
+   if (overlayModal) return;
   if (onSpaceStart) onSpaceStartRef = onSpaceStart; // stored for parity, not invoked here
 
   detachSpaceHandler();
@@ -168,6 +170,9 @@ function showOverlay(left: string, right: string, label: string, leftPlayer?: Pl
   (window as any).layoutTournamentRound?.();   // Reset game field
 
   if (!overlay || !nameLeftEl || !nameRightEl || !roundLabelEl) return;
+  overlayModal = false;
+  (window as any).tournamentOverlayModal = false;
+
   championEl?.classList.add("hidden");  // Hide champion banner for regular matches
 
   // Update overlay content with display names (including "(G)" for guests)
@@ -195,6 +200,8 @@ function showOverlay(left: string, right: string, label: string, leftPlayer?: Pl
  */
 function hideOverlay() {
   overlay?.classList.add("hidden");
+  overlayModal = false;
+  (window as any).tournamentOverlayModal = false;
 }
 
 /**
@@ -205,6 +212,8 @@ function showChampion(name: string) {
   mountOverlay();
   if (!overlay) return;
 
+  overlayModal = true;
+  (window as any).tournamentOverlayModal = true;
   // Rebuild overlay as tournament completion view
   overlay.innerHTML = DOMPurify.sanitize(`
     <div class="relative h-full w-full flex flex-col items-center justify-center px-6 animate-zoomIn">
@@ -222,6 +231,7 @@ function showChampion(name: string) {
 
   overlay.classList.remove("hidden");
 
+  detachSpaceHandler();
   // Set up completion screen button handlers
   const btnBack = overlay.querySelector("#btn-back-arcade") as HTMLButtonElement;
 
@@ -549,6 +559,9 @@ export function teardownTournamentFlow() {
   }
   overlay = null;
   nameLeftEl = nameRightEl = roundLabelEl = championEl = null;
+
+overlayModal = false;
+  (window as any).tournamentOverlayModal = false;
 
   // Clear global hooks so a new session starts clean
   (window as any).tournamentCurrentPlayers = undefined;
