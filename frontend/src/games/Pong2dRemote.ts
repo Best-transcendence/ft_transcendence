@@ -11,6 +11,8 @@ import { t } from "../services/lang/LangEngine";
 
 let unsubscribeGame: (() => void) | null = null;
 let currentPlayers: { id: string; name: string }[] = [];
+let isInValidGame: boolean = false; // Track if we're in a valid game state
+let joinTimeout: NodeJS.Timeout | null = null; // Timeout for room join validation
 
 let modalActive = false; // true while the timeUp overlay is visible
 
@@ -19,30 +21,50 @@ function isVisible(el: HTMLElement | null): boolean {
 }
 
 export function GamePongRemote(): string {
+  isInValidGame = true; // Mark that we're entering a valid game
   if (unsubscribeGame) unsubscribeGame(); // clean old listener
   unsubscribeGame = onSocketMessage((msg) => {
-    switch (msg.type) {
+    // Only process messages if we're in a valid game state
+    if (!isInValidGame) return;
 
-	// render real player cards as soon as the server tells us who joined
+    // Additional validation: check roomId for room-specific messages
+    if (msg.roomId && currentRoomId && msg.roomId !== currentRoomId) return;
+
+    switch (msg.type) {
+      // render real player cards as soon as the server tells us who joined
       case "room:players": {
         const { players, youIndex } = msg; // server will send {id, name}[]
         currentPlayers = players;
         const wrap = document.getElementById("player-cards");
         if (wrap && players[0] && players[1]) {
           wrap.innerHTML = DOMPurify.sanitize(`
-            ${renderPlayerCard(players[0].id, players[0].name, "p1", youIndex === 0)}
-            ${renderPlayerCard(players[1].id, players[1].name, "p2", youIndex === 1)}
+            ${renderPlayerCard(
+              players[0].id,
+              players[0].name,
+              "p1",
+              youIndex === 0
+            )}
+            ${renderPlayerCard(
+              players[1].id,
+              players[1].name,
+              "p2",
+              youIndex === 1
+            )}
           `);
         }
         break;
       }
 
       case "game:ready": {
-		resetTimer(30);
-		const { players, playerIndex } = msg;
+        resetTimer(30);
+        const { players, playerIndex } = msg;
         currentPlayers = players;
         console.log("game:start payload", msg);
-
+        // Room join successful - clear timeout
+        if (joinTimeout) {
+          clearTimeout(joinTimeout);
+          joinTimeout = null;
+        }
         const playerCardsContainer = document.getElementById("player-cards");
         if (playerCardsContainer && players[0] && players[1]) {
           playerCardsContainer.innerHTML = DOMPurify.sanitize(`
@@ -51,14 +73,19 @@ export function GamePongRemote(): string {
           `);
         }
         break;
-	}
+      }
     
-	case "room:start": {
+      case "room:start": {
+        // Room join successful - clear timeout
+        if (joinTimeout) {
+          clearTimeout(joinTimeout);
+          joinTimeout = null;
+        }
         initRemoteGame(msg.roomId);
         break;
-	}
+	    }
 
-    case "game:start": {
+      case "game:start": {
         document.getElementById("startPress")?.remove();
 
         break;
@@ -80,49 +107,62 @@ export function GamePongRemote(): string {
     case "game:timeup": {
         const overlay = document.getElementById("timeUpOverlay");
         if (overlay) {
-			overlay.classList.remove("hidden");
+          overlay.classList.remove("hidden");
 
-			//block keyboard while overlay is up
-			modalActive = true;
+          //block keyboard while overlay is up
+          modalActive = true;
 
-			const textEl = document.getElementById("resultText");
-			if (textEl) {
-			const p1Name = currentPlayers[0]?.name ?? t("player1") ?? "Player 1";
-			const p2Name = currentPlayers[1]?.name ?? t("player2") ?? "Player 2";
-			const win = t("win") ?? " wins 🥇";
-			const tie = t("itsATie") ?? "It's a draw 🤝";
+          const textEl = document.getElementById("resultText");
+          if (textEl) {
+            const p1Name =
+              currentPlayers[0]?.name ?? t("player1") ?? "Player 1";
+            const p2Name =
+              currentPlayers[1]?.name ?? t("player2") ?? "Player 2";
+            const win = t("win") ?? " wins 🥇";
+            const tie = t("itsATie") ?? "It's a draw 🤝";
 
-			textEl.textContent =
-				msg.winner === "draw"
-				? tie
-				: msg.winner === "p1"
-				? `${p1Name}${win}`
-				: `${p2Name}${win}`;
-			}
-		}
-	    break;
-	}
-
+            textEl.textContent =
+              msg.winner === "draw"
+                ? tie
+                : msg.winner === "p1"
+                ? `${p1Name}${win}`
+                : `${p2Name}${win}`;
+          }
+        }
+        break;
+    }
+       
     case "game:update":
         updateGameState(msg.state);
         break;
 
-    case "game:end":
-        showGameOver(msg.winner);
+      case "game:end": {
+        const disconnectOverlay = document.getElementById("timeUpOverlay");
+        if (disconnectOverlay) {
+          disconnectOverlay.classList.remove("hidden");
+          const textEl = disconnectOverlay.querySelector("p");
+          if (textEl) {
+            textEl.textContent =
+              msg.winner === "p1"
+                ? `${currentPlayers[0]?.name ?? "Player 1"} wins 🥇`
+                : `${currentPlayers[1]?.name ?? "Player 2"} wins 🥇`;
+          }
+        }
+        isInValidGame = false; // Mark game as ended
         break;
     }
   });
 
-	// Directly render cards using currentPlayers if they’re known already
-	const playerCardsHTML =
-	currentPlayers.length >= 2
-		? currentPlayers
-			.slice(0, 2)
-			.map((p, i) =>
-			renderPlayerCard(p.id, p.name, i === 0 ? "p1" : "p2", false)
-			)
-			.join("")
-		: "";
+  // Directly render cards using currentPlayers if they’re known already
+  const playerCardsHTML =
+    currentPlayers.length >= 2
+      ? currentPlayers
+          .slice(0, 2)
+          .map((p, i) =>
+            renderPlayerCard(p.id, p.name, i === 0 ? "p1" : "p2", false)
+          )
+          .join("")
+      : "";
 
   return `
     ${addTheme()}
@@ -224,20 +264,29 @@ export function initRemoteGame(roomId: string) {
 
   socket?.send(JSON.stringify({ type: "game:join", roomId }));
 
+  // Set a timeout to detect if room join fails (room doesn't exist)
+  joinTimeout = setTimeout(() => {
+    console.log("Room join timeout - room may not exist, redirecting to 404");
+    window.location.hash = "lobby"; // Redirect to 404 page
+  }, 1000); // 5 second timeout
+
   // remove old handlers if they exist
   if (keydownHandler) document.removeEventListener("keydown", keydownHandler);
   if (keyupHandler) document.removeEventListener("keyup", keyupHandler);
 
   keydownHandler = (e: KeyboardEvent) => {
-	//if overlay is visible, swallow Space + movement
-	const timeUp = document.getElementById("timeUpOverlay");
-	if (modalActive || isVisible(timeUp)) {
-		if (e.code === "Space" || ["ArrowUp","ArrowDown","w","s"].includes(e.key)) {
-		e.preventDefault();
-		e.stopPropagation();
-		}
-		return;
-	}
+    //if overlay is visible, swallow Space + movement
+    const timeUp = document.getElementById("timeUpOverlay");
+    if (modalActive || isVisible(timeUp)) {
+      if (
+        e.code === "Space" ||
+        ["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      return;
+    }
 
     if (e.code === "Space") {
       socket?.send(JSON.stringify({ type: "game:begin", roomId }));
@@ -258,15 +307,15 @@ export function initRemoteGame(roomId: string) {
   };
 
   keyupHandler = (e: KeyboardEvent) => {
-	 // block movement keyups while overlay is visible
-	const timeUp = document.getElementById("timeUpOverlay");
-	if (modalActive || isVisible(timeUp)) {
-		if (["ArrowUp","ArrowDown","w","s"].includes(e.key)) {
-		e.preventDefault();
-		e.stopPropagation();
-		}
-		return;
-	}
+    // block movement keyups while overlay is visible
+    const timeUp = document.getElementById("timeUpOverlay");
+    if (modalActive || isVisible(timeUp)) {
+      if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      return;
+    }
 
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
       socket?.send(
@@ -283,39 +332,65 @@ export function initRemoteGame(roomId: string) {
   document.addEventListener("keydown", keydownHandler);
   document.addEventListener("keyup", keyupHandler);
 
+  // Add navigation cleanup listeners
+  const handleBeforeUnload = () => {
+    leaveRemoteGame();
+  };
+
+  const handleHashChange = () => {
+    leaveRemoteGame();
+  };
+
+  window.addEventListener("beforeunload", handleBeforeUnload);
+  window.addEventListener("hashchange", handleHashChange);
+
+  // Store handlers for cleanup
+  (window as any).gameNavigationHandlers = {
+    handleBeforeUnload,
+    handleHashChange,
+  };
+
   const overlayExit = document.getElementById("overlayExit");
   overlayExit?.addEventListener("click", () => {
-	modalActive = false; // clear block (safe even if you navigate away)
+    modalActive = false; // clear block (safe even if you navigate away)
     window.location.hash = "intro";
   });
 }
 
 function updateGameState(state: any) {
-  const paddle1 = document.getElementById("paddle1")!;
-  const paddle2 = document.getElementById("paddle2")!;
-  const ball = document.getElementById("ball")!;
-  const score1 = document.getElementById("score1")!;
-  const score2 = document.getElementById("score2")!;
+  // Only update if we're in a valid game state and elements exist
+  if (!isInValidGame) return;
 
-  paddle1.style.top = state.p1Y + "%";
-  paddle2.style.top = state.p2Y + "%";
-  if ("ballX" in state && "ballY" in state) {
-    ball.style.left = state.ballX + "%";
-    ball.style.top = state.ballY + "%";
-    ball.style.opacity = "1";
-  } else {
-    ball.style.opacity = "0";
+  const paddle1 = document.getElementById("paddle1");
+  const paddle2 = document.getElementById("paddle2");
+  const ball = document.getElementById("ball");
+  const score1 = document.getElementById("score1");
+  const score2 = document.getElementById("score2");
+
+  if (paddle1) paddle1.style.top = state.p1Y + "%";
+  if (paddle2) paddle2.style.top = state.p2Y + "%";
+  if (ball) {
+    if ("ballX" in state && "ballY" in state) {
+      ball.style.left = state.ballX + "%";
+      ball.style.top = state.ballY + "%";
+      ball.style.opacity = "1";
+    } else {
+      ball.style.opacity = "0";
+    }
   }
-  score1.textContent = state.s1.toString();
-  score2.textContent = state.s2.toString();
-}
-
-function showGameOver(winner: string) {
-  alert(`Game Over! Winner: ${winner}`);
-  window.location.hash = "intro";
+  if (score1) score1.textContent = state.s1.toString();
+  if (score2) score2.textContent = state.s2.toString();
 }
 
 export function leaveRemoteGame() {
+  isInValidGame = false; // Clear game state flag
+
+  // Clear join timeout if it exists
+  if (joinTimeout) {
+    clearTimeout(joinTimeout);
+    joinTimeout = null;
+  }
+
   const socket = getSocket();
   if (currentRoomId) {
     socket?.send(JSON.stringify({ type: "game:leave", roomId: currentRoomId }));
@@ -325,4 +400,12 @@ export function leaveRemoteGame() {
   if (keyupHandler) document.removeEventListener("keyup", keyupHandler);
   keydownHandler = null;
   keyupHandler = null;
+
+  // Remove navigation listeners
+  const handlers = (window as any).gameNavigationHandlers;
+  if (handlers) {
+    window.removeEventListener("beforeunload", handlers.handleBeforeUnload);
+    window.removeEventListener("hashchange", handlers.handleHashChange);
+    delete (window as any).gameNavigationHandlers;
+  }
 }
