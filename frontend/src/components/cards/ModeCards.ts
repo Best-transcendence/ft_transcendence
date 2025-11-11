@@ -1,11 +1,6 @@
-// src/components/ModeCard.ts
-import { createCard } from './CardCreator';
 import { AICard } from './AICard'
 import { PvPCard } from './PvPCard'
 import { TournamentCard } from './Tournament'
-
-// import { AICard } from './AICard'
-
 
 export function ModeCards() {
   return `

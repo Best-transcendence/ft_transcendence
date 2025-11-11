@@ -55,7 +55,7 @@ export function GamePongRemote(): string {
         break;
       }
 
-      case "game:ready":
+      case "game:ready": {
         resetTimer(30);
         const { players, playerIndex } = msg;
         currentPlayers = players;
@@ -73,8 +73,9 @@ export function GamePongRemote(): string {
           `);
         }
         break;
-
-      case "room:start":
+      }
+    
+      case "room:start": {
         // Room join successful - clear timeout
         if (joinTimeout) {
           clearTimeout(joinTimeout);
@@ -82,14 +83,15 @@ export function GamePongRemote(): string {
         }
         initRemoteGame(msg.roomId);
         break;
+	    }
 
       case "game:start": {
         document.getElementById("startPress")?.remove();
 
         break;
-      }
+    }
 
-      case "game:timer":
+    case "game:timer": {
         // authoritative countdown from server
         const timerEl = document.getElementById("timer");
         if (timerEl) {
@@ -100,8 +102,9 @@ export function GamePongRemote(): string {
             .padStart(2, "0")}`;
         }
         break;
+	}
 
-      case "game:timeup":
+    case "game:timeup": {
         const overlay = document.getElementById("timeUpOverlay");
         if (overlay) {
           overlay.classList.remove("hidden");
@@ -127,12 +130,13 @@ export function GamePongRemote(): string {
           }
         }
         break;
-
-      case "game:update":
+    }
+       
+    case "game:update":
         updateGameState(msg.state);
         break;
 
-      case "game:end":
+      case "game:end": {
         const disconnectOverlay = document.getElementById("timeUpOverlay");
         if (disconnectOverlay) {
           disconnectOverlay.classList.remove("hidden");
@@ -146,6 +150,7 @@ export function GamePongRemote(): string {
         }
         isInValidGame = false; // Mark game as ended
         break;
+    }
     }
   });
 
@@ -198,13 +203,18 @@ export function GamePongRemote(): string {
           border: 9px solid var(--color-frame);
           border-radius: 1rem;">
 
-          <!-- Time Up Overlay -->
-          <div id="timeUpOverlay"
-            class="absolute inset-0 z-20 hidden"
-            style="border-radius: inherit; background: inherit;">
-            <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
-              <h2 class="text-2xl font-bold text-white">${t("timeUp")}</h2>
-			  <p id="resultText" class="text-lg text-gray-200 mt-2 mb-6">${t("result")}</p>
+		<!-- Time Up Overlay -->
+			<div id="timeUpOverlay"
+				class="absolute inset-0 z-60 hidden"
+				style="border-radius: inherit;">
+			
+			<!-- background layer inside the game area -->
+			<div class="absolute inset-0 rounded-[inherit] bg-black/60"></div>
+
+			<!-- foreground content -->
+			<div class="relative h-full w-full flex flex-col items-center justify-center px-4 animate-zoomIn">
+				<h2 class="text-2xl font-bold text-white">${t("timeUp")}</h2>
+				<p id="resultText" class="text-lg text-gray-200 mt-2 mb-6">${t("result")}</p>
               <button id="overlayExit"
                 class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
                 ${t("backToArcade")}
@@ -239,10 +249,6 @@ export function GamePongRemote(): string {
             ${t("pressStart")}
           </p>
 
-          <!-- Audio -->
-          <audio id="paddleSound" src="/assets/paddle.wav"></audio>
-          <audio id="lossSound" src="/assets/loss.wav"></audio>
-          <audio id="wallSound" src="/assets/wall.wav"></audio>
         </div>
       </div>
     </div>

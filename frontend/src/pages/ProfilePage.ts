@@ -3,7 +3,7 @@ import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { profilePopup , inputPopup } from "../components/Popups"
-import { thisUser, fetchUser } from "../router"
+import { thisUser } from "../router"
 import { addTheme } from "../components/Theme"
 import { t } from "../services/lang/LangEngine";
 

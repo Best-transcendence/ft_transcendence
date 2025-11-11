@@ -357,7 +357,7 @@ function renderRecentMatchesView(matches: any[]): string {
           }
 
           return `
-            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl p-4 shadow-[0_0_20px_5px_#7037d3] border border-white/10">
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl p-4 shadow-[0_0_20px_5px_#7037d3] border border-white/10 mb-4 last:mb-0">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
                   <img src="${opponentAvatar}" alt="${opponentName}" class="w-14 h-14 rounded-full" style="width: clamp(3rem, 6vw, 3.5rem); height: clamp(3rem, 6vw, 3.5rem);">
@@ -514,17 +514,34 @@ function createMatchTypesChart(matches: any[]): void {
     const barWidth = chartWidth / labels.length * 0.7;
     const barSpacing = chartWidth / labels.length;
 
-    // Draw grid lines
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-    ctx.lineWidth = 1;
-    const gridLines = 5;
-    for (let i = 0; i <= gridLines; i++) {
-      const y = padding.top + (chartHeight / gridLines) * i;
-      ctx.beginPath();
-      ctx.moveTo(padding.left, y);
-      ctx.lineTo(padding.left + chartWidth, y);
-      ctx.stroke();
-    }
+	// Y line
+
+	// Set styles for grid lines and text
+	ctx.strokeStyle = "rgba(255, 255, 255, 0.1)"; // light transparent grid lines
+	ctx.lineWidth = 1;
+	ctx.fillStyle = "#e5e7eb"; // light gray text color
+	ctx.font = "12px sans-serif";
+	ctx.textAlign = "right"; // align text to the right side
+	ctx.textBaseline = "middle"; // text will be vertically centered
+
+	// If maxValue = 3 -> 4 lines (for 0, 1, 2, 3)
+	const step = 1; // go up by 1 each time
+	const maxY = Math.ceil(maxValue); // safety round
+
+	for (let v = 0; v <= maxY; v += step) {
+	//  Y position for this grid line.
+	// The higher the value (v), the lower the line on the chart
+	const y = padding.top + chartHeight - (v / maxY) * chartHeight;
+
+	// Draw the horizontal grid line
+	ctx.beginPath();
+	ctx.moveTo(padding.left, y); // start on the left
+	ctx.lineTo(padding.left + chartWidth, y); // draw to the right
+	ctx.stroke();
+	// Draw the Y-axis label (number) next to the line
+	ctx.fillText(v.toString(), padding.left - 10, y);
+
+	}
 
     // Draw vertical grid lines
     for (let i = 0; i <= labels.length; i++) {

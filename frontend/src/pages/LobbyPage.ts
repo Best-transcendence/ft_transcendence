@@ -1,4 +1,4 @@
-import { connectSocket, onSocketMessage, sendWSMessage, getSocket } from "../services/ws";
+import { connectSocket, onSocketMessage, getSocket } from "../services/ws";
 import { addTheme } from "../components/Theme";
 import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
