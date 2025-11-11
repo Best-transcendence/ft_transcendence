@@ -184,7 +184,13 @@ dev: clean
 	fi
 	@echo ""
 	@echo "🚀 Starting all services now that Vault is unsealed..."
-	@docker compose up -d
+	@if [ -f .vault-keys ]; then \
+		. ./.vault-keys; \
+		export VAULT_TOKEN; \
+		docker compose up -d; \
+	else \
+		docker compose up -d; \
+	fi
 	@sleep 3
 	@echo ""
 	@echo "✅ Development environment ready!"
@@ -216,7 +222,13 @@ start:
 	fi
 	@echo ""
 	@echo "🚀 Starting all services now that Vault is unsealed..."
-	@docker compose up -d
+	@if [ -f .vault-keys ]; then \
+		. ./.vault-keys; \
+		export VAULT_TOKEN; \
+		docker compose up -d; \
+	else \
+		docker compose up -d; \
+	fi
 	@sleep 3
 	@echo ""
 	@echo "✅ All services ready!"
@@ -233,17 +245,34 @@ start:
 # Helper target: docker without following logs (used by dev and start)
 docker-no-logs:
 	@echo "🐳 Building and starting services with Docker Compose..."
-	@echo "🛑 Stopping existing containers if running..."
-	@docker compose down 2>/dev/null || true
-	@echo "🧹 Cleaning up individual service containers..."
-	@docker stop user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true
-	@docker rm user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true
-	@echo "🧹 Cleaning up existing network..."
-	@docker network rm ft_transcendence_network 2>/dev/null || true
-	@echo "🔨 Building images if needed..."
-	@docker compose build
-	@echo "🔐 Starting Vault first..."
-	@docker compose up -d vault-service
+	@if [ -f .vault-keys ]; then \
+		echo "🔐 Loading VAULT_TOKEN from .vault-keys..."; \
+		. ./.vault-keys; \
+		export VAULT_TOKEN; \
+		echo "🛑 Stopping existing containers if running..."; \
+		docker compose down 2>/dev/null || true; \
+		echo "🧹 Cleaning up individual service containers..."; \
+		docker stop user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true; \
+		docker rm user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true; \
+		echo "🧹 Cleaning up existing network..."; \
+		docker network rm ft_transcendence_network 2>/dev/null || true; \
+		echo "🔨 Building images if needed..."; \
+		docker compose build; \
+		echo "🔐 Starting Vault first..."; \
+		docker compose up -d vault-service; \
+	else \
+		echo "🛑 Stopping existing containers if running..."; \
+		docker compose down 2>/dev/null || true; \
+		echo "🧹 Cleaning up individual service containers..."; \
+		docker stop user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true; \
+		docker rm user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true; \
+		echo "🧹 Cleaning up existing network..."; \
+		docker network rm ft_transcendence_network 2>/dev/null || true; \
+		echo "🔨 Building images if needed..."; \
+		docker compose build; \
+		echo "🔐 Starting Vault first..."; \
+		docker compose up -d vault-service; \
+	fi
 	@echo "⏳ Waiting for Vault to be ready..."
 	@sleep 5
 	@echo "⏸️  Services will start after Vault is unsealed..."

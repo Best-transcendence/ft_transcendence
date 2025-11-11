@@ -201,7 +201,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 			overlay.classList.remove("hidden");
 		    // block keyboard while overlay is up
 			modalActive = true;
-            allowKeyboardStart = false;
 		}
 	}
 
@@ -212,7 +211,6 @@ export function initGameAIOpponent(level: "easy" | "medium" | "hard" = "medium")
 		  const overlay = document.getElementById("timeUpOverlay");
           overlay?.classList.add("hidden");
           modalActive = false;
-          allowKeyboardStart = true;
 
 		 window.location.hash = "intro";
 	});

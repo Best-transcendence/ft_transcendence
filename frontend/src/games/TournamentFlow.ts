@@ -476,7 +476,7 @@ export function bootTournamentFlow() {
   if (currentMatch) {
     const startLabel = seed.mode === "2" ? labelFor2pBo3(0) : labelFor(currentMatch, seed.mode);
     showOverlay(currentMatch.playerA.name, currentMatch.playerB.name, startLabel, currentMatch.playerA, currentMatch.playerB);
-    attachSpaceToStart(() => (window as any).beginTournamentRound?.()); // Seed the ref
+    attachSpaceToStart();
   }
 
   // Expose game result reporting function and difficulty to global scope

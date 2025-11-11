@@ -151,6 +151,7 @@ export function GamePongRemote(): string {
         isInValidGame = false; // Mark game as ended
         break;
     }
+    }
   });
 
   // Directly render cards using currentPlayers if they’re known already
