@@ -9,7 +9,7 @@ import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 // Adapted function now that data extraction has been centralized
 export function GameIntroPage(): string {
-  autoConnect(handleWSMessage);
+  autoConnect();
 
   return `
     ${addTheme()}

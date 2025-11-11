@@ -196,9 +196,7 @@ export function router() {
     case "lobby":
       protectedPage(
         () => LobbyPage(),
-        () => {
-          initLobby(); // Initialize lobby-specific functionality
-        }
+        () => initLobby() // Initialize lobby-specific functionality
       );
       break;
 
