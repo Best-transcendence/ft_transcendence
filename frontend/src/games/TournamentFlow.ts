@@ -526,9 +526,8 @@ export function bootTournamentFlow() {
     // Determine winner based on scores: L > R means left player (playerA) wins, else right player (playerB) wins
     // Since showOverlay maps playerA to left and playerB to right, we can use currentMatch directly
     const winnerId = L > R ? currentMatch.playerA.id : currentMatch.playerB.id;
-    const winnerName = L > R ? currentMatch.playerA.name : currentMatch.playerB.name;
 
-    acceptGameResultWithPlayer(winnerId, winnerName);
+    acceptGameResultWithPlayer(winnerId);
   };
 }
 

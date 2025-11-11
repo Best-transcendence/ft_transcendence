@@ -237,7 +237,6 @@ export function setupAIOpponent() {
 	 */
 	function selectDifficulty(level: "easy" | "medium" | "hard") {
 		console.log("=== DIFFICULTY SELECTED ===", level);
-		currentDifficulty = level;
 
 		// --- GAME CLEANUP ---
 		// Destroy any existing game to prevent conflicts

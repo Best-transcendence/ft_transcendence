@@ -239,10 +239,7 @@ export function router() {
         () => GamePongTournament(),
         () => {
           initGameTournament(); // Initialize tournament game
-          bootTournamentFlow({
-            // Set up tournament flow management
-            onSpaceStart: () => (window as any).beginTournamentRound?.(),
-          });
+          bootTournamentFlow();
         }
       );
       break;
