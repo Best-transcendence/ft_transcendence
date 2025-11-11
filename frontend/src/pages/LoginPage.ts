@@ -73,6 +73,5 @@ export function LoginPage() {
 		</button>
 
 		</div>
-	</div>
-  `;
+	</div>`;
 }

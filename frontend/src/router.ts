@@ -325,9 +325,9 @@ function attachLoginListeners() {
         console.log("Signed up:", user);
         alert("✅ Account created successfully! You can now log in.");
 
-        // Switch back to login mode after successful signup
-        signupToggle?.click();
-      } else {
+		// Switch back to login mode after successful signup
+		signupToggle?.click();
+		} else {
         // Handle user login
         user = await login(email, password);
         console.log("Logged in:", user);
