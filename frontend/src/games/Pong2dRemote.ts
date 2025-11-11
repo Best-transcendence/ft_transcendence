@@ -106,6 +106,10 @@ export function GamePongRemote(): string {
         if (overlay) {
           overlay.classList.remove("hidden");
 
+          // Set title for timeout
+          const titleEl = document.getElementById("timeUpTitle");
+          if (titleEl) titleEl.textContent = t("timeUp");
+
           //block keyboard while overlay is up
           modalActive = true;
 
@@ -136,6 +140,11 @@ export function GamePongRemote(): string {
         const disconnectOverlay = document.getElementById("timeUpOverlay");
         if (disconnectOverlay) {
           disconnectOverlay.classList.remove("hidden");
+
+          // Set title for disconnect
+          const titleEl = document.getElementById("timeUpTitle");
+          if (titleEl) titleEl.textContent = t("gameOver");
+
           const textEl = disconnectOverlay.querySelector("p");
           if (textEl) {
             textEl.textContent =
@@ -203,7 +212,7 @@ export function GamePongRemote(): string {
             class="absolute inset-0 z-20 hidden"
             style="border-radius: inherit; background: inherit;">
             <div class="relative h-full w-full flex flex-col items-center justify-start pt-6 px-4 animate-zoomIn">
-              <h2 class="text-2xl font-bold text-white">${t("timeUp")}</h2>
+              <h2 id="timeUpTitle" class="text-2xl font-bold text-white">${t("timeUp")}</h2>
 			  <p id="resultText" class="text-lg text-gray-200 mt-2 mb-6">${t("result")}</p>
               <button id="overlayExit"
                 class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">

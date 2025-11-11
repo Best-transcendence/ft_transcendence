@@ -226,7 +226,7 @@ services:
 
   # Filebeat - Log collection from Docker containers
   filebeat:
-    image: elastic/filebeat:7.17.9
+    image: elastic/filebeat:8.15.0
     container_name: filebeat
     user: root
     environment:
