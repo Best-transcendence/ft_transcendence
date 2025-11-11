@@ -18,14 +18,7 @@ cd ft_transcendence
 docker-compose up --build
 ```
 
-Visit `https://localhost` to access the application.
-
-## 📋 Task Management
-
-### For Daily Development
-- **Primary task tracking**: See [TASKS.md](TASKS.md) for current sprint and task assignments
-- **Task templates**: Use templates in [docs/task-templates.md](docs/task-templates.md) for consistent task creation
-- **Progress tracking**: Update task checkboxes and status as you work
+Visit `https://LAN_IP` to access the application.
 
 ### Quick Task Status Update
 ```bash
@@ -46,25 +39,6 @@ git push
 4. **Develop, test, and document** your changes
 5. **Create Pull Request** with task reference
 6. **Update task status** to 🟢 Completed after merge
-
-## 🛠️ Technology Stack
-
-- **Frontend**: Next.js 13+ with TypeScript, Server-Side Rendering
-- **Backend**: NodeJS with JWT authentication and 2FA
-- **Database**: SQLite
-- **Game Engine**: HTML5 Canvas with WebSocket synchronization
-- **DevOps**: Docker, Nginx, HTTPS/WSS
-- **Real-time**: WebSocket for chat and live game updates
-
-## 🏆 Core Features
-
-- **Single Page Application** with TypeScript and responsive design
-- **Local & Tournament Pong** with matchmaking and brackets
-- **Real-time Chat** during matches via WebSocket
-- **JWT Authentication** with Two-Factor Authentication (2FA)
-- **User Statistics** and match history dashboard
-- **AI Opponent** for single-player practice
-- **Cross-browser Compatible** (Firefox, Chrome, Safari)
 
 ## 🔒 Security & Compliance
 
