@@ -185,7 +185,7 @@ const start = async () => {
     // Listen on all interfaces (0.0.0.0) to allow external connections
     await app.listen({ port: port, host: '0.0.0.0' });
 
-    const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+    const authServiceUrl = process.env.AUTH_SERVICE_URL ? process.env.AUTH_SERVICE_URL.replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}/auth-docs/`;
     console.log(`🔐 Auth Service running at ${authServiceUrl}`);
     console.log(`📊 Health check: ${authServiceUrl}/health`);
     console.log(`📚 API Documentation: ${authServiceUrl}/docs`);

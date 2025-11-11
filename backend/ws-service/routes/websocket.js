@@ -9,7 +9,7 @@ import { createLogger, ErrorType } from '../utils/logger.js';
 const namesCache = new Map(); // userId(string) name
 
 async function fetchUserName(app, userId) {
-  const base = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+  const base = process.env.USER_SERVICE_URL || `http://user_service:${process.env.USER_SERVICE_PORT || 3002}`;
   try {
     const res = await fetch(`${base}/users/public/${userId}`);
     if (!res.ok) throw new Error(`status ${res.status}`);

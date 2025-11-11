@@ -268,8 +268,8 @@ app.get('/health', {
           services: {
             type: 'object',
             properties: {
-              authService: { type: 'string', example: process.env.AUTH_SERVICE_URL || 'http://localhost:3001' },
-              userService: { type: 'string', example: process.env.USER_SERVICE_URL || 'http://localhost:3002' }
+              authService: { type: 'string', example: process.env.AUTH_SERVICE_URL || `https://${process.env.LAN_IP || 'LAN_IP'}/auth-docs/` },
+              userService: { type: 'string', example: process.env.USER_SERVICE_URL || `https://${process.env.LAN_IP || 'LAN_IP'}/user-docs/` }
             }
           }
         }
@@ -282,8 +282,8 @@ app.get('/health', {
     service: 'gateway',
     timestamp: new Date().toISOString(),
     services: {
-      authService: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
-      userService: process.env.USER_SERVICE_URL || 'http://localhost:3002'
+      authService: process.env.AUTH_SERVICE_URL || `https://${process.env.LAN_IP || 'LAN_IP'}/auth-docs/`,
+      userService: process.env.USER_SERVICE_URL || `https://${process.env.LAN_IP || 'LAN_IP'}/user-docs/`
     }
   };
 });
@@ -293,7 +293,7 @@ app.register(async function (fastify) {
   fastify.addHook('preHandler', logRequest);
 
   fastify.register(fastifyHttpProxy, {
-    upstream: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
+    upstream: process.env.AUTH_SERVICE_URL || `http://auth_service:${process.env.AUTH_SERVICE_PORT || 3001}`,
     prefix: '/auth',
     rewritePrefix: '/auth',
     // Only handle specific methods to avoid generic route generation
@@ -302,7 +302,7 @@ app.register(async function (fastify) {
     schema: {
       tags: ['Authentication'],
       summary: 'Auth Service Endpoints',
-      description: `Authentication endpoints - [See detailed docs](${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/docs)`
+      description: `Authentication endpoints - [See detailed docs](${process.env.AUTH_SERVICE_URL ? process.env.AUTH_SERVICE_URL.replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}`}/auth-docs/)`
     }
   });
 });
@@ -312,7 +312,7 @@ app.register(async function (fastify) {
   fastify.addHook('preHandler', logRequest);
 
   fastify.register(fastifyHttpProxy, {
-    upstream: process.env.USER_SERVICE_URL || 'http://localhost:3002',
+    upstream: process.env.USER_SERVICE_URL || `http://user_service:${process.env.USER_SERVICE_PORT || 3002}`,
     prefix: '/users',
     rewritePrefix: '/users',
     // Only handle specific methods to avoid generic route generation
@@ -321,7 +321,7 @@ app.register(async function (fastify) {
     schema: {
       tags: ['User Management'],
       summary: 'User Service Endpoints',
-      description: `User management endpoints - [See detailed docs](${process.env.USER_SERVICE_URL || 'http://localhost:3002'}/docs)`
+      description: `User management endpoints - [See detailed docs](${process.env.USER_SERVICE_URL ? process.env.USER_SERVICE_URL.replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}`}/user-docs/)`
     },
     preHandler: (request, reply, done) => {
       // Only validate JWT for /users/me endpoint
@@ -338,17 +338,19 @@ app.register(async function (fastify) {
 const start = async () => {
   try {
     const port = process.env.GATEWAY_PORT || 3003;
-    const host = process.env.HOST || 'localhost';
+    const _host = process.env.HOST || 'localhost';
 
     // Listen on all interfaces (0.0.0.0) to allow external connections
     await app.listen({ port: port, host: '0.0.0.0' });
 
-    const gatewayUrl = process.env.GATEWAY_URL || `http://${host}:${port}`;
+    const gatewayUrl = process.env.GATEWAY_URL || `https://${process.env.LAN_IP || 'LAN_IP'}/api`;
     console.log(`🚪 Gateway Service running at ${gatewayUrl}`);
     console.log(`📊 Health check: ${gatewayUrl}/health`);
     console.log(`📚 API Documentation: ${gatewayUrl}/docs`);
-    console.log(`🔐 Auth endpoints: ${process.env.AUTH_SERVICE_URL || 'http://localhost:3001'}/login`);
-    console.log(`👥 User endpoints: ${process.env.USER_SERVICE_URL || 'http://localhost:3002'}`);
+    const authServiceUrl = process.env.AUTH_SERVICE_URL ? process.env.AUTH_SERVICE_URL.replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}/auth-docs/`;
+    const userServiceUrl = process.env.USER_SERVICE_URL ? process.env.USER_SERVICE_URL.replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}/user-docs/`;
+    console.log(`🔐 Auth endpoints: ${authServiceUrl}/login`);
+    console.log(`👥 User endpoints: ${userServiceUrl}`);
 
   } catch (err) {
     console.error('Failed to start gateway service:');

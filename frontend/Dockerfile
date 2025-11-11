@@ -11,8 +11,10 @@ COPY package*.json ./
 RUN npm ci
 
 # Environment variables for Vite build (used at build time)
-ARG VITE_BACKEND_URL=http://localhost:3003
-ARG VITE_WS_URL=ws://localhost:4000
+# Defaults use HTTPS LAN_IP format (no localhost, no ports)
+# These should be overridden via docker-compose build args
+ARG VITE_BACKEND_URL=https://LAN_IP/api
+ARG VITE_WS_URL=wss://LAN_IP/ws
 
 # Set as ENV so Vite can access them during build
 ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}

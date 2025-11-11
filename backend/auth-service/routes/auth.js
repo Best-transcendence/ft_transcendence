@@ -142,7 +142,7 @@ export default async function authRoutes(fastify) {
 
       // === Bootstrap/verify profile in user-service (ensure profile exists) ===
       const axios = (await import('axios')).default;
-      const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+      const userServiceUrl = process.env.USER_SERVICE_URL || `http://user_service:${process.env.USER_SERVICE_PORT || 3002}`;
 
       try {
         console.log(`[${correlationId}] Bootstrapping/verifying user profile for authUserId ${user.id}`);
@@ -389,7 +389,7 @@ export default async function authRoutes(fastify) {
 
       // === Bootstrap profile in user-service with retry ===
       const axios = (await import('axios')).default;
-      const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+      const userServiceUrl = process.env.USER_SERVICE_URL || `http://user_service:${process.env.USER_SERVICE_PORT || 3002}`;
 
       const maxRetries = 3;
       let attempt = 0;

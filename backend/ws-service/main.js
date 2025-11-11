@@ -146,13 +146,13 @@ app.get('/health', {
 const start = async () => {
   try {
     const port = process.env.WS_PORT || 4000;
-    const host = process.env.HOST || 'localhost';
+    const _host = process.env.HOST || 'localhost';
 
     // Start Fastify server (this handles HTTP requests)
     await app.listen({ port: port, host: '0.0.0.0' });
 
-    const wsServiceUrl = `ws://${host}:${port}`;
-    const httpServiceUrl = `http://${host}:${port}`;
+    const wsServiceUrl = process.env.WS_SERVICE_URL ? process.env.WS_SERVICE_URL.replace(/^https?:\/\//, 'wss://').replace(/:\d+$/, '').replace(/\/$/, '') : `wss://${process.env.LAN_IP || 'LAN_IP'}/ws`;
+    const httpServiceUrl = process.env.WS_SERVICE_URL ? process.env.WS_SERVICE_URL.replace(/^ws:\/\//, 'https://').replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}/ws-docs/`;
     console.log(`🔌 WS Service running at ${wsServiceUrl}`);
     console.log(`📊 Health check: ${httpServiceUrl}/health`);
     console.log(`📚 API Documentation: ${httpServiceUrl}/docs`);

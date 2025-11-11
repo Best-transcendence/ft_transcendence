@@ -187,7 +187,7 @@ const start = async () => {
     // Listen on all interfaces (0.0.0.0) to allow external connections
     await app.listen({ port: port, host: '0.0.0.0' });
 
-    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+    const userServiceUrl = process.env.USER_SERVICE_URL ? process.env.USER_SERVICE_URL.replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}/user-docs/`;
     console.log(`👤 User Service running at ${userServiceUrl}`);
     console.log(`📊 Health check: ${userServiceUrl}/health`);
     console.log(`📚 API Documentation: ${userServiceUrl}/docs`);
