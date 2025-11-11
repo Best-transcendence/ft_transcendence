@@ -338,7 +338,6 @@ app.register(async function (fastify) {
 const start = async () => {
   try {
     const port = process.env.GATEWAY_PORT || 3003;
-    const _host = process.env.HOST || 'localhost';
 
     // Listen on all interfaces (0.0.0.0) to allow external connections
     await app.listen({ port: port, host: '0.0.0.0' });

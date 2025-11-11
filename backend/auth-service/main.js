@@ -68,8 +68,14 @@ await app.register(fastifySwaggerUI, {
     const hostname = hostHeader.split(':')[0]; // Remove port if present
     swaggerObject.host = hostname;
     swaggerObject.schemes = ['https'];
-    // Ensure basePath is set correctly
-    if (!swaggerObject.basePath) {
+    
+    // Set basePath for reverse proxy - API calls should go through gateway at /api/
+    // Check X-Forwarded-Prefix to determine if accessed through WAF
+    const forwardedPrefix = request?.headers?.['x-forwarded-prefix'];
+    if (forwardedPrefix === '/auth-docs') {
+      // When accessed through /auth-docs/, API calls should go to /api/
+      swaggerObject.basePath = '/api';
+    } else {
       swaggerObject.basePath = '';
     }
     return swaggerObject;

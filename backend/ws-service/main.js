@@ -104,8 +104,14 @@ await app.register(fastifySwaggerUI, {
     const hostname = hostHeader.split(':')[0]; // Remove port if present
     swaggerObject.host = hostname;
     swaggerObject.schemes = ['https'];
-    // Ensure basePath is set correctly
-    if (!swaggerObject.basePath) {
+    
+    // Set basePath for reverse proxy - WebSocket calls should go through /ws/
+    // Check X-Forwarded-Prefix to determine if accessed through WAF
+    const forwardedPrefix = request?.headers?.['x-forwarded-prefix'];
+    if (forwardedPrefix === '/ws-docs') {
+      // When accessed through /ws-docs/, WebSocket calls should go to /ws/
+      swaggerObject.basePath = '/ws';
+    } else {
       swaggerObject.basePath = '';
     }
     return swaggerObject;
@@ -146,7 +152,6 @@ app.get('/health', {
 const start = async () => {
   try {
     const port = process.env.WS_PORT || 4000;
-    const _host = process.env.HOST || 'localhost';
 
     // Start Fastify server (this handles HTTP requests)
     await app.listen({ port: port, host: '0.0.0.0' });
