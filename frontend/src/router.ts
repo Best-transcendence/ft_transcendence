@@ -246,8 +246,14 @@ export function router() {
       break;
 
     case "dashboard":
+      // ========================================================================
+      // DASHBOARD ROUTE
+      // ========================================================================
       // Reset dashboard state to show Statistics Overview on fresh navigation
+      // This ensures users always start at the first view when visiting dashboard
       resetDashboardState();
+      // protectedPage() checks if user is logged in, then renders DashboardPage
+      // initDashboard is called after the page is rendered to set up the carousel
       protectedPage(DashboardPage, initDashboard); // User dashboard
       break;
 
