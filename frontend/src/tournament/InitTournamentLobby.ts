@@ -50,7 +50,7 @@ function buildFourPlayerPairs(): [Player, Player][] {
   const me = myPlayer();
   const rest = players
     .filter(p => p.name.toLowerCase() !== me.name.toLowerCase()) // username Tina not equal with tina guest
-    .slice(0, 3);
+    .slice(0, 3); // safety
   const bag = shuffle(rest); // Randomize the other three players
 
   if (bag.length < 3) return []; // Not enough players for 4-player tournament
@@ -70,14 +70,16 @@ function updateCounters() {
   byId<HTMLSpanElement>("count").textContent = String(players.length);
   byId<HTMLSpanElement>("max").textContent = String(max);
 
+  // take matchmakeing button
   const startBtn = byId<HTMLButtonElement>("btn-start");
+
+  // if at capacity
   const isFull = players.length >= max;
 
-  // Enable Matchmaking button only when we have enough players
-  // "Let's start" button only appears after Matchmaking is clicked (in renderMatchmakerPreview)
+  // disable the start buttin unless the lobby is full
   startBtn.disabled = !isFull;
 
-  // Disable add buttons if we're at capacity
+  // Disable "add" buttons if we're at capacity
   const addGuestBtn = byId<HTMLButtonElement>("btn-add-guest");
   const addUserBtn = byId<HTMLButtonElement>("btn-add-user");
   addGuestBtn.disabled = isFull;
@@ -97,9 +99,9 @@ function updateCounters() {
   userEmailInput.disabled = isFull;
   userPasswordInput.disabled = isFull;
 
-  // Add visual feedback by reducing opacity when disabled and prevent hover
+  // if(isFull) add visual feedback by reducing opacity, block hover and click, else: when not full, restore normal visuals
   if (isFull) {
-    // Use inline styles to guarantee override
+    // Use inline styles to guarantee override, force the look regardless of CSS precedence
     addGuestBtn.style.opacity = '0.5';
     addGuestBtn.style.cursor = 'not-allowed';
     addGuestBtn.style.pointerEvents = 'none';
@@ -125,7 +127,7 @@ function updateCounters() {
     userPasswordInput.style.opacity = '0.5';
     userPasswordInput.style.cursor = 'not-allowed';
   } else {
-    // Remove inline styles
+    // Clear inline styles so CSS classes take over again
     addGuestBtn.style.opacity = '';
     addGuestBtn.style.cursor = '';
     addGuestBtn.style.pointerEvents = '';
@@ -189,7 +191,7 @@ async function addAuthenticatedPlayer(email: string, password: string) {
       return;
     }
 
-    // Prevent duplicate authenticated users by authUserId
+    // Prevent duplicate authenticated users by authUserId, some - whether at least on element from array
     if (players.some(p => p.authUserId === userData.id)) {
       showErrorMessage(t("errorUserAlreadyIn"));
       return;
@@ -526,7 +528,7 @@ export function initLobbyPageTournament() {
   const guestInputs = byId<HTMLDivElement>("guest-inputs");
   const userInputs = byId<HTMLDivElement>("user-inputs");
 
-  // Function to switch to guest mode
+  // Function to switch to guest mode, locally using guestInputs
   function showGuestMode() {
 	// update html list to make it visible/hidden
     guestInputs.classList.remove('hidden');
@@ -559,7 +561,7 @@ export function initLobbyPageTournament() {
   toggleGuestBtn.onclick = showGuestMode;
   toggleUserBtn.onclick = showUserMode;
 
-  // Guest player addition
+  // Guest player addition, protection
   addGuestBtn.addEventListener('click', (e) => {
     e.preventDefault(); // no submit or reload
     e.stopPropagation(); // don't trigger any parent containter
@@ -586,7 +588,7 @@ export function initLobbyPageTournament() {
     guestInput.value = "";
   });
 
-  // User (existing user) addition
+  // User (existing user) addition, protection
   addUserBtn.addEventListener('click', (e) => {
     e.preventDefault(); // no submit or reload
     e.stopPropagation(); // don't trigger any parent containter

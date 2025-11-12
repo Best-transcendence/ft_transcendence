@@ -184,3 +184,16 @@ id="email-field", etc.	DOM elements	Input fields referenced by login/signup logi
 - Provides the t() function and get the word from Translation.ts
 ## LanguageSwitcher.ts
 - The user interface (dropdown) to change the language and call LangEngine to get the word
+
+# Tournament
+1. TournamentLobby.ts UI
+2. InitTournamentLobby.ts wire with listeners, everytime somebody change something on TournamentLobby.ts
+
+
+# Log - printf
+
+| C-style                              | JavaScript equivalent                                 |
+| ------------------------------------ | ----------------------------------------------------- |
+| `printf("Hello %d", x);`             | `console.log("Hello", x);`                            |
+| `printf("x=%d, y=%d", x, y);`        | `console.log("x=", x, "y=", y);`                      |
+| `printf("x=%d", x); fflush(stdout);` | `console.log("x=", x);` (flush happens automatically) |
