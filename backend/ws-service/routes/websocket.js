@@ -9,7 +9,7 @@ import { createLogger, ErrorType } from '../utils/logger.js';
 const namesCache = new Map(); // userId(string) name
 
 async function fetchUserName(app, userId) {
-  const base = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+  const base = process.env.USER_SERVICE_URL || `http://user_service:${process.env.USER_SERVICE_PORT || 3002}`;
   try {
     const res = await fetch(`${base}/users/public/${userId}`);
     if (!res.ok) throw new Error(`status ${res.status}`);
@@ -24,10 +24,38 @@ async function fetchUserName(app, userId) {
   }
 }
 
+async function fetchUserFriends(app, userId, token) {
+  const base = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+  try {
+    const res = await fetch(`${base}/users/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const data = await res.json();
+    const friends = data.user?.friends?.map(f => f.id) || [];
+    return friends;
+  } catch (err) {
+    const correlationId = `fetch-friends-${userId}-${Date.now()}`;
+    app.log.warn({ userId, err: err.message }, 'Failed to fetch user friends');
+    return [];
+  }
+}
+
 const onlineUsers = new Map();
 
 const lobbyUsers = new Map(); // track only users who are on lobby page
 
+async function broadcastFriendStatus(app, userId, isOnline) {
+  const friends = await fetchUserFriends(app, userId, onlineUsers.get(String(userId))?.user?.token);
+  for (const friendId of friends) {
+    const friendWs = onlineUsers.get(String(friendId));
+    if (friendWs && friendWs.readyState === WebSocket.OPEN) {
+      friendWs.send(JSON.stringify({ type: 'friends:status:update', userId, isOnline }));
+    }
+  }
+}
 
 // Build lobby list
 function getLobbyUsers() {
@@ -85,7 +113,7 @@ export async function registerWebsocketHandlers(wss, app) {
   const roomHandlers = registerRoomHandlers(wss, onlineUsers, app);
   const gameHandlers = registerGameHandlers(wss, onlineUsers, app);
 
-  wss.on('connection', (ws, req) => {
+  wss.on('connection', async (ws, req) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const token = url.searchParams.get('token');
 
@@ -158,11 +186,14 @@ export async function registerWebsocketHandlers(wss, app) {
     // Track this connection (1 entry per user; last tab wins)
     onlineUsers.set(String(userId), ws);
 
+    // Broadcast online status to friends
+    await broadcastFriendStatus(app, userId, true);
+
     app.log.info({ userId }, 'WS connected');
     ws.send(JSON.stringify({ type: 'welcome', user: ws.user }));
     broadcastLobby();
 
-    ws.on('message', (raw) => {
+    ws.on('message', async (raw) => {
       let data;
       try {
         data = JSON.parse(raw.toString());
@@ -285,8 +316,19 @@ export async function registerWebsocketHandlers(wss, app) {
             broadcastLobby();
             break;
 
-          default:
-            app.log.warn({ type }, 'Unhandled WS message');
+           case 'friends:status:request': {
+             const friends = await fetchUserFriends(app, ws.user.id, ws.user.token);
+             const statuses = [];
+             for (const friendId of friends) {
+               const isOnline = onlineUsers.has(String(friendId));
+               statuses.push({ userId: friendId, isOnline });
+             }
+             ws.send(JSON.stringify({ type: 'friends:status:response', friends: statuses }));
+             break;
+           }
+
+           default:
+             app.log.warn({ type }, 'Unhandled WS message');
         }
       } catch (err) {
         const correlationId = `ws-handler-${Date.now()}`;
@@ -299,7 +341,10 @@ export async function registerWebsocketHandlers(wss, app) {
       }
     });
 
-    ws.on('close', () => {
+    ws.on('close', async () => {
+      // Broadcast offline status to friends before cleanup
+      await broadcastFriendStatus(app, ws.user.id, false);
+
       // cleanup both maps
       lobbyUsers.delete(ws.user.id);
       const current = onlineUsers.get(String(ws.user.id));

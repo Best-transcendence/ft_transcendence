@@ -46,7 +46,7 @@ export async function saveRemoteMatch(app, player1, player2, score1, score2) {
     };
 
     // Get user-service URL from environment or use default
-    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-service:3002';
+    const userServiceUrl = process.env.USER_SERVICE_URL || `http://user_service:${process.env.USER_SERVICE_PORT || 3002}`;
 
     // Call user-service to save the match
     const response = await fetch(`${userServiceUrl}/users/me`, {

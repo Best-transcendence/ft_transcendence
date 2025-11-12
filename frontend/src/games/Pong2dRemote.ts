@@ -1,4 +1,4 @@
-import { getSocket } from "../services/ws";
+import { getSocket, sendWSMessage } from "../services/ws";
 import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
@@ -263,7 +263,7 @@ export function initRemoteGame(roomId: string) {
   const socket = getSocket();
   currentRoomId = roomId;
 
-  socket?.send(JSON.stringify({ type: "game:join", roomId }));
+  sendWSMessage("game:join", { roomId });
 
   // Set a timeout to detect if room join fails (room doesn't exist)
   joinTimeout = setTimeout(() => {
@@ -290,20 +290,15 @@ export function initRemoteGame(roomId: string) {
     }
 
     if (e.code === "Space") {
-      socket?.send(JSON.stringify({ type: "game:begin", roomId }));
+      sendWSMessage("game:begin", { roomId });
       document.getElementById("startPress")?.remove();
     }
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
-      if (socket?.readyState === WebSocket.OPEN) {
-        socket.send(
-          JSON.stringify({
-            type: "game:move",
-            direction: e.key,
-            action: "down",
-            roomId,
-          })
-        );
-      }
+      sendWSMessage("game:move", {
+        direction: e.key,
+        action: "down",
+        roomId,
+      });
     }
   };
 
@@ -319,14 +314,11 @@ export function initRemoteGame(roomId: string) {
     }
 
     if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
-      socket?.send(
-        JSON.stringify({
-          type: "game:move",
-          direction: e.key,
-          action: "up",
-          roomId,
-        })
-      );
+      sendWSMessage("game:move", {
+        direction: e.key,
+        action: "up",
+        roomId,
+      });
     }
   };
 
@@ -392,11 +384,8 @@ export function leaveRemoteGame() {
     joinTimeout = null;
   }
 
-  // link to your backend
-  const socket = getSocket();
-  // game room ID
   if (currentRoomId) {
-    socket?.send(JSON.stringify({ type: "game:leave", roomId: currentRoomId }));   // send leaving message to the server
+    sendWSMessage("game:leave", { roomId: currentRoomId });
     currentRoomId = null;
   }
   // stop listening key presses
