@@ -11,6 +11,7 @@ import {
   triggerInvitePopup,
   closeInvitePopup,
 } from "../components/RemotePopup";
+import { getSocket, sendWSMessage } from "../services/ws";
 
 const EMOJIS = [
   "⚡",
@@ -204,7 +205,7 @@ export async function initLobby() {
   // LEAVE on tab close/refresh
   const onUnload = () => {
     try {
-      socket.send(JSON.stringify({ type: "lobby:leave" }));
+      sendWSMessage("lobby:leave");
     } catch {}
     closeInvitePopup(); // close on refresh
   };
@@ -212,13 +213,6 @@ export async function initLobby() {
 
   // proactively request list
   try {
-    if (socket?.readyState === 1) {
-      socket.send?.(JSON.stringify({ type: "user:list:request" }));
-    }
-    socket?.addEventListener?.("open", () => {
-      try {
-        socket.send?.(JSON.stringify({ type: "user:list:request" }));
-      } catch {}
-    });
+    sendWSMessage("user:list:request");
   } catch {}
 }

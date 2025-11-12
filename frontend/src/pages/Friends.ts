@@ -17,7 +17,9 @@ export interface Friend
 	bio: string
 }
 
-const friendStatuses = new Map<number, boolean>();
+const friendStatuses = new Map<number, boolean>(
+  JSON.parse(localStorage.getItem('friendStatuses') || '[]')
+);
 let unsubscribe: (() => void) | null = null;
 
 // Review user's connections in friends and friendOf
@@ -60,6 +62,7 @@ function noFriends()
 // Friend card appearance
 function friendCard(friend: Friend)
 {
+	const isOnline = friendStatuses.get(friend.id) ?? false;
 	return `
 	<div class="bg-slate-900 backdrop-blur-md rounded-2xl p-4 shadow-[0_0_30px_10px_#7037d3] h-[170px] relative overflow-hidden">
 		<div class="flex items-start gap-4 absolute left-5 top-5">
@@ -67,7 +70,7 @@ function friendCard(friend: Friend)
 				<div class="mr-3">
 				<h3 class="text-white font-semibold">
 					${ friend.name }
-					<span id="friend-status-${friend.id}" class="inline-block ml-1 text-sm">🟢</span></h3>
+					<span id="friend-status-${friend.id}" class="inline-block ml-1 text-sm">${isOnline ? '🟢' : '🔴'}</span></h3>
 				<p class="text-gray-400 text-sm break-words"
 				style="word-break: break-word; overflow-wrap: break-word;"><i>${ friend.bio }</i></p>
 				</div>
@@ -142,6 +145,8 @@ export function cleanupFriendsPage() {
 }
 
 function updateFriendStatus(userId: number, isOnline: boolean) {
+  friendStatuses.set(userId, isOnline);
+  localStorage.setItem('friendStatuses', JSON.stringify([...friendStatuses]));
   const element = document.getElementById(`friend-status-${userId}`);
   if (element) {
     element.textContent = isOnline ? '🟢' : '🔴';

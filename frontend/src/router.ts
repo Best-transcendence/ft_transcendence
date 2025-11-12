@@ -8,7 +8,7 @@
 
 // Service imports for API communication and WebSocket connection
 import { getCurrentUser, login, signup } from "./services/api";
-import { connectSocket, disconnectSocket } from "./services/ws";
+import { connectSocket, disconnectSocket, autoConnect } from "./services/ws";
 import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
 import { setupLanguageSwitcher } from "./services/lang/LanguageSwitcher";
 import { t } from "./services/lang/LangEngine";
@@ -108,6 +108,9 @@ export async function protectedPage(
 
   // Check if user is properly authenticated with valid data
   if (thisUser && thisUser.id && thisUser.name && thisUser.email) {
+    // Auto-connect WebSocket for real-time features
+    autoConnect();
+
     // Render the page content
     const content = await renderer();
     app.innerHTML = content;
