@@ -14,7 +14,12 @@ export function connectSocket(token: string) {
   }
 
   manualClose = false;
-  let WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:4000";
+  // Supports only wss://LAN_IP/ws/ format (no localhost, no ports)
+  let WS_URL = import.meta.env.VITE_WS_URL || '';
+  if (!WS_URL) {
+    console.error('VITE_WS_URL environment variable is not set');
+    return null;
+  }
   // Ensure trailing slash for nginx /ws/ location
   if (WS_URL.endsWith('/ws') && !WS_URL.endsWith('/ws/')) {
     WS_URL = WS_URL + '/';
