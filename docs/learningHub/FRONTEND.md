@@ -176,3 +176,11 @@ id="email-field", etc.	DOM elements	Input fields referenced by login/signup logi
 | `transition` / `transition-colors` | animate changes |
 | `duration-200` / `ease-in-out`     | timing curve    |
 | `hover:*` / `focus:*`              | state variants  |
+
+# Translation
+## Translation.ts
+- Stores all the actual text translations
+## LangEngine.ts
+- Provides the t() function and get the word from Translation.ts
+## LanguageSwitcher.ts
+- The user interface (dropdown) to change the language and call LangEngine to get the word

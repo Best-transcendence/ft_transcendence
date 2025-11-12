@@ -62,9 +62,6 @@ export function LoginPage() {
           </button>
         </form>
 
-        <!-- Divider -->
-        <div class="my-4 text-gray-300">${t("orDivider")}</div>
-
         <!-- Sign Up Button -->
         <button
           id="signup-toggle"

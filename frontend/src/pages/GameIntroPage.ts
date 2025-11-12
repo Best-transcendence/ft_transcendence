@@ -19,7 +19,7 @@ export function GameIntroPage(): string {
 		<!-- Group Language and Logout on the right -->
 		<div class="flex gap-2 items-center">
 			${LanguageSwitcher()}
-			 ${LogOutBtnDisplay()}
+			${LogOutBtnDisplay()}
 		</div>
 	 </div>
 

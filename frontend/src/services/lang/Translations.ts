@@ -1,6 +1,7 @@
 // Languages: English (default), French, German, Spanish, Portuguese, Hungarian
 export type Lang = "en" | "fr" | "de" | "es" | "pt" | "hu";
 
+// key, value dictionary in the language
 export const translations: Record<Lang, Record<string, string>> = {
   en: {
     continue: "Continue",
@@ -124,7 +125,6 @@ export const translations: Record<Lang, Record<string, string>> = {
 	dontHaveAccount: "Don't have an account?",
 	nameUnique: "Name (unique)",
 	confirmPassword: "Confirm Password",
-	orDivider: "OR",
 	lobbyTitle: "Lobby",
 	lobbySubtitle: "See who’s online and ready to play!",
 	waitingForUsers: "Waiting for online users…",
@@ -299,7 +299,6 @@ export const translations: Record<Lang, Record<string, string>> = {
 	dontHaveAccount: "Vous n'avez pas de compte ?",
 	nameUnique: "Nom (unique)",
 	confirmPassword: "Confirmer le mot de passe",
-	orDivider: "OU",
 	lobbyTitle: "Salle d’attente",
 	lobbySubtitle: "Voir qui est en ligne et prêt à jouer !",
 	waitingForUsers: "En attente de joueurs en ligne…",
@@ -474,7 +473,6 @@ export const translations: Record<Lang, Record<string, string>> = {
 	dontHaveAccount: "Du hast noch kein Konto?",
 	nameUnique: "Name (eindeutig)",
 	confirmPassword: "Passwort bestätigen",
-	orDivider: "ODER",
 	lobbyTitle: "Lobby",
 	lobbySubtitle: "Sieh, wer online und spielbereit ist!",
 	waitingForUsers: "Warten auf Online-Spieler…",
@@ -649,7 +647,6 @@ export const translations: Record<Lang, Record<string, string>> = {
 	dontHaveAccount: "¿No tienes una cuenta?",
 	nameUnique: "Nombre (único)",
 	confirmPassword: "Confirmar contraseña",
-	orDivider: "O",
 	lobbyTitle: "Sala",
 	lobbySubtitle: "¡Mira quién está en línea y listo para jugar!",
 	waitingForUsers: "Esperando jugadores en línea…",
@@ -824,7 +821,6 @@ export const translations: Record<Lang, Record<string, string>> = {
 	dontHaveAccount: "Não tem uma conta?",
 	nameUnique: "Nome (único)",
 	confirmPassword: "Confirmar senha",
-	orDivider: "OU",
 	lobbyTitle: "Lobby",
 	lobbySubtitle: "Veja quem está online e pronto para jogar!",
 	waitingForUsers: "Aguardando jogadores online…",
@@ -999,7 +995,6 @@ export const translations: Record<Lang, Record<string, string>> = {
 	dontHaveAccount: "Nincs még fiókod?",
 	nameUnique: "Név (egyedi)",
 	confirmPassword: "Jelszó megerősítése",
-	orDivider: "VAGY",
 	lobbyTitle: "Váró",
 	lobbySubtitle: "Nézd meg, ki van online és kész a játékra!",
 	waitingForUsers: "Várakozás az online játékosokra…",
