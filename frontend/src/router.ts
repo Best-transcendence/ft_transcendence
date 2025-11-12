@@ -192,26 +192,17 @@ export function router() {
 	  setupLanguageSwitcher();
       break;
 
+	case "intro":
+		protectedPage(GameIntroPage, setupLanguageSwitcher); // language switcher setup after rendering
+      	break;
+
     // Protected routes (authentication required)
     case "lobby":
-      protectedPage(
-        () => LobbyPage(),
-        () => initLobby() // Initialize lobby-specific functionality
-      );
+      protectedPage(LobbyPage, initLobby); // Initialize lobby-specific functionality
       break;
 
     case "lobbytournament":
-      protectedPage(
-        () => LobbyPageTournament(),
-        () => initLobbyPageTournament() // Initialize tournament lobby
-      );
-      break;
-
-    case "intro":
-		protectedPage(
-			() => GameIntroPage(),
-			() => setupLanguageSwitcher() // language switcher setup after rendering
-		)
+      protectedPage(LobbyPageTournament,initLobbyPageTournament); // Initialize tournament lobby
       break;
 
     case "remote":
@@ -224,54 +215,42 @@ export function router() {
       }
 
       isInRemoteGame = true;
-      protectedPage(
-        () => GamePongRemote(),
-        () => initRemoteGame(roomId) // Initialize remote game with room ID
-      );
+      protectedPage(GamePongRemote, () => initRemoteGame(roomId)); // Initialize remote game with room ID
       break;
 
-    // Tournament system routes
+    // Waiting for remote connection
     case "loading":
-      protectedPage(
-        () => LoadingPage(),
-        () => initLoadingPage()
-      );
+      protectedPage(LoadingPage, initLoadingPage);
       break;
 
     case "tournament":
-      protectedPage(
-        () => GamePongTournament(),
-        () => {
-          initGameTournament(); // Initialize tournament game
-          bootTournamentFlow();
-        }
-      );
+      protectedPage(GamePongTournament, initGameTournament, bootTournamentFlow); // Tournament game
       break;
 
     // Game mode routes
     case "AIopponent":
-      protectedPage(() => GamePongAIOpponent(), setupAIOpponent); // AI opponent game
+      protectedPage(GamePongAIOpponent, setupAIOpponent); // AI opponent game
       break;
 
     // User management routes
     case "profile":
-      protectedPage(() => ProfilePage(), profileStatsEvents, triggerPopup); // User profile page
+      protectedPage(ProfilePage, profileStatsEvents, triggerPopup); // User profile page
       break;
 
     case "friends":
-      protectedPage(() => FriendsPage(), triggerPopup, friendRequest); // Friends management
+      protectedPage(FriendsPage, triggerPopup, friendRequest); // Friends management
       break;
 
     case "dashboard":
       // Reset dashboard state to show Statistics Overview on fresh navigation
       resetDashboardState();
-      protectedPage(() => DashboardPage(), initDashboard); // User dashboard
+      protectedPage(DashboardPage, initDashboard); // User dashboard
       break;
 
     case "history":
       // Reset history page state to show latest match on fresh navigation
       resetHistoryPageState();
-      protectedPage(() => HistoryPage(), matchesEvents);  // Match history page
+      protectedPage(HistoryPage, matchesEvents);  // Match history page
       break;
 
     // Fallback for unknown routes
@@ -367,12 +346,8 @@ function attachLoginListeners() {
   // Signup/login mode toggle functionality
   const signupToggle = document.getElementById("signup-toggle");
   const nameField = document.getElementById("name-field");
-  const confirmPasswordField = document.getElementById(
-    "confirm-password-field"
-  );
-  const submitButton = document.getElementById(
-    "submit-button"
-  ) as HTMLButtonElement | null;
+  const confirmPasswordField = document.getElementById("confirm-password-field");
+  const submitButton = document.getElementById("submit-button") as HTMLButtonElement | null;
   const title = document.getElementById("form-title");
 
   /**
