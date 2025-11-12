@@ -85,6 +85,7 @@ export function autoConnect() {
   if (token) connectSocket(token);
 }
 
+// message and optional extra data
 export function sendWSMessage(type: string, payload: any = {}) {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({ type, ...payload }));

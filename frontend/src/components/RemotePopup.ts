@@ -1,4 +1,3 @@
-// src/components/popup.ts
 import { sendWSMessage } from "../services/ws";
 import { t } from "../services/lang/LangEngine";
 import DOMPurify from "dompurify";
@@ -9,6 +8,10 @@ import DOMPurify from "dompurify";
  */
 let activeInvitePopup: HTMLElement | null = null;
 
+/*from: {
+    id: "42",
+    name: "Juan"
+  } */
 export function triggerInvitePopup(inviteData: { from: { id: string; name?: string } }) {
   // If a popup is already active, ignore new ones
   if (activeInvitePopup) return;
@@ -30,6 +33,7 @@ export function triggerInvitePopup(inviteData: { from: { id: string; name?: stri
     </div>
   `);
 
+  // insert the overlay body
   document.body.appendChild(overlay);
   activeInvitePopup = overlay;
 
@@ -38,6 +42,7 @@ export function triggerInvitePopup(inviteData: { from: { id: string; name?: stri
     activeInvitePopup = null;
   };
 
+  // Searches inside that element for a matching child
   overlay.querySelector("#acceptInvite")?.addEventListener("click", () => {
     sendWSMessage("invite:accepted", { from: inviteData.from.id });
     cleanup();
