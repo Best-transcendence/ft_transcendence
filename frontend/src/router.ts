@@ -8,7 +8,7 @@
 
 // Service imports for API communication and WebSocket connection
 import { getCurrentUser, login, signup } from "./services/api";
-import { connectSocket } from "./services/ws";
+import { connectSocket, disconnectSocket } from "./services/ws";
 import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
 import { setupLanguageSwitcher } from "./services/lang/LanguageSwitcher";
 import { t } from "./services/lang/LangEngine";
@@ -28,7 +28,7 @@ import {
   teardownTournamentFlow,
 } from "./games/TournamentFlow";
 import { ProfilePage, profileStatsEvents } from "./pages/ProfilePage";
-import { FriendsPage } from "./pages/Friends";
+import { FriendsPage, initFriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents, resetHistoryPageState } from "./pages/HistoryPage";
 import { DashboardPage, initDashboard, resetDashboardState } from "./pages/Dashboard";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -186,6 +186,7 @@ export function router() {
   switch (page) {
     // Public routes (no authentication required)
     case "login":
+      disconnectSocket(); // Disconnect WS to appear offline on login page
       app.innerHTML = DOMPurify.sanitize(LoginPage());
       attachLoginListeners(); // Set up login form event listeners
 	  setupLanguageSwitcher();
@@ -260,7 +261,7 @@ export function router() {
       break;
 
     case "friends":
-      protectedPage(() => FriendsPage(), triggerPopup, friendRequest); // Friends management
+      protectedPage(() => FriendsPage(), triggerPopup, friendRequest, initFriendsPage); // Friends management
       break;
 
     case "dashboard":

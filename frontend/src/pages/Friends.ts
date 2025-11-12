@@ -6,6 +6,7 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn"
 import { friendRequestCard } from "../components/FriendRequestDiv"
 import { confirmPopup } from "../components/Popups"
 import { t } from "../services/lang/LangEngine";
+import { onSocketMessage, sendWSMessage } from "../services/ws";
 
 // Interface for friend (safer than using "any")
 export interface Friend
@@ -15,6 +16,9 @@ export interface Friend
 	profilePicture: string,
 	bio: string
 }
+
+const friendStatuses = new Map<number, boolean>();
+let unsubscribe: (() => void) | null = null;
 
 // Review user's connections in friends and friendOf
 // if userA has userB in BOTH friends and friendof = Mutual friends
@@ -63,7 +67,7 @@ function friendCard(friend: Friend)
 				<div class="mr-3">
 				<h3 class="text-white font-semibold">
 					${ friend.name }
-					<span class="inline-block ml-1 text-sm">🟢</span></h3>
+					<span id="friend-status-${friend.id}" class="inline-block ml-1 text-sm">🟢</span></h3>
 				<p class="text-gray-400 text-sm break-words"
 				style="word-break: break-word; overflow-wrap: break-word;"><i>${ friend.bio }</i></p>
 				</div>
@@ -111,3 +115,35 @@ export function FriendsPage()
 
 	</div>`
 };
+
+export function initFriendsPage() {
+  // Send request for current statuses
+  sendWSMessage('friends:status:request');
+
+  // Listen for updates
+  unsubscribe = onSocketMessage((msg) => {
+    if (msg.type === 'friends:status:update') {
+      friendStatuses.set(msg.userId, msg.isOnline);
+      updateFriendStatus(msg.userId, msg.isOnline);
+    } else if (msg.type === 'friends:status:response') {
+      msg.friends.forEach((f: {userId: number, isOnline: boolean}) => {
+        friendStatuses.set(f.userId, f.isOnline);
+        updateFriendStatus(f.userId, f.isOnline);
+      });
+    }
+  });
+}
+
+export function cleanupFriendsPage() {
+  if (unsubscribe) {
+    unsubscribe();
+    unsubscribe = null;
+  }
+}
+
+function updateFriendStatus(userId: number, isOnline: boolean) {
+  const element = document.getElementById(`friend-status-${userId}`);
+  if (element) {
+    element.textContent = isOnline ? '🟢' : '🔴';
+  }
+}
