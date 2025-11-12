@@ -187,8 +187,9 @@ id="email-field", etc.	DOM elements	Input fields referenced by login/signup logi
 
 # Tournament
 1. TournamentLobby.ts UI
-2. InitTournamentLobby.ts wire with listeners, everytime somebody change something on TournamentLobby.ts
-
+2. InitTournamentLobby.ts wire with listeners, everytime somebody change something on TournamentLobby.ts (utils: ensureMeFirst. rendering, sorting)
+3. Tournament.ts from startAndGoTournament after trigger InitTournamentLobby.ts from clicking on let's start on TournamentLobby.ts
+4. TournamentFlow.ts (utils: ensureMeFirst)
 
 # Log - printf
 
