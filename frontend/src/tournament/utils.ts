@@ -41,7 +41,6 @@ export function myPlayer(): Player {
 }
 
 // Player array manipulation utilities
-
 /**
  * Ensures the current user is always first in the players array
  * Removes any duplicates of the current user and places them at the beginning

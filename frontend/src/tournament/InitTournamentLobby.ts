@@ -1,14 +1,5 @@
 import { Player } from "./TournamentEngine";
-import {
-  Mode,
-  myName,
-  myPlayer,
-  shuffle,
-  ensureMeFirst,
-  sortForRender,
-  byId,
-  currentMax,
-} from "./utils";
+import { Mode, myName, myPlayer, shuffle, ensureMeFirst, sortForRender, byId, currentMax } from "./utils";
 import { verifyUserForTournament } from "../services/api";
 import { t } from "../services/lang/LangEngine";
 import DOMPurify from "dompurify";
@@ -49,17 +40,16 @@ export function getDisplayName(player: Player): string {
 }
 
 // Tournament pairing and match generation
-
 /**
- * Generates semifinal pairings for 4-player tournaments
- * Always places the current user in the first semifinal
- * Randomizes the other three players for fair matchups
+ * - Generates semifinal pairings for 4-player tournaments
+ * - Always places the current user in the first semifinal
+ * - Randomizes the other three players for fair matchups
  * @returns {[Player, Player][]} Array of semifinal pairs
  */
 function buildFourPlayerPairs(): [Player, Player][] {
   const me = myPlayer();
   const rest = players
-    .filter(p => p.name.toLowerCase() !== me.name.toLowerCase())
+    .filter(p => p.name.toLowerCase() !== me.name.toLowerCase()) // username Tina not equal with tina guest
     .slice(0, 3);
   const bag = shuffle(rest); // Randomize the other three players
 
@@ -73,8 +63,7 @@ function buildFourPlayerPairs(): [Player, Player][] {
 // UI state management and validation
 
 /**
- * Updates UI counters and button states based on current player count
- * Enables/disables buttons based on tournament capacity and requirements
+ * Counts from "count" 0 until "max" 4 from TournamentLobby.ts
  */
 function updateCounters() {
   const max = currentMax(mode);
@@ -508,8 +497,7 @@ function setMode(newMode: "2" | "4") {
   resetPageState(); // Reset and re-add current user as Player 1
 }
 
-// Public API - Tournament lobby initialization
-
+// Tournament lobby initialization
 /**
  * Initializes the tournament lobby page
  * Sets up event listeners, initial state, and UI controls
@@ -540,6 +528,7 @@ export function initLobbyPageTournament() {
 
   // Function to switch to guest mode
   function showGuestMode() {
+	// update html list to make it visible/hidden
     guestInputs.classList.remove('hidden');
     userInputs.classList.add('hidden');
 
@@ -572,8 +561,8 @@ export function initLobbyPageTournament() {
 
   // Guest player addition
   addGuestBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); // no submit or reload
+    e.stopPropagation(); // don't trigger any parent containter
 
     const name = guestInput.value.trim();
 
@@ -599,8 +588,8 @@ export function initLobbyPageTournament() {
 
   // User (existing user) addition
   addUserBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); // no submit or reload
+    e.stopPropagation(); // don't trigger any parent containter
 
     const email = userEmailInput.value.trim();
     const password = userPasswordInput.value;
@@ -619,11 +608,11 @@ export function initLobbyPageTournament() {
   });
 
   // Tournament mode selection
-  mode2.onchange = () => { if (mode2.checked) setMode("2"); };
+  mode2.onchange = () => { if (mode2.checked) setMode("2"); }; // when the user change radio button
   mode4.onchange = () => { if (mode4.checked) setMode("4"); };
 
   // Difficulty selection with info update
-    const difficultyEasy = byId<HTMLInputElement>("difficulty-easy");
+  const difficultyEasy = byId<HTMLInputElement>("difficulty-easy");
   const difficultyMedium = byId<HTMLInputElement>("difficulty-medium");
   const difficultyHard = byId<HTMLInputElement>("difficulty-hard");
   const difficultyInfo = byId<HTMLSpanElement>("difficulty-info");
