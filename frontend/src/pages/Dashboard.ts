@@ -671,24 +671,32 @@ function createPerformanceChart(matches: any[]): void {
     });
 
     if (points.length > 0) {
-      // Draw filled area
-      ctx.beginPath();
       const firstPoint = points[0];
       if (firstPoint) {
+        // Draw filled area with smooth curve matching the line
+        ctx.beginPath();
         ctx.moveTo(firstPoint.x, padding.top + chartHeight);
-        points.forEach(point => ctx.lineTo(point.x, point.y));
+        ctx.lineTo(firstPoint.x, firstPoint.y);
+        // Use the same smooth curve as the line
+        for (let i = 1; i < points.length; i++) {
+          const prev = points[i - 1];
+          const curr = points[i];
+          if (prev && curr) {
+            // Smooth curve using quadratic bezier
+            const cpX = (prev.x + curr.x) / 2;
+            ctx.quadraticCurveTo(cpX, prev.y, curr.x, curr.y);
+          }
+        }
         const lastPoint = points[points.length - 1];
         if (lastPoint) {
           ctx.lineTo(lastPoint.x, padding.top + chartHeight);
         }
-      }
-      ctx.closePath();
-      ctx.fillStyle = "rgba(124, 58, 237, 0.2)";
-      ctx.fill();
+        ctx.closePath();
+        ctx.fillStyle = "rgba(124, 58, 237, 0.2)";
+        ctx.fill();
 
-      // Draw line
-      ctx.beginPath();
-      if (firstPoint) {
+        // Draw line
+        ctx.beginPath();
         ctx.moveTo(firstPoint.x, firstPoint.y);
         for (let i = 1; i < points.length; i++) {
           const prev = points[i - 1];
@@ -699,10 +707,10 @@ function createPerformanceChart(matches: any[]): void {
             ctx.quadraticCurveTo(cpX, prev.y, curr.x, curr.y);
           }
         }
+        ctx.strokeStyle = "rgba(124, 58, 237, 1)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
       }
-      ctx.strokeStyle = "rgba(124, 58, 237, 1)";
-      ctx.lineWidth = 2;
-      ctx.stroke();
 
       // Draw points
       points.forEach(point => {
