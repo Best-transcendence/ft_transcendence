@@ -7,7 +7,6 @@ import { autoConnect } from "../services/ws";
 import { t } from "../services/lang/LangEngine";
 import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
-// Adapted function now that data extraction has been centralized
 export function GameIntroPage(): string {
   autoConnect();
 
@@ -33,20 +32,4 @@ export function GameIntroPage(): string {
       ${ModeCards()}
     </div>
   `;
-}
-
-function handleWSMessage(msg: any) {
-  switch (msg.type) {
-    case "room:start":
-      console.log("Match found! Room ID:", msg.roomId);
-      localStorage.setItem("roomId", msg.roomId);
-      window.location.hash = `remote?room=${encodeURIComponent(msg.roomId)}`;
-      break;
-    case "matchmaking:searching":
-      console.log(" Waiting for opponent…");
-      break;
-    case "invite:error":
-      alert("There are not players in this moment..");
-      break;
-  }
 }
