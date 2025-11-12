@@ -585,17 +585,6 @@ function createMatchTypesChart(matches: any[]): void {
       ctx.textBaseline = "bottom";
       ctx.fillText(value.toString(), labelX, y);
     });
-
-    // Draw Y-axis labels
-    ctx.fillStyle = "#e5e7eb";
-    ctx.font = "12px sans-serif";
-    ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
-    for (let i = 0; i <= gridLines; i++) {
-      const value = Math.round((maxValue / gridLines) * (gridLines - i));
-      const y = padding.top + (chartHeight / gridLines) * i;
-      ctx.fillText(value.toString(), padding.left - 10, y);
-    }
   }, 50);
 }
 

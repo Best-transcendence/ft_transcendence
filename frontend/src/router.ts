@@ -20,7 +20,6 @@ import { t } from "./services/lang/LangEngine";
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
-import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
 import { GamePongAIOpponent, setupAIOpponent } from "./games/AIOpponent";
 import { destroyCurrentGame } from "./games/GameController";
 import { GamePongTournament } from "./games/Tournament";
