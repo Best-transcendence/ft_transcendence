@@ -199,3 +199,16 @@ id="email-field", etc.	DOM elements	Input fields referenced by login/signup logi
 | `printf("Hello %d", x);`             | `console.log("Hello", x);`                            |
 | `printf("x=%d, y=%d", x, y);`        | `console.log("x=", x, "y=", y);`                      |
 | `printf("x=%d", x); fflush(stdout);` | `console.log("x=", x);` (flush happens automatically) |
+
+# String protection logic
+```bash
+/^[a-z0-9._-]+$/
+```
+
+| Part          | Meaning                                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------ |
+| `/` ... `/`   | Marks the start and end of the regex                                                                         |
+| `^`           | Start of the string                                                                                          |
+| `[a-z0-9._-]` | Allowed characters: lowercase letters (`a–z`), digits (`0–9`), dot (`.`), underscore (`_`), and hyphen (`-`) |
+| `+`           | One or more of those allowed characters                                                                      |
+| `$`           | End of the string                                                                                            |
