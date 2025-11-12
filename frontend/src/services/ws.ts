@@ -2,6 +2,7 @@ let socket: WebSocket | null = null;
 let reconnectTimer: number | null = null;
 let manualClose = false;
 let listeners: ((msg: any) => void)[] = [];
+let messageQueue: Array<{type: string, payload: any}> = [];
 
 export function getSocket() {
   return socket;
@@ -31,6 +32,13 @@ export function connectSocket(token: string) {
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
+    }
+    // Send queued messages
+    while (messageQueue.length > 0) {
+      const msg = messageQueue.shift();
+      if (msg) {
+        socket.send(JSON.stringify({ type: msg.type, ...msg.payload }));
+      }
     }
   };
 
@@ -94,6 +102,7 @@ export function sendWSMessage(type: string, payload: any = {}) {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({ type, ...payload }));
   } else {
-    console.warn("Cannot send WS message: socket not open");
+    console.warn("Cannot send WS message: socket not open, queuing");
+    messageQueue.push({ type, payload });
   }
 }
