@@ -3,13 +3,14 @@ import { profileDivDisplay } from "../components/ProfileDiv";
 import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { addTheme } from "../components/Theme";
 import { ModeCards } from "../components/cards/ModeCards";
-import { autoConnect } from "../services/ws";
+import { autoConnect, onSocketMessage } from "../services/ws";
 import { t } from "../services/lang/LangEngine";
 import { LanguageSwitcher } from "../services/lang/LanguageSwitcher";
 
 // Adapted function now that data extraction has been centralized
 export function GameIntroPage(): string {
-  autoConnect(handleWSMessage);
+  autoConnect();
+  onSocketMessage(handleWSMessage);
 
   return `
     ${addTheme()}

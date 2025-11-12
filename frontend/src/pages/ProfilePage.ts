@@ -169,8 +169,10 @@ function placeArrows() {
 
   function render() {
     if (!labelEl || !valueEl) return;
-    labelEl.textContent = items[i].label;
-    valueEl.textContent = String(items[i].value);
+    const item = items[i];
+    if (!item) return;
+    labelEl.textContent = item.label;
+    valueEl.textContent = String(item.value);
 
     // show/hide like your history page
     prevBtn?.classList.toggle("hidden", i === 0);

@@ -15,7 +15,17 @@ export function connectSocket(token: string) {
   }
 
   manualClose = false;
-  let WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:4000";
+  // Derive WebSocket URL from backend URL if VITE_WS_URL is not set
+  let WS_URL = import.meta.env.VITE_WS_URL;
+  if (!WS_URL) {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3003';
+    try {
+      const url = new URL(backendUrl);
+      WS_URL = `ws://${url.hostname}:4000`;
+    } catch {
+      WS_URL = "ws://localhost:4000";
+    }
+  }
   // Ensure trailing slash for nginx /ws/ location
   if (WS_URL.endsWith('/ws') && !WS_URL.endsWith('/ws/')) {
     WS_URL = WS_URL + '/';
@@ -29,6 +39,7 @@ export function connectSocket(token: string) {
       reconnectTimer = null;
     }
     // Send queued messages
+    if (!socket) return;
     while (messageQueue.length > 0) {
       const msg = messageQueue.shift();
       if (msg) {

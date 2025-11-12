@@ -1,4 +1,4 @@
-import { connectSocket, onSocketMessage, getSocket } from "../services/ws";
+import { connectSocket, onSocketMessage, getSocket, sendWSMessage } from "../services/ws";
 import { addTheme } from "../components/Theme";
 import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
@@ -11,7 +11,6 @@ import {
   triggerInvitePopup,
   closeInvitePopup,
 } from "../components/RemotePopup";
-import { getSocket, sendWSMessage } from "../services/ws";
 
 const EMOJIS = [
   "⚡",
