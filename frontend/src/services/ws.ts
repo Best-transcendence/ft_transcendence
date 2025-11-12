@@ -36,7 +36,7 @@ export function connectSocket(token: string) {
     // Send queued messages
     while (messageQueue.length > 0) {
       const msg = messageQueue.shift();
-      if (msg) {
+      if (msg && socket) {
         socket.send(JSON.stringify({ type: msg.type, ...msg.payload }));
       }
     }
@@ -98,6 +98,7 @@ export function autoConnect() {
   if (token) connectSocket(token);
 }
 
+// message and optional extra data
 export function sendWSMessage(type: string, payload: any = {}) {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({ type, ...payload }));

@@ -388,6 +388,7 @@ export function leaveRemoteGame() {
     sendWSMessage("game:leave", { roomId: currentRoomId });
     currentRoomId = null;
   }
+  // stop listening key presses
   if (keydownHandler) document.removeEventListener("keydown", keydownHandler);
   if (keyupHandler) document.removeEventListener("keyup", keyupHandler);
   keydownHandler = null;

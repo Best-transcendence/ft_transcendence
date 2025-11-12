@@ -41,10 +41,9 @@ export function myPlayer(): Player {
 }
 
 // Player array manipulation utilities
-
 /**
- * Ensures the current user is always first in the players array
- * Removes any duplicates of the current user and places them at the beginning
+ * - Ensures the current user is always first in the players array
+ * - Removes any duplicates of the current user and places them at the beginning
  * @param players - Array of players to process
  * @returns {Player[]} New array with current user first, others following
  */
@@ -70,16 +69,15 @@ export function sortForRender(players: Player[]): Player[] {
 
 /**
  * Fisher-Yates shuffle algorithm for array randomization
- * Creates a new shuffled array without modifying the original
- * Used for fair tournament pairings and match generation
+ * - Creates a new shuffled array without modifying the original
  * @param arr - Array to shuffle
  * @returns {T[]} New array with elements in random order
  */
 export function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
+  const a = [...arr]; // shallow copy 
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j]!, a[i]!];
+    const j = Math.floor(Math.random() * (i + 1)); // round a random number beetween the rangr
+    [a[i], a[j]] = [a[j]!, a[i]!]; // swap without TS warn
   }
   return a;
 }

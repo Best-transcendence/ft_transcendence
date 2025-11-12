@@ -1,6 +1,7 @@
 import { getCurrentUser } from "../services/api";
 import { thisUser } from "../router"
 import { API_URL } from "./config";
+import { t } from "./lang/LangEngine";
 
 // Loads picture from fileselector + turns into url
 export function uploadProfilePicture()

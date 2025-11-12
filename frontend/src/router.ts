@@ -8,12 +8,15 @@
 
 // Service imports for API communication and WebSocket connection
 import { getCurrentUser, login, signup } from "./services/api";
+import DOMPurify from "dompurify";
+
+// Translation
 import { connectSocket, disconnectSocket, autoConnect } from "./services/ws";
 import { GamePongRemote, initRemoteGame, leaveRemoteGame} from "./games/Pong2dRemote";
 import { setupLanguageSwitcher } from "./services/lang/LanguageSwitcher";
 import { t } from "./services/lang/LangEngine";
-import DOMPurify from "dompurify";
-// Page component imports for different application views
+
+// Pages and game logic
 import { LoginPage } from "./pages/LoginPage";
 import { LobbyPage, initLobby } from "./pages/LobbyPage";
 import { GameIntroPage } from "./pages/GameIntroPage";
@@ -23,10 +26,7 @@ import { GamePongTournament } from "./games/Tournament";
 import { LobbyPageTournament } from "./tournament/TournamentLobby";
 import { initLobbyPageTournament } from "./tournament/InitTournamentLobby";
 import { initGameTournament } from "./games/InitGameTournament";
-import {
-  bootTournamentFlow,
-  teardownTournamentFlow,
-} from "./games/TournamentFlow";
+import { bootTournamentFlow, teardownTournamentFlow, } from "./games/TournamentFlow";
 import { ProfilePage, profileStatsEvents } from "./pages/ProfilePage";
 import { FriendsPage, initFriendsPage } from "./pages/Friends";
 import { HistoryPage, matchesEvents, resetHistoryPageState } from "./pages/HistoryPage";
@@ -141,6 +141,7 @@ let lastPage: string | null = null;
 let isInRemoteGame: boolean = false;
 
 export function router() {
+  // fill from index.html
   const app = document.getElementById("app")!;
 
   // Parse URL hash to extract route and query parameters
@@ -195,28 +196,17 @@ export function router() {
 	  setupLanguageSwitcher();
       break;
 
+	case "intro":
+		protectedPage(GameIntroPage, setupLanguageSwitcher); // language switcher setup after rendering
+      	break;
+
     // Protected routes (authentication required)
     case "lobby":
-      protectedPage(
-        () => LobbyPage(),
-        () => {
-          initLobby(); // Initialize lobby-specific functionality
-        }
-      );
+      protectedPage(LobbyPage, initLobby); // Initialize lobby-specific functionality
       break;
 
     case "lobbytournament":
-      protectedPage(
-        () => LobbyPageTournament(),
-        () => initLobbyPageTournament() // Initialize tournament lobby
-      );
-      break;
-
-    case "intro":
-		protectedPage(
-			() => GameIntroPage(),
-			() => setupLanguageSwitcher() // language switcher setup after rendering
-		)
+      protectedPage(LobbyPageTournament,initLobbyPageTournament); // Initialize tournament lobby
       break;
 
     case "remote":
@@ -229,38 +219,26 @@ export function router() {
       }
 
       isInRemoteGame = true;
-      protectedPage(
-        () => GamePongRemote(),
-        () => initRemoteGame(roomId) // Initialize remote game with room ID
-      );
+      protectedPage(GamePongRemote, () => initRemoteGame(roomId)); // Initialize remote game with room ID
       break;
 
-    // Tournament system routes
+    // Waiting for remote connection
     case "loading":
-      protectedPage(
-        () => LoadingPage(),
-        () => initLoadingPage()
-      );
+      protectedPage(LoadingPage, initLoadingPage);
       break;
 
     case "tournament":
-      protectedPage(
-        () => GamePongTournament(),
-        () => {
-          initGameTournament(); // Initialize tournament game
-          bootTournamentFlow();
-        }
-      );
+      protectedPage(GamePongTournament, initGameTournament, bootTournamentFlow); // Tournament game
       break;
 
     // Game mode routes
     case "AIopponent":
-      protectedPage(() => GamePongAIOpponent(), setupAIOpponent); // AI opponent game
+      protectedPage(GamePongAIOpponent, setupAIOpponent); // AI opponent game
       break;
 
     // User management routes
     case "profile":
-      protectedPage(() => ProfilePage(), profileStatsEvents, triggerPopup); // User profile page
+      protectedPage(ProfilePage, profileStatsEvents, triggerPopup); // User profile page
       break;
 
     case "friends":
@@ -270,13 +248,13 @@ export function router() {
     case "dashboard":
       // Reset dashboard state to show Statistics Overview on fresh navigation
       resetDashboardState();
-      protectedPage(() => DashboardPage(), initDashboard); // User dashboard
+      protectedPage(DashboardPage, initDashboard); // User dashboard
       break;
 
     case "history":
       // Reset history page state to show latest match on fresh navigation
       resetHistoryPageState();
-      protectedPage(() => HistoryPage(), matchesEvents);  // Match history page
+      protectedPage(HistoryPage, matchesEvents);  // Match history page
       break;
 
     // Fallback for unknown routes
@@ -330,9 +308,9 @@ function attachLoginListeners() {
         console.log("Signed up:", user);
         alert("✅ Account created successfully! You can now log in.");
 
-        // Switch back to login mode after successful signup
-        signupToggle?.click();
-      } else {
+		// Switch back to login mode after successful signup
+		signupToggle?.click();
+		} else {
         // Handle user login
         user = await login(email, password);
         console.log("Logged in:", user);
@@ -372,12 +350,8 @@ function attachLoginListeners() {
   // Signup/login mode toggle functionality
   const signupToggle = document.getElementById("signup-toggle");
   const nameField = document.getElementById("name-field");
-  const confirmPasswordField = document.getElementById(
-    "confirm-password-field"
-  );
-  const submitButton = document.getElementById(
-    "submit-button"
-  ) as HTMLButtonElement | null;
+  const confirmPasswordField = document.getElementById("confirm-password-field");
+  const submitButton = document.getElementById("submit-button") as HTMLButtonElement | null;
   const title = document.getElementById("form-title");
 
   /**

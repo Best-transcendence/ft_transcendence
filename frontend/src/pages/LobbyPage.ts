@@ -1,4 +1,4 @@
-import { connectSocket, onSocketMessage, getSocket } from "../services/ws";
+import { connectSocket, onSocketMessage, getSocket, sendWSMessage } from "../services/ws";
 import { addTheme } from "../components/Theme";
 import { sidebarDisplay } from "../components/SideBar";
 import { profileDivDisplay } from "../components/ProfileDiv";
@@ -7,32 +7,32 @@ import { t } from "../services/lang/LangEngine";
 
 import { thisUser } from "../router";
 import DOMPurify from "dompurify";
-import {
-  triggerInvitePopup,
-  closeInvitePopup,
-} from "../components/RemotePopup";
-import { getSocket, sendWSMessage } from "../services/ws";
+import { triggerInvitePopup, closeInvitePopup } from "../components/RemotePopup";
 
 const EMOJIS = [
   "⚡",
-  "🚀",
+  "💖",
   "🐉",
   "🦊",
-  "🐱",
+  "🦥",
   "🐼",
   "🐧",
   "🐸",
   "🦄",
   "👾",
-  "⭐",
-  "🌟",
+  "🌭",
+  "🧸",
   "🍀",
 ];
+
+
 export function emojiForId(id: number) {
-  const index = id % EMOJIS.length;
+  const index = id % EMOJIS.length; // e.g.: 14 % 6 = 2
   return EMOJIS[index];
 }
 
+// prevents HTML injection / XSS
+// example: name = "<script>alert('hacked!')</script>"
 function escapeHTML(s: string) {
   return s
     .replace(/&/g, "&amp;")
@@ -54,13 +54,13 @@ export function LobbyPage() {
 			 ${LogOutBtnDisplay()}
 		</div>
 	 </div>
+
     <div class="flex flex-col gap-3 mb-10"
          style="position: relative; display: inline-block; width: 50vw; height: 11vw; min-width: 120px; min-height: 120px;">
-      <h1 class="text-4xl font-bold mb-4">🎮 ${t("lobbyTitle")}</h1>
-      <p class="from-theme-bg1 mb-6">${t("lobbySubtitle")}</p>
-      <div id="online-users" class="grid gap-3"></div>
-    </div>
-  `;
+		<h1 class="text-4xl font-bold mb-4">🎮 ${t("lobbyTitle")}</h1>
+		<p class="from-theme-bg1 mb-6">${t("lobbySubtitle")}</p>
+		<div id="online-users" class="grid gap-3"></div>
+    </div>`;
 }
 
 export async function initLobby() {
@@ -77,7 +77,7 @@ export async function initLobby() {
   usersContainer.innerHTML = DOMPurify.sanitize(`<p class="text-gray-400">${t("waitingForUsers")}</p>`);
 
   const socket = connectSocket(token);
-  const unsuscribe = onSocketMessage((msg) => {
+  onSocketMessage((msg) => {
     switch (msg.type) {
       case "user:list": {
         const list = Array.isArray(msg.users) ? msg.users : [];
@@ -88,8 +88,7 @@ export async function initLobby() {
           return;
         }
 
-        usersContainer.innerHTML = DOMPurify.sanitize(others
-          .map((u: any) => {
+        usersContainer.innerHTML = DOMPurify.sanitize(others.map((u: any) => {
             const id = String(u?.id ?? "");
             const idNum = Number(id) || 0;
 

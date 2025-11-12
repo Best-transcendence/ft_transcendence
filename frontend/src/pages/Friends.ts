@@ -37,7 +37,7 @@ export function loadFriend(): string
 	{
 		const friend = thisUser.friendOf[i];
 
-		if (!thisUser.friends.find((f: Friend) => f.id === friend.id))
+		if (!thisUser.friends || !thisUser.friends.find((f: Friend) => f.id === friend.id))
 			friendRequests = friendRequestCard(friend);
 		else
 			cards += friendCard(thisUser.friendOf[i]);
