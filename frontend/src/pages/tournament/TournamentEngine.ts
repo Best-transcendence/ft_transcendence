@@ -1,9 +1,9 @@
 /**
  * Tournament Engine
  * 
- * This module provides the core tournament logic including bracket creation,
- * match management, and result processing. It handles both 2-player and 4-player
- * tournaments with different formats (best-of-1 and best-of-3).
+ * Provides core logic for TournamentFlow: ,
+ * bracket creation, match management, result processing
+ * 2-player and 4-player with different formats (best-of-1 and best-of-3)
  */
 
 /**

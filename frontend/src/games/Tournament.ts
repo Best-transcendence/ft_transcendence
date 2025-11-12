@@ -20,22 +20,18 @@ import { t } from "../services/lang/LangEngine"
  * - Arcade machine background image
  * - Game area with paddles, ball, and scoring
  * - User interface components (profile, sidebar, logout)
- * - Responsive design with proper aspect ratios
  * 
  * @returns {string} Complete HTML template for the tournament game
  */
 export function GamePongTournament(): string {
   return `
-		${ addTheme() }
+	${ addTheme() }
 	
-		<!-- Background gradient overlay for visual depth -->
-		<div class="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0)_50%,rgba(0,0,0,1)_100%)] z-0"></div>
+	<!-- Background gradient overlay for visual depth -->
+	<div class="absolute inset-0 bg-[radial-gradient(circle,rgba(0,0,0,0)_50%,rgba(0,0,0,1)_100%)] z-0"></div>
 	
 	<!-- Header section with user interface components -->
-		<div class="w-full
-			flex justify-between items-center
-			mb-10 relative z-3">
-	
+		<div class="w-full flex justify-between items-center mb-10 relative z-3">
 		<!-- Protected pages components -->
 		${ profileDivDisplay() }
 		${ sidebarDisplay() }
@@ -47,8 +43,7 @@ export function GamePongTournament(): string {
 	
 	<!-- Tournament timer display -->
 	${ TimerDisplay() }
-	
-	
+
 	<!-- Main game container with responsive sizing -->
 		<div class="flex justify-center w-screen overflow-hidden">
 			<!-- Game area container with 16:9 aspect ratio and responsive width -->
@@ -130,8 +125,6 @@ export function GamePongTournament(): string {
 		</button>
 
 	</div>
-	</div>
-
-		`;
-	}
+	</div>`;
+}
 	
