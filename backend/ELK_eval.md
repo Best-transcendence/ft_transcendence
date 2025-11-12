@@ -18,6 +18,12 @@ Elasticsearch (log storage & search)
 Kibana (log visualization)
 ```
 
+## Error codes example for testing
+```
+error_code:USERNAME_ALREADY_EXISTS
+error_code:EMAIL_ALREADY_EXISTS
+```
+
 ## Components
 
 ### Elasticsearch

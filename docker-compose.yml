@@ -177,6 +177,8 @@ services:
   elasticsearch:
     image: elasticsearch:7.17.9
     container_name: elasticsearch
+    env_file:
+      - .env
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=true
@@ -200,11 +202,14 @@ services:
   logstash:
     image: logstash:7.17.9
     container_name: logstash
+    env_file:
+      - .env
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
       - XPACK_MONITORING_ENABLED=false
       - ELASTICSEARCH_USER=elastic
       - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - HTTP_PORT=9600
     ports:
       - "${LOGSTASH_PORT:-5044}:5044"
     volumes:
@@ -228,6 +233,8 @@ services:
     image: elastic/filebeat:7.17.9
     container_name: filebeat
     user: root
+    env_file:
+      - .env
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
     volumes:
@@ -252,6 +259,8 @@ services:
     image: kibana:7.17.9
     container_name: kibana
     # No ports exposed - access only through nginx at https://LAN_IP/kibana/
+    env_file:
+      - .env
     networks:
       - ft_transcendence_network
     depends_on:
@@ -277,6 +286,8 @@ services:
   kibana-setup:
     image: curlimages/curl:latest
     container_name: kibana_setup
+    env_file:
+      - .env
     networks:
       - ft_transcendence_network
     depends_on:

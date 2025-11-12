@@ -4,7 +4,7 @@ server.basePath: "/kibana"
 server.rewriteBasePath: true
 elasticsearch.hosts: ["http://elasticsearch:9200"]
 elasticsearch.username: elastic
-elasticsearch.password: changeme
+elasticsearch.password: ${ELASTIC_PASSWORD}
 elasticsearch.ssl.verificationMode: none
 
 # Security settings - Enable authentication and disable anonymous access
