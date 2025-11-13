@@ -177,14 +177,15 @@ services:
   elasticsearch:
     image: elasticsearch:7.17.9
     container_name: elasticsearch
+    env_file:
+      - .env
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=true
       - xpack.license.self_generated.type=basic
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    # No ports exposed - access only through nginx at https://LAN_IP/elasticsearch/
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
@@ -201,11 +202,14 @@ services:
   logstash:
     image: logstash:7.17.9
     container_name: logstash
+    env_file:
+      - .env
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
       - XPACK_MONITORING_ENABLED=false
       - ELASTICSEARCH_USER=elastic
       - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - HTTP_PORT=9600
     ports:
       - "${LOGSTASH_PORT:-5044}:5044"
     volumes:
@@ -229,6 +233,8 @@ services:
     image: elastic/filebeat:7.17.9
     container_name: filebeat
     user: root
+    env_file:
+      - .env
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
     volumes:
@@ -252,8 +258,9 @@ services:
   kibana:
     image: kibana:7.17.9
     container_name: kibana
-    ports:
-      - "${KIBANA_PORT:-5601}:5601"
+    # No ports exposed - access only through nginx at https://LAN_IP/kibana/
+    env_file:
+      - .env
     networks:
       - ft_transcendence_network
     depends_on:
@@ -279,6 +286,8 @@ services:
   kibana-setup:
     image: curlimages/curl:latest
     container_name: kibana_setup
+    env_file:
+      - .env
     networks:
       - ft_transcendence_network
     depends_on:
@@ -304,8 +313,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_BACKEND_URL=${VITE_BACKEND_URL:-http://localhost:3003}
-        - VITE_WS_URL=${VITE_WS_URL:-ws://localhost:4000}
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL:-https://${LAN_IP}/api}
+        - VITE_WS_URL=${VITE_WS_URL:-wss://${LAN_IP}/ws}
     container_name: frontend_service
     env_file:
       - .env

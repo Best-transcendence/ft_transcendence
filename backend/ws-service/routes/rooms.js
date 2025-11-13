@@ -132,7 +132,6 @@ export function registerRoomHandlers(wss, onlineUsers, app) {
     }
   }
 
-
   return {
     handleInvite,
     handleInviteAccepted,

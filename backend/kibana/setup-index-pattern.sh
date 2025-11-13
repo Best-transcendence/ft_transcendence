@@ -1,5 +1,13 @@
 #!/bin/sh
-set -e
+# ============================================================================
+# KIBANA INDEX PATTERN SETUP SCRIPT
+# ============================================================================
+# This script creates the index pattern in Kibana for searching logs.
+# Index patterns tell Kibana which Elasticsearch indices to search.
+# "logs-*" matches all daily log indices (logs-2025.01.15, logs-2025.01.16, etc.)
+# ============================================================================
+
+set -e  # Exit on error
 
 ES_URL="http://elasticsearch:9200"
 KIBANA_URL="http://kibana:5601/kibana"

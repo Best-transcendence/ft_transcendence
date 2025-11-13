@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
-set -e
+# ============================================================================
+# ELK STACK SETUP SCRIPT
+# ============================================================================
+# This script automatically configures the ELK (Elasticsearch, Logstash, Kibana) stack
+# when the containers start. It sets up:
+# - ILM (Index Lifecycle Management) policy for log retention
+# - Kibana index pattern for searching logs
+# - Pre-configured dashboards for log visualization
+#
+# WHAT IS ELK?
+# ELK is a log management and analytics platform:
+# - Elasticsearch: Stores and indexes logs (like a searchable database)
+# - Logstash: Processes and transforms logs before storing them
+# - Kibana: Web interface for visualizing and searching logs
+# ============================================================================
 
+set -e  # Exit immediately if any command fails
+
+# Service URLs (these are Docker container names)
 ES_URL="http://elasticsearch:9200"
 KIBANA_URL="http://kibana:5601/kibana"
 DASHBOARD_FILE="/elk-setup/dashboard-import.ndjson"
@@ -10,10 +27,15 @@ DATA_VIEW_TITLE="logs-*"
 
 echo "⏳ Waiting for Elasticsearch to be available..."
 
-# Wait until Elasticsearch is ready
+# ============================================================================
+# STEP 1: WAIT FOR ELASTICSEARCH
+# ============================================================================
+# Elasticsearch needs time to start up. We wait and check until it's ready.
+# This prevents errors from trying to configure it before it's available.
 echo "  ... waiting for Elasticsearch to be ready..."
-sleep 30
+sleep 30  # Initial wait for container to start
 
+# Keep checking until Elasticsearch responds
 until curl -s -u "elastic:${ELASTIC_PASSWORD}" "${ES_URL}" >/dev/null; do
   echo "  ... still waiting for Elasticsearch"
   sleep 10
@@ -23,7 +45,13 @@ echo "✅ Elasticsearch is up!"
 echo "  ... checking cluster health..."
 curl -u "elastic:${ELASTIC_PASSWORD}" "${ES_URL}/_cluster/health?pretty"
 
-# Apply ILM policy if exists
+# ============================================================================
+# STEP 2: APPLY ILM (INDEX LIFECYCLE MANAGEMENT) POLICY
+# ============================================================================
+# ILM policies automatically manage log retention:
+# - Hot phase: Keep recent logs (rollover when size/age limit reached)
+# - Delete phase: Automatically delete old logs after 7 days
+# This prevents the database from growing indefinitely.
 if [ -f "$ILM_POLICY_FILE" ]; then
   echo "📦 Applying ILM policy 'logs-policy'..."
   curl -u "elastic:${ELASTIC_PASSWORD}" -X PUT "${ES_URL}/_ilm/policy/logs-policy" \
@@ -35,7 +63,10 @@ else
   echo "⚠️ ILM policy file not found at $ILM_POLICY_FILE"
 fi
 
-# Wait for Kibana to be ready
+# ============================================================================
+# STEP 3: WAIT FOR KIBANA
+# ============================================================================
+# Kibana is the web interface for viewing logs. We wait until it's ready.
 echo "⏳ Waiting for Kibana to be available..."
 until curl -s -u "elastic:${ELASTIC_PASSWORD}" "${KIBANA_URL}/api/status" | grep -q '"state":"green"'; do
   echo "  ... still waiting for Kibana"
@@ -44,7 +75,12 @@ done
 
 echo "✅ Kibana is up!"
 
-# Create index pattern (using saved_objects API for better compatibility)
+# ============================================================================
+# STEP 4: CREATE INDEX PATTERN
+# ============================================================================
+# Index patterns tell Kibana which logs to search.
+# "logs-*" matches all log indices (logs-2025.01.15, logs-2025.01.16, etc.)
+# This allows searching across all dates in one place.
 echo "🧭 Creating index pattern '${DATA_VIEW_TITLE}'..."
 RESPONSE=$(curl -s -u "elastic:${ELASTIC_PASSWORD}" \
   -X POST "${KIBANA_URL}/api/saved_objects/index-pattern/${DATA_VIEW_ID}?overwrite=true" \
@@ -69,7 +105,11 @@ else
   fi
 fi
 
-# Set as default index pattern
+# ============================================================================
+# STEP 5: SET AS DEFAULT INDEX PATTERN
+# ============================================================================
+# Make "logs-*" the default pattern so it's selected automatically when
+# users open Kibana. This improves user experience.
 if [ -n "$PATTERN_ID" ]; then
   echo "🔧 Setting ${DATA_VIEW_TITLE} as default index pattern..."
   DEFAULT_RESPONSE=$(curl -s -u "elastic:${ELASTIC_PASSWORD}" \
@@ -85,7 +125,14 @@ if [ -n "$PATTERN_ID" ]; then
   fi
 fi
 
-# Import dashboard if file exists
+# ============================================================================
+# STEP 6: IMPORT PRE-CONFIGURED DASHBOARD
+# ============================================================================
+# Dashboards are pre-made visualizations showing:
+# - Request counts by service
+# - Response times
+# - Error rates
+# This gives administrators immediate insights without manual setup.
 if [ -f "$DASHBOARD_FILE" ]; then
   echo "📊 Importing Kibana dashboard..."
   IMPORT_RESPONSE=$(curl -s -u "elastic:${ELASTIC_PASSWORD}" \

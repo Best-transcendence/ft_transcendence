@@ -110,7 +110,13 @@ export default async function authRoutes(fastify) {
         return reply.status(400).send({ error: 'Password cannot be empty' });
       }
 
-      // Look up user in database by email
+      // ========================================================================
+      // DATABASE QUERY: Look up user in database by email
+      // ========================================================================
+      // This query searches the User table for a user with the given email address.
+      // We use a prepared statement (db.prepare) for security - it prevents SQL injection attacks.
+      // The ? is a placeholder that gets replaced with the actual email value.
+      // .get() executes the query and returns the first matching row (or undefined if not found).
       const getUserStmt = fastify.db.prepare('SELECT * FROM User WHERE email = ?');
       const user = getUserStmt.get(email);
 
@@ -142,7 +148,7 @@ export default async function authRoutes(fastify) {
 
       // === Bootstrap/verify profile in user-service (ensure profile exists) ===
       const axios = (await import('axios')).default;
-      const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+      const userServiceUrl = process.env.USER_SERVICE_URL || `http://user_service:${process.env.USER_SERVICE_PORT || 3002}`;
 
       try {
         console.log(`[${correlationId}] Bootstrapping/verifying user profile for authUserId ${user.id}`);
@@ -364,7 +370,12 @@ export default async function authRoutes(fastify) {
         return reply.status(400).send({ error: 'Passwords do not match' });
       }
 
-      // Check if email already exists
+      // ========================================================================
+      // DATABASE QUERY: Check if email already exists
+      // ========================================================================
+      // Before creating a new user, we need to check if someone already has this email.
+      // This prevents duplicate accounts with the same email address.
+      // We use a prepared statement for security and performance.
       const checkEmailStmt = fastify.db.prepare('SELECT * FROM User WHERE email = ?');
       const existingEmail = checkEmailStmt.get(normalizedEmail);
       if (existingEmail) {
@@ -377,7 +388,13 @@ export default async function authRoutes(fastify) {
         return reply.status(400).send({ error: 'User with this email already exists' });
       }
 
-      // === Create user in auth-service ===
+      // ========================================================================
+      // DATABASE QUERY: Create new user in database
+      // ========================================================================
+      // This inserts a new user record into the User table.
+      // We hash the password first using bcrypt for security (never store plaintext passwords).
+      // The INSERT statement uses ? placeholders for the email and password values.
+      // .run() executes the INSERT and returns information about the operation (like the new user's ID).
       const hashedPass = await bcrypt.hash(password, SALT_ROUNDS);
       const insertUserStmt = fastify.db.prepare('INSERT INTO User (email, password) VALUES (?, ?)');
       const result = insertUserStmt.run(normalizedEmail, hashedPass);
@@ -389,7 +406,7 @@ export default async function authRoutes(fastify) {
 
       // === Bootstrap profile in user-service with retry ===
       const axios = (await import('axios')).default;
-      const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+      const userServiceUrl = process.env.USER_SERVICE_URL || `http://user_service:${process.env.USER_SERVICE_PORT || 3002}`;
 
       const maxRetries = 3;
       let attempt = 0;
@@ -431,6 +448,12 @@ export default async function authRoutes(fastify) {
             metadata: { attempt, userId: newUser.id, error: msg }
           });
 
+          // ====================================================================
+          // DATABASE QUERY: Rollback - Delete user if profile creation failed
+          // ====================================================================
+          // If creating the user profile in user-service fails (e.g., username conflict),
+          // we need to delete the user we just created in auth-service.
+          // This keeps the databases in sync and prevents orphaned auth records.
           // unrecoverable client-side error (e.g., username conflict)
           if (status === 400) {
             const deleteUserStmt = fastify.db.prepare('DELETE FROM User WHERE id = ?');
@@ -446,6 +469,11 @@ export default async function authRoutes(fastify) {
               .send({ error: msg || 'Username already taken in user-service' });
           }
 
+          // ====================================================================
+          // DATABASE QUERY: Rollback - Delete user if all retries failed
+          // ====================================================================
+          // If all retry attempts to create the user profile failed,
+          // we delete the user from auth-service to keep databases in sync.
           // last retry failed → rollback and report error
           if (attempt >= maxRetries) {
             const deleteUserStmt = fastify.db.prepare('DELETE FROM User WHERE id = ?');

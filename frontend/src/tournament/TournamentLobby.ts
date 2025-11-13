@@ -5,14 +5,6 @@ import { LogOutBtnDisplay } from "../components/LogOutBtn";
 import { t } from "../services/lang/LangEngine";
 
 /**
- * Tournament Lobby Page Template Generator
- * 
- * This module generates the HTML template for the tournament lobby interface.
- * It provides a user interface for creating tournaments with 2 or 4 players,
- * including player management, tournament rules selection, and match generation.
- */
-
-/**
  * Generates the complete HTML template for the tournament lobby page
  * 
  * Creates a tournament creation interface with:
@@ -20,18 +12,17 @@ import { t } from "../services/lang/LangEngine";
  * - Tournament size selection (2 or 4 players)
  * - Player addition system (friends and guests)
  * - Match generator preview
- * - Tournament rules and controls
+ * - Tournament rules
  * 
  * @returns {string} Complete HTML template for the tournament lobby
  */
 export function LobbyPageTournament() {
   return `
-    <!-- Theme component for consistent styling -->
+    <!-- Background Theme -->
     ${addTheme()}
 
     <!-- Header section with user interface components -->
     <div class="w-full flex justify-between items-center mb-10">
-		
 	<!-- Protected pages components -->
 		${ profileDivDisplay() }
 		${ sidebarDisplay() }
@@ -141,7 +132,8 @@ export function LobbyPageTournament() {
                   <span id="count">0</span>/<span id="max">4</span>
                 </div>
               </div>
-              <!-- Tournament start button (disabled until enough players) -->
+
+              <!-- Matchmaking button (disabled until enough players) -->
               <button id="btn-start" class="px-4 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white disabled:opacity-40 disabled:cursor-not-allowed" disabled>
                 ${t("matchmaking")}
               </button>

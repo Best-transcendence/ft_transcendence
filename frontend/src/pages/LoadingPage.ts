@@ -1,4 +1,3 @@
-// pages/LoadingPage.ts
 import { sendWSMessage } from "../services/ws";
 
 export function LoadingPage(): string {

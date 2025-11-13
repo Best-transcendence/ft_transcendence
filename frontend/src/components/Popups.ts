@@ -80,19 +80,37 @@ function initInputPopup(action: string, popup: HTMLElement, config: any)
 {
 	switch (action)
 	{
-		case "save":
+		case "save": {
 			const input = popup.querySelector("input") as HTMLInputElement;
-			if (input.value.trim() == "")
+			const v = input.value.trim();
+
+			if (v === "")
 				return;
+	
+			if (config.buttonId === "edit-name-button") {
+				if (!/^[a-z0-9._-]+$/.test(v)) {
+					alert("Username can only use: a–z, 0–9, _, -, . (lowercase only)");
+					return;
+				}
+			}
+
+			if (config.buttonId === "edit-bio-button") {
+				if (v.length > 100) {
+					alert("Bio must be at most 100 characters.");
+					return;
+				}
+			}
 
 			if (config.buttonId == "edit-name-button")
 				editName(input.value);
 			else if (config.buttonId == "edit-bio-button")
 				editBio(input.value);
 			break;
+		}
 
-		case "cancel":
+		case "cancel": {
 			break;
+		}
 	}
 }
 
@@ -115,7 +133,7 @@ function initProfilePopup(action: any)
 }
 
 // Confirm/cancel popup
-function initConfirmPopup(action: any, popup: HTMLElement)
+function initConfirmPopup(action: any)
 {
 	const clickedButton = document.querySelector('[id^="friend-button--"]:focus')
 						|| document.querySelector('[id^="friend-button--"]'); // Retrieves the friend id
@@ -130,6 +148,7 @@ function initConfirmPopup(action: any, popup: HTMLElement)
 	{
 		case "confirm":
 			removeFriend(friendId);
+			break;
 
 		case "cancel":
 			break;

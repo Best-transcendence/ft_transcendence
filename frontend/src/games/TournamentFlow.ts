@@ -6,9 +6,9 @@ import {
   createFourPlayerTournament,
   reportMatchResult,
 } from "../tournament/TournamentEngine";
-import { myName, ensureMeFirst } from "../tournament/utils"; // reuse shared helpers
+import { ensureMeFirst } from "../tournament/utils"; // reuse shared helpers
 import { resetTimer } from "../components/Timer";
-import { difficulty, resetDifficulty, getDisplayName } from "../tournament/InitTournamentLobby";
+import { resetDifficulty, getDisplayName } from "../tournament/InitTournamentLobby";
 import { t } from "../services/lang/LangEngine";
 import DOMPurify from "dompurify";
 
@@ -26,10 +26,10 @@ import DOMPurify from "dompurify";
 
 // Space-key overlay control (two-space flow: Space #1 hides overlay, Space #2
 // is handled inside the game module via window.beginTournamentRound?())
-let onSpaceStartRef: (() => void) | undefined; // kept for parity, not used elsewhere
 let spaceHandler: ((e: KeyboardEvent) => void) | null = null;  // Space key event handler
 let inTieBreaker = false;  // Flag to track if we're in a tie-breaker round
-
+let overlayModal = false;                     // champion overlay modal flag
+(Object.assign(window as any, { tournamentOverlayModal: false })); // global mirror
 /**
  * Removes the space key event handler to prevent duplicate listeners
  * Called when transitioning between tournament states
@@ -44,10 +44,9 @@ function detachSpaceHandler() {
 /**
  * Attaches space key handler to capture space presses while overlay is visible
  * Implements two-space flow: Space #1 hides overlay, Space #2 starts the game
- * @param onSpaceStart - Optional callback for space start (stored but not used)
  */
-function attachSpaceToStart(onSpaceStart?: () => void) {
-  if (onSpaceStart) onSpaceStartRef = onSpaceStart; // stored for parity, not invoked here
+function attachSpaceToStart() {
+   if (overlayModal) return;
 
   detachSpaceHandler();
   spaceHandler = (e: KeyboardEvent) => {
@@ -112,7 +111,7 @@ function mountOverlay() {
     const wrongParent = overlay.parentElement !== gameWin;
     const detached = !overlay.isConnected;
     if (wrongParent || detached) {
-      try { overlay.remove(); } catch {}
+      try { overlay.remove(); } catch (err) { }
       overlay = null;
       nameLeftEl = nameRightEl = roundLabelEl = championEl = null;
     }
@@ -168,6 +167,9 @@ function showOverlay(left: string, right: string, label: string, leftPlayer?: Pl
   (window as any).layoutTournamentRound?.();   // Reset game field
 
   if (!overlay || !nameLeftEl || !nameRightEl || !roundLabelEl) return;
+  overlayModal = false;
+  (window as any).tournamentOverlayModal = false;
+
   championEl?.classList.add("hidden");  // Hide champion banner for regular matches
 
   // Update overlay content with display names (including "(G)" for guests)
@@ -195,6 +197,8 @@ function showOverlay(left: string, right: string, label: string, leftPlayer?: Pl
  */
 function hideOverlay() {
   overlay?.classList.add("hidden");
+  overlayModal = false;
+  (window as any).tournamentOverlayModal = false;
 }
 
 /**
@@ -205,6 +209,8 @@ function showChampion(name: string) {
   mountOverlay();
   if (!overlay) return;
 
+  overlayModal = true;
+  (window as any).tournamentOverlayModal = true;
   // Rebuild overlay as tournament completion view
   overlay.innerHTML = DOMPurify.sanitize(`
     <div class="relative h-full w-full flex flex-col items-center justify-center px-6 animate-zoomIn">
@@ -212,8 +218,7 @@ function showChampion(name: string) {
       <div class="text-xl text-emerald-300 font-semibold mb-6">${t("champion")}: ${name}</div>
 
         <button id="btn-back-arcade"
-          class="px-5 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-100
-                 border border-white/10">
+			class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
           ${t("backToArcade")}
         </button>
       </div>
@@ -222,6 +227,7 @@ function showChampion(name: string) {
 
   overlay.classList.remove("hidden");
 
+  detachSpaceHandler();
   // Set up completion screen button handlers
   const btnBack = overlay.querySelector("#btn-back-arcade") as HTMLButtonElement;
 
@@ -286,7 +292,7 @@ function labelFor(m: Match, mode: "2" | "4"): string {
  * @param winnerId - ID of the winning player
  * @param winnerName - Name of the winning player (for 2-player tournaments)
  */
-function acceptGameResultWithPlayer(winnerId: string, winnerName: string) {
+function acceptGameResultWithPlayer(winnerId: string) {
   if (!bracket || !currentMatch) return;
 
   const seed = loadSeed()!;
@@ -401,9 +407,8 @@ function acceptGameResult(winnerName: string) {
 /**
  * Initializes the tournament flow system
  * Creates tournament bracket, sets up event handlers, and displays first match
- * @param onSpaceStart - Optional callback for space start events
  */
-export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void } = {}) {
+export function bootTournamentFlow() {
   teardownTournamentFlow();   // Start fresh every time
   inTieBreaker = false;
 
@@ -471,7 +476,7 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
   if (currentMatch) {
     const startLabel = seed.mode === "2" ? labelFor2pBo3(0) : labelFor(currentMatch, seed.mode);
     showOverlay(currentMatch.playerA.name, currentMatch.playerB.name, startLabel, currentMatch.playerA, currentMatch.playerB);
-    attachSpaceToStart(() => (window as any).beginTournamentRound?.()); // Seed the ref
+    attachSpaceToStart();
   }
 
   // Expose game result reporting function and difficulty to global scope
@@ -521,9 +526,8 @@ export function bootTournamentFlow({ onSpaceStart }: { onSpaceStart?: () => void
     // Determine winner based on scores: L > R means left player (playerA) wins, else right player (playerB) wins
     // Since showOverlay maps playerA to left and playerB to right, we can use currentMatch directly
     const winnerId = L > R ? currentMatch.playerA.id : currentMatch.playerB.id;
-    const winnerName = L > R ? currentMatch.playerA.name : currentMatch.playerB.name;
 
-    acceptGameResultWithPlayer(winnerId, winnerName);
+    acceptGameResultWithPlayer(winnerId);
   };
 }
 
@@ -548,7 +552,12 @@ export function teardownTournamentFlow() {
     try { overlay.remove(); } catch {}
   }
   overlay = null;
+  // elements to default
   nameLeftEl = nameRightEl = roundLabelEl = championEl = null;
+
+  // no modal (overlays)
+  overlayModal = false;
+  (window as any).tournamentOverlayModal = false;
 
   // Clear global hooks so a new session starts clean
   (window as any).tournamentCurrentPlayers = undefined;

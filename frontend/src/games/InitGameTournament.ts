@@ -1,4 +1,3 @@
-import { thisUser } from "../router";
 import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
 import { registerTournamentGame } from "./GameController";
@@ -65,11 +64,6 @@ export function initGameTournament(): void {
   const score1 = $("score1");          // Left player score display
   const score2 = $("score2");          // Right player score display
   const startPress = $("startPress");  // "Press Space" instruction text
-
-  // Audio elements for game sound effects
-  const paddleSfx = $("paddleSound") as HTMLAudioElement;  // Paddle hit sound
-  const wallSfx = $("wallSound") as HTMLAudioElement;      // Wall bounce sound
-  const lossSfx = $("lossSound") as HTMLAudioElement;       // Score point sound
 
   // Game field dimensions (percentage-based to match CSS)
   const FIELD = 100;                   // Total field width (100%)
@@ -166,6 +160,7 @@ function stopGame() {
  */
 (window as any).beginTournamentRound = () => {
   // Do nothing if a round is already running (space key protection)
+  if ((window as any).tournamentOverlayModal) return; 
   if (running) return;
   
   // Get game time from difficulty settings
@@ -396,7 +391,8 @@ window.addEventListener("game:timeup", _timeupHandler);
 
 	// block Space + movement while overlay is visible
 	const ov = document.getElementById("timeUpOverlay");
-	if (modalActive || isVisible(ov)) {
+	const modalFromTournament = !!(window as any).tournamentOverlayModal;
+    if (modalActive || isVisible(ov) || modalFromTournament) {
 		if (e.code === "Space" || ["ArrowUp","ArrowDown","w","s","W","S"].includes(e.key)) {
 		e.preventDefault();
 		e.stopPropagation();
@@ -423,7 +419,8 @@ window.addEventListener("game:timeup", _timeupHandler);
     __keyupHandler = (e: KeyboardEvent) => {
 	 // block movement key-ups while overlay is visible
 		const ov = document.getElementById("timeUpOverlay");
-		if (modalActive || isVisible(ov)) {
+		const modalFromTournament = !!(window as any).tournamentOverlayModal;
+		if (modalActive || isVisible(ov) || modalFromTournament) {
 			if (["ArrowUp","ArrowDown","w","s","W","S"].includes(e.key)) {
 			e.preventDefault();
 			e.stopPropagation();

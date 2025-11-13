@@ -2,6 +2,7 @@ let socket: WebSocket | null = null;
 let reconnectTimer: number | null = null;
 let manualClose = false;
 let listeners: ((msg: any) => void)[] = [];
+let messageQueue: Array<{type: string, payload: any}> = [];
 
 export function getSocket() {
   return socket;
@@ -14,7 +15,12 @@ export function connectSocket(token: string) {
   }
 
   manualClose = false;
-  let WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:4000";
+  // Supports only wss://LAN_IP/ws/ format (no localhost, no ports)
+  let WS_URL = import.meta.env.VITE_WS_URL || '';
+  if (!WS_URL) {
+    console.error('VITE_WS_URL environment variable is not set');
+    return null;
+  }
   // Ensure trailing slash for nginx /ws/ location
   if (WS_URL.endsWith('/ws') && !WS_URL.endsWith('/ws/')) {
     WS_URL = WS_URL + '/';
@@ -26,6 +32,13 @@ export function connectSocket(token: string) {
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
+    }
+    // Send queued messages
+    while (messageQueue.length > 0) {
+      const msg = messageQueue.shift();
+      if (msg && socket) {
+        socket.send(JSON.stringify({ type: msg.type, ...msg.payload }));
+      }
     }
   };
 
@@ -85,10 +98,12 @@ export function autoConnect() {
   if (token) connectSocket(token);
 }
 
+// message and optional extra data
 export function sendWSMessage(type: string, payload: any = {}) {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({ type, ...payload }));
   } else {
-    console.warn("Cannot send WS message: socket not open");
+    console.warn("Cannot send WS message: socket not open, queuing");
+    messageQueue.push({ type, payload });
   }
 }

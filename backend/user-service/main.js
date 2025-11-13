@@ -30,7 +30,7 @@ await app.register(fastifySwagger, {
     },
     // Swagger will auto-detect host from request
     // Schemes allowed for API calls
-    schemes: ['http'],
+    schemes: ['https'],
     consumes: ['application/json'],
     produces: ['application/json'],
     tags: [
@@ -64,12 +64,19 @@ await app.register(fastifySwaggerUI, {
   },
   transformSpecificationClone: true,
   transformSpecification: (swaggerObject, request, _reply) => {
-    // Dynamically set host from request, always use HTTP
-    const host = request.headers.host || 'localhost:3002';
-    swaggerObject.host = host;
-    swaggerObject.schemes = ['http']; // Force HTTP since we don't use HTTPS
-    // Ensure basePath is set correctly
-    if (!swaggerObject.basePath) {
+    // Dynamically set host from request headers (remove port if present)
+    const hostHeader = request?.headers?.host || process.env.LAN_IP || 'LAN_IP';
+    const hostname = hostHeader.split(':')[0]; // Remove port if present
+    swaggerObject.host = hostname;
+    swaggerObject.schemes = ['https'];
+    
+    // Set basePath for reverse proxy - API calls should go through gateway at /api/
+    // Check X-Forwarded-Prefix to determine if accessed through WAF
+    const forwardedPrefix = request?.headers?.['x-forwarded-prefix'];
+    if (forwardedPrefix === '/user-docs') {
+      // When accessed through /user-docs/, API calls should go to /api/
+      swaggerObject.basePath = '/api';
+    } else {
       swaggerObject.basePath = '';
     }
     return swaggerObject;
@@ -77,43 +84,46 @@ await app.register(fastifySwaggerUI, {
 });
 
 // Register CORS plugin
-// Build origin array to support both localhost and LAN_IP with HTTP and HTTPS
+// Build origin array to support only HTTPS LAN_IP (no localhost, no ports)
 const buildOrigins = () => {
   const origins = [];
   const lanIp = process.env.LAN_IP;
-  const frontendPort = process.env.FRONTEND_PORT || 3000;
-  const gatewayPort = process.env.GATEWAY_PORT || 3003;
-  const authServicePort = process.env.AUTH_SERVICE_PORT || 3001;
-  
-  // Add localhost origins (HTTP and HTTPS)
-  origins.push(`http://localhost:${frontendPort}`);
-  origins.push(`https://localhost:${frontendPort}`);
-  origins.push(`http://localhost:${gatewayPort}`);
-  origins.push(`https://localhost:${gatewayPort}`);
-  origins.push(`http://localhost:${authServicePort}`);
-  origins.push(`https://localhost:${authServicePort}`);
-  
-  // Add LAN_IP origins if set (HTTP and HTTPS)
+
+  // Helper function to normalize URL: ensure HTTPS and remove port
+  const normalizeUrl = (url) => {
+    if (!url) return null;
+    // Remove protocol if present
+    let normalized = url.replace(/^https?:\/\//, '');
+    // Remove port if present
+    normalized = normalized.replace(/:\d+$/, '');
+    // Remove trailing slash
+    normalized = normalized.replace(/\/$/, '');
+    // Return as HTTPS URL
+    return `https://${normalized}`;
+  };
+
+  // Add LAN_IP origin if set (HTTPS only, no port)
   if (lanIp) {
-    origins.push(`http://${lanIp}:${frontendPort}`);
-    origins.push(`https://${lanIp}:${frontendPort}`);
-    origins.push(`http://${lanIp}:${gatewayPort}`);
-    origins.push(`https://${lanIp}:${gatewayPort}`);
-    origins.push(`http://${lanIp}:${authServicePort}`);
-    origins.push(`https://${lanIp}:${authServicePort}`);
+    const normalizedLanIp = lanIp.replace(/:\d+$/, '').replace(/\/$/, '');
+    origins.push(`https://${normalizedLanIp}`);
   }
-  
-  // Also add any explicit URLs from env if they differ
-  if (process.env.FRONTEND_URL && !origins.includes(process.env.FRONTEND_URL)) {
-    origins.push(process.env.FRONTEND_URL);
-  }
-  if (process.env.GATEWAY_URL && !origins.includes(process.env.GATEWAY_URL)) {
-    origins.push(process.env.GATEWAY_URL);
-  }
-  if (process.env.AUTH_SERVICE_URL && !origins.includes(process.env.AUTH_SERVICE_URL)) {
-    origins.push(process.env.AUTH_SERVICE_URL);
-  }
-  
+
+  // Add explicit URLs from env if they differ (normalize to HTTPS without port)
+  const envUrls = [
+    process.env.FRONTEND_URL,
+    process.env.GATEWAY_URL,
+    process.env.AUTH_SERVICE_URL
+  ];
+
+  envUrls.forEach(url => {
+    if (url) {
+      const normalized = normalizeUrl(url);
+      if (normalized && !origins.includes(normalized)) {
+        origins.push(normalized);
+      }
+    }
+  });
+
   return origins;
 };
 
@@ -183,7 +193,7 @@ const start = async () => {
     // Listen on all interfaces (0.0.0.0) to allow external connections
     await app.listen({ port: port, host: '0.0.0.0' });
 
-    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002';
+    const userServiceUrl = process.env.USER_SERVICE_URL ? process.env.USER_SERVICE_URL.replace(/:\d+$/, '').replace(/\/$/, '') : `https://${process.env.LAN_IP || 'LAN_IP'}/user-docs/`;
     console.log(`👤 User Service running at ${userServiceUrl}`);
     console.log(`📊 Health check: ${userServiceUrl}/health`);
     console.log(`📚 API Documentation: ${userServiceUrl}/docs`);

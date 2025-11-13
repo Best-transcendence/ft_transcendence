@@ -16,8 +16,8 @@ import { addTheme } from "../components/Theme"
 import { sidebarDisplay } from "../components/SideBar"
 import { profileDivDisplay } from "../components/ProfileDiv"
 import { LogOutBtnDisplay } from "../components/LogOutBtn"
-import { TimerDisplay, startTimer, resetTimer } from "../components/Timer";
-import { createAIGame, destroyAIGame, isGameRunning } from "./AIGameController";
+import { TimerDisplay, resetTimer } from "../components/Timer";
+import { createAIGame, destroyAIGame } from "./AIGameController";
 import { t } from "../services/lang/LangEngine"; // ✅
 
 /**
@@ -28,7 +28,6 @@ import { t } from "../services/lang/LangEngine"; // ✅
  * - Game window with paddles, ball, and scores
  * - Difficulty selection overlay
  * - Time up overlay for game end
- * - Audio elements for sound effects
  *
  * @returns HTML string for the game page
  */
@@ -130,7 +129,7 @@ export function GamePongAIOpponent(): string {
 			<!-- Action buttons -->
 			<div class="flex gap-4">
 				<button id="overlayExit"
-						class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-gray-600 hover:bg-gray-700">
+						class="px-6 py-3 rounded-xl font-semibold text-white transition hover:shadow cursor-pointer bg-[var(--color-button)] hover:bg-[var(--color-button-hover)]">
 				 ${t("backToArcade")} 
 				</button>
 			</div>
@@ -180,29 +179,12 @@ export function GamePongAIOpponent(): string {
 
 		</p>
 
-		<!-- Audio elements for sound effects -->
-		<audio id="paddleSound" src="/assets/paddle.wav"></audio>
-		<audio id="lossSound" src="/assets/loss.wav"></audio>
-		<audio id="wallSound" src="/assets/wall.wav"></audio>
 
 			</div>
 		</div>
 	</div>
 	`;
 }
-
-// --- GLOBAL STATE VARIABLES ---
-/**
- * Currently selected difficulty level
- * Used to track which difficulty was chosen for the current game session
- */
-let currentDifficulty: "easy" | "medium" | "hard" = "medium";
-
-/**
- * Flag indicating whether a game has been initialized
- * Used to prevent multiple game initializations and manage state transitions
- */
-let gameInitialized = false;
 
 /**
  * Sets up the AI opponent game interface and event handlers
@@ -255,7 +237,6 @@ export function setupAIOpponent() {
 	 */
 	function selectDifficulty(level: "easy" | "medium" | "hard") {
 		console.log("=== DIFFICULTY SELECTED ===", level);
-		currentDifficulty = level;
 
 		// --- GAME CLEANUP ---
 		// Destroy any existing game to prevent conflicts
@@ -284,7 +265,6 @@ export function setupAIOpponent() {
 		// --- GAME INITIALIZATION ---
 		// Create new game instance using singleton pattern
 		createAIGame(level);
-		gameInitialized = true;
 		console.log("=== NEW GAME STARTED ===");
 	}
 
