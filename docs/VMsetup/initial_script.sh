@@ -35,6 +35,9 @@ sudo usermod -aG docker "$USER"
 echo "[6/9] Installing developer tools..."
 sudo apt install -y git make vim htop wget unzip tree
 
+echo "[6.1/9] Installing ncdu (disk usage analyzer)..."
+sudo apt install -y ncdu
+
 echo "[7/9] Installing VSCode (.deb, not snap)..."
 wget -q https://update.code.visualstudio.com/latest/linux-deb-x64/stable -O code_amd64.deb
 sudo apt install -y ./code_amd64.deb
