@@ -13,7 +13,6 @@ import Vault from 'node-vault';
 //dotenv.config();
 
 // Create Fastify server instance with logging
-// TODO (Yulia): change everywhere HTTP to HTTPS once it's working
 const app = Fastify({ 
   logger: true,
   trustProxy: false // Don't trust proxy headers, always use HTTP

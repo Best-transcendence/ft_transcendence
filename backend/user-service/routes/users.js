@@ -5,6 +5,12 @@ import { createLogger, ErrorType } from '../utils/logger.js';
 function calculateUserStats(db, userId) {
   console.log(`[calculateUserStats] Starting calculation for userId: ${userId}`);
   
+  // ========================================================================
+  // DATABASE QUERY: Get all matches for a user
+  // ========================================================================
+  // This query finds all matches where the user was either player 1 or player 2.
+  // We use OR to check both positions because a user can be either player in different matches.
+  // .all() returns all matching rows (not just the first one).
   const getMatchesStmt = db.prepare('SELECT * FROM Match WHERE player1Id = ? OR player2Id = ?');
   const allMatches = getMatchesStmt.all(userId, userId);
 
@@ -97,6 +103,12 @@ export default async function (fastify, _opts) {
       }
     }
   }, async (_req, _reply) => {
+    // ========================================================================
+    // DATABASE QUERY: Get all user profiles
+    // ========================================================================
+    // This query retrieves all user profiles from the database.
+    // We only select public fields (not sensitive data like internal IDs).
+    // .all() returns all rows in the UserProfile table.
     const getProfilesStmt = fastify.db.prepare(
       'SELECT id, name, email, profilePicture, bio, createdAt FROM UserProfile'
     );
@@ -272,12 +284,20 @@ export default async function (fastify, _opts) {
 
       console.log(`[${correlationId}] Bootstrap request for authUserId: ${authUserId}, name: ${name}, email: ${email}`);
 
-      // Check if user profile already exists
+      // ========================================================================
+      // DATABASE QUERY: Check if user profile already exists
+      // ========================================================================
+      // Before creating a new profile, we check if one already exists for this auth user.
+      // This makes the bootstrap endpoint "idempotent" - safe to call multiple times.
       const getExistingStmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
       const existingProfile = getExistingStmt.get(authUserId);
 
       if (existingProfile) {
-        // Update existing profile with latest data from auth-service
+        // ====================================================================
+        // DATABASE QUERY: Update existing profile
+        // ====================================================================
+        // If the profile exists, update it with the latest data from auth-service.
+        // This keeps the profile in sync with auth-service (e.g., if email changes).
         console.log(`[${correlationId}] Updating existing profile for authUserId: ${authUserId}`);
 
         const updateProfileStmt = fastify.db.prepare(
@@ -298,7 +318,11 @@ export default async function (fastify, _opts) {
           updatedAt: updatedProfile.updatedAt
         });
       } else {
-        // Create new user profile
+        // ====================================================================
+        // DATABASE QUERY: Create new user profile
+        // ====================================================================
+        // If no profile exists, create a new one with default values.
+        // This is called automatically when a user signs up in auth-service.
         console.log(`[${correlationId}] Creating new profile for authUserId: ${authUserId}`);
 
         const insertProfileStmt = fastify.db.prepare(
@@ -312,7 +336,11 @@ export default async function (fastify, _opts) {
           'Hi, I\'m playing Arcade Clash'
         );
 
-        // Get created profile
+        // ====================================================================
+        // DATABASE QUERY: Get the newly created profile
+        // ====================================================================
+        // After inserting, we retrieve the full profile record to return to the caller.
+        // result.lastInsertRowid contains the ID of the row we just inserted.
         const getNewProfileStmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE id = ?');
         const newProfile = getNewProfileStmt.get(Number(result.lastInsertRowid));
 
@@ -437,7 +465,12 @@ export default async function (fastify, _opts) {
       // Verify token (throws if invalid)
       await request.jwtVerify();
 
-      // Find user profile by authUserId from JWT token
+      // ========================================================================
+      // DATABASE QUERY: Get current user's profile
+      // ========================================================================
+      // This query finds the user profile for the authenticated user.
+      // request.user.id comes from the JWT token (set by auth middleware).
+      // We use authUserId to find the profile because that's how profiles link to auth users.
       const getUserStmt = fastify.db.prepare('SELECT * FROM UserProfile WHERE authUserId = ?');
       const user = getUserStmt.get(request.user.id);
 
@@ -445,7 +478,12 @@ export default async function (fastify, _opts) {
         return reply.status(404).send({ error: 'User profile not found' });
       }
 
-      // Get friendOf (users who have this user in their friends list - incoming friend requests)
+      // ========================================================================
+      // DATABASE QUERY: Get users who have this user as a friend (incoming)
+      // ========================================================================
+      // This finds users who added the current user to their friends list.
+      // We use a JOIN to get the full profile information (name, picture, bio).
+      // This is a "reverse" lookup - finding who has YOU as a friend.
       const getFriendOfStmt = fastify.db.prepare(`
         SELECT up.id, up.name, up.profilePicture, up.bio 
         FROM _UserFriends uf_rel
@@ -455,7 +493,11 @@ export default async function (fastify, _opts) {
       `);
       const friendOf = getFriendOfStmt.all(user.id);
 
-      // Get friends list (users this user has in their friends list - outgoing friend requests) - just IDs
+      // ========================================================================
+      // DATABASE QUERY: Get users this user has as friends (outgoing)
+      // ========================================================================
+      // This finds users that the current user added to their friends list.
+      // We only get IDs here (not full profiles) for performance.
       const getFriendsIdsStmt = fastify.db.prepare(`
         SELECT friendId as id FROM _UserFriends WHERE userProfileId = ?
       `);
@@ -464,7 +506,11 @@ export default async function (fastify, _opts) {
       // Sort friends alphabetically
       friendOf.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
-      // Fetch all matches where user participated
+      // ========================================================================
+      // DATABASE QUERY: Get all matches for the user
+      // ========================================================================
+      // This finds all matches where the user was either player 1 or player 2.
+      // Results are ordered by date (newest first) for the match history.
       const getMatchesStmt = fastify.db.prepare(`
         SELECT * FROM Match 
         WHERE player1Id = ? OR player2Id = ?
@@ -472,7 +518,11 @@ export default async function (fastify, _opts) {
       `);
       const allMatches = getMatchesStmt.all(user.id, user.id);
 
-      // Fetch player details for each match
+      // ========================================================================
+      // DATABASE QUERY: Get player details for matches
+      // ========================================================================
+      // For each match, we need to get the full player information (name, picture).
+      // This query is used in a loop to enrich match data with player details.
       const getPlayerStmt = fastify.db.prepare('SELECT id, name, profilePicture FROM UserProfile WHERE id = ?');
       const matchesWithPlayers = allMatches.map((match) => {
         const player1 = match.player1Id ? getPlayerStmt.get(match.player1Id) : null;
@@ -649,7 +699,12 @@ export default async function (fastify, _opts) {
           return reply.status(404).send({ error: 'Friend profile not found' });
         }
 
-        // Insert friend relationship
+        // ====================================================================
+        // DATABASE QUERY: Add friend relationship
+        // ====================================================================
+        // This creates a friend relationship between two users.
+        // INSERT OR IGNORE means if the relationship already exists, it won't error.
+        // This makes the operation safe to call multiple times.
         const insertFriendStmt = fastify.db.prepare(
           'INSERT OR IGNORE INTO _UserFriends (userProfileId, friendId) VALUES (?, ?)'
         );
@@ -667,7 +722,13 @@ export default async function (fastify, _opts) {
           return reply.status(404).send({ error: 'User profile not found' });
         }
 
-        // Remove friend relationship (both directions)
+        // ====================================================================
+        // DATABASE QUERY: Remove friend relationship (both directions)
+        // ====================================================================
+        // This removes the friend relationship in both directions.
+        // We delete twice because friendships can be one-way or mutual.
+        // First delete: removes "user has friend" relationship
+        // Second delete: removes "friend has user" relationship
         const deleteFriendStmt = fastify.db.prepare(
           'DELETE FROM _UserFriends WHERE userProfileId = ? AND friendId = ?'
         );
@@ -714,6 +775,12 @@ export default async function (fastify, _opts) {
 
         console.log(`[${request.id}] Match details - player1Id: ${player1Profile.id}, player2Id: ${player2Profile.id}, scores: ${player1Score}-${player2Score}, winnerId: ${finalWinnerId}`);
 
+        // ====================================================================
+        // DATABASE QUERY: Create new match record
+        // ====================================================================
+        // This inserts a new game match into the Match table.
+        // It records who played, their scores, who won, and when it happened.
+        // This is called after a game finishes to save the match history.
         const insertMatchStmt = fastify.db.prepare(
           'INSERT INTO Match (type, date, player1Id, player2Id, player1Score, player2Score, winnerId) VALUES (?, ?, ?, ?, ?, ?, ?)'
         );
@@ -727,7 +794,11 @@ export default async function (fastify, _opts) {
           finalWinnerId
         );
 
-        // Get created match
+        // ====================================================================
+        // DATABASE QUERY: Get the newly created match
+        // ====================================================================
+        // After inserting, we retrieve the full match record to return to the caller.
+        // result.lastInsertRowid contains the ID of the match we just created.
         const getMatchStmt = fastify.db.prepare('SELECT * FROM Match WHERE id = ?');
         const match = getMatchStmt.get(Number(result.lastInsertRowid));
         
