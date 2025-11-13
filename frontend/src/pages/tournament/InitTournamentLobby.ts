@@ -1,7 +1,7 @@
 import { Player } from "./TournamentEngine";
 import { Mode, myName, myPlayer, shuffle, ensureMeFirst, sortForRender, byId, currentMax } from "./utils";
-import { verifyUserForTournament } from "../services/api";
-import { t } from "../services/lang/LangEngine";
+import { verifyUserForTournament } from "../../services/api";
+import { t } from "../../services/lang/LangEngine";
 import DOMPurify from "dompurify";
 
 /**
@@ -167,9 +167,7 @@ function showErrorMessage(message: string) {
   errorDiv.classList.remove("hidden");
 
   // Hide error after 5 seconds
-  setTimeout(() => {
-    errorDiv.classList.add("hidden");
-  }, 5000);
+  setTimeout(() => {errorDiv.classList.add("hidden");}, 5000);
 }
 
 /**
@@ -264,9 +262,11 @@ function addPlayer(name: string) {
  * Handles both 2-player and 4-player tournament initialization
  */
 function startTournamentAndGo() {
+  // condition check
   const max = currentMax(mode);
   if (players.length !== max) return;
 
+  // if they didn't push matchmake button yet
   if (max === 4) {
     // 4-player tournament: generate pairs if not already done
     if (!paired || !plannedPairs) {
@@ -282,6 +282,7 @@ function startTournamentAndGo() {
   const payload = {
     mode,
     difficulty,
+	// save the players
     players: players.map(p => ({
       id: p.id,
       name: p.name,
@@ -293,6 +294,7 @@ function startTournamentAndGo() {
 
   // Store tournament configuration and navigate to game
   localStorage.setItem("tournamentSeed", JSON.stringify(payload));
+  // router direct there
   window.location.hash = "#tournament";
 }
 
@@ -313,6 +315,7 @@ function createStackedVsBlock(top: string, bottom: string, highlight = false) {
   const baseColor = "text-violet-500";
   const highlightGlow = highlight ? "drop-shadow-[0_0_6px_#9f7aea]" : "";
 
+  // top name
   const topName = document.createElement("div");
   topName.textContent = top;
   topName.className = `font-bold text-lg ${baseColor} ${highlightGlow}`;
@@ -321,6 +324,7 @@ function createStackedVsBlock(top: string, bottom: string, highlight = false) {
   vs.textContent = t("vs");
   vs.className = "text-gray-400 my-1 text-sm";
 
+  // bottom name
   const bottomName = document.createElement("div");
   bottomName.textContent = bottom;
   bottomName.className = `font-bold text-lg ${baseColor} ${highlightGlow}`;
@@ -347,6 +351,7 @@ function makeRoundCard(title: string, top: string, bottom: string, highlight = f
   head.className = "text-base text-gray-200 mb-3 font-semibold";
   head.textContent = title;
 
+  // create with names in it
   const names = createStackedVsBlock(top, bottom, highlight);
   card.append(head, names);
   return card;
@@ -355,30 +360,36 @@ function makeRoundCard(title: string, top: string, bottom: string, highlight = f
 // Tournament preview rendering
 
 /**
- * Renders the tournament match preview interface
- * Shows participants, match cards, and tournament progression
+ * - Renders the tournament match preview interface
+ * - Shows participants and match cards
  */
 function renderMatchmakerPreview() {
+  // get the ID of the space to put there the cards
   const host = byId<HTMLDivElement>("matchgenerator");
   host.innerHTML = DOMPurify.sanitize("");
 
+  // determine 2 or 4
   const max = currentMax(mode);
 
   // Participants section
   const participantsCard = document.createElement("div");
   participantsCard.className =
     "rounded-2xl border border-violet-400/20 p-4 mb-4 bg-[#271d35] shadow-[0_0_24px_4px_#7037d333]";
+
+  // put inside host container
   host.appendChild(participantsCard);
 
+ // put the participants title inside the cards div
   const participantsTitle = document.createElement("div");
   participantsTitle.className = "text-sm text-gray-300 mb-2";
   participantsTitle.textContent = t("participants");
   participantsCard.appendChild(participantsTitle);
 
-  // Player chips display
+  // Player chips/tags display in the tab
   const chips = document.createElement("div");
   chips.className = "flex flex-wrap gap-2";
   if (players.length) {
+	// always me first
     sortForRender(players).forEach(pl => {
       const chip = document.createElement("span");
 
@@ -398,7 +409,7 @@ function renderMatchmakerPreview() {
       chips.appendChild(chip);
     });
   } else {
-    const none = document.createElement("div");
+    const none = document.createElement("div"); //it's not going to be rendered if ensureMeFirst
     none.className = "text-base text-gray-100";
     none.textContent = t("participantsNone");
     chips.appendChild(none);
@@ -411,10 +422,10 @@ function renderMatchmakerPreview() {
   hint.textContent = t("participantsHint");
   participantsCard.appendChild(hint);
 
-  // Stop rendering if not enough players
+  // Safety check: stop rendering if not enough players
   if (players.length < max) return;
 
-  // Match preview cards grid
+  // Match preview cards grid coloumns
   const grid = document.createElement("div");
   grid.className = "grid gap-4 w-full md:grid-cols-3";
   host.appendChild(grid);
@@ -424,6 +435,7 @@ function renderMatchmakerPreview() {
     if (playerSlice.length >= 2) {
       const [a, b] = playerSlice;
       if (paired) {
+		// make the card from the players name and if there is a true/no highlight on the card
         grid.appendChild(makeRoundCard(`${t("roundLabel")} 1`, getDisplayName(a!), getDisplayName(b!)));
         grid.appendChild(makeRoundCard(`${t("roundLabel")} 2`, getDisplayName(a!), getDisplayName(b!)));
         grid.appendChild(makeRoundCard(t("finalRound"), getDisplayName(a!), getDisplayName(b!), true));
@@ -438,6 +450,7 @@ function renderMatchmakerPreview() {
     if (paired) {
       if (!plannedPairs) plannedPairs = buildFourPlayerPairs();
       if (plannedPairs.length >= 2) {
+		// pairs put into variables
         const [s1a, s1b] = plannedPairs[0]!;
         const [s2a, s2b] = plannedPairs[1]!;
 
@@ -453,21 +466,25 @@ function renderMatchmakerPreview() {
 
     const note = document.createElement("div");
     note.className = "text-xs text-gray-300 mt-1";
+	// put instruction for the final round
     note.textContent = t("winnersNote");
     host.appendChild(note);
   }
 
-  // Call-to-action button - only show after Matchmaking is clicked (paired = true)
+// Let's start button, only show after Matchmaking is clicked (paired = true)
   if (paired) {
     const ctaWrap = document.createElement("div");
-    ctaWrap.className = "mt-4 w-full flex justify-end";
+    ctaWrap.className = "mt-4 w-full flex justify-end"; // positioning
     const cta = document.createElement("button");
     cta.className =
       "px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white " +
       "border border-violet-400/30 shadow-[0_0_16px_2px_#7037d355]";
     cta.textContent = t("letsStart");
+	// function to go to the game area
     cta.onclick = () => startTournamentAndGo();
+	// inside block to the right
     ctaWrap.appendChild(cta);
+	// adds the whole block to the page
     host.appendChild(ctaWrap);
   }
 }
@@ -557,7 +574,7 @@ export function initLobbyPageTournament() {
     errorDiv.classList.add('hidden');
   }
 
-  // Toggle button event listeners
+// Toggle button event listeners, register to run when there's a click
   toggleGuestBtn.onclick = showGuestMode;
   toggleUserBtn.onclick = showUserMode;
 
@@ -609,7 +626,7 @@ export function initLobbyPageTournament() {
     addAuthenticatedPlayer(email, password);
   });
 
-  // Tournament mode selection
+  // Tournament mode selection, register to run when there's a change
   mode2.onchange = () => { if (mode2.checked) setMode("2"); }; // when the user change radio button
   mode4.onchange = () => { if (mode4.checked) setMode("4"); };
 
@@ -629,7 +646,7 @@ export function initLobbyPageTournament() {
     if (difficultyHard.checked) { difficulty = "hard"; difficultyInfo.textContent = t("difficultyInfoHard"); }
   };
 
-  // Matchmaking button - generates tournament pairs
+  // Matchmaking button, generates tournament pairs
   startBtn.onclick = () => {
     const max = currentMax(mode);
     if (players.length !== max) return;
@@ -643,7 +660,7 @@ export function initLobbyPageTournament() {
     renderMatchmakerPreview();
   };
 
-  // Initialize with current user and render initial state
+  // Initialize with current user and render initial state, make sure it starts clean
   players = ensureMeFirst(players);
   resetPageState();
 }

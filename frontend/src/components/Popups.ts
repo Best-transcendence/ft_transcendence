@@ -96,7 +96,7 @@ function initInputPopup(action: string, popup: HTMLElement, config: any)
 
 			if (config.buttonId === "edit-bio-button") {
 				if (v.length > 100) {
-					alert("Bio must be at most 100 characters.");
+					alert("Bio can't be more than 100 characters.");
 					return;
 				}
 			}

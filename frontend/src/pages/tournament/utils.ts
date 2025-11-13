@@ -1,4 +1,4 @@
-import { thisUser } from "../router";
+import { thisUser } from "../../router";
 import type { Player } from "./TournamentEngine";
 
 /**

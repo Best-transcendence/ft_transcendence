@@ -1,8 +1,8 @@
-import { addTheme } from "../components/Theme";
-import { sidebarDisplay } from "../components/SideBar";
-import { profileDivDisplay } from "../components/ProfileDiv";
-import { LogOutBtnDisplay } from "../components/LogOutBtn";
-import { t } from "../services/lang/LangEngine";
+import { addTheme } from "../../components/Theme";
+import { sidebarDisplay } from "../../components/SideBar";
+import { profileDivDisplay } from "../../components/ProfileDiv";
+import { LogOutBtnDisplay } from "../../components/LogOutBtn";
+import { t } from "../../services/lang/LangEngine";
 
 /**
  * Generates the complete HTML template for the tournament lobby page

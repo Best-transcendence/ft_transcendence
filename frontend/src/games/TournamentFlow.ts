@@ -1,27 +1,20 @@
-import {
-  Bracket,
-  Player,
-  Match,
-  createTwoPlayerTournament,
-  createFourPlayerTournament,
-  reportMatchResult,
-} from "../tournament/TournamentEngine";
-import { ensureMeFirst } from "../tournament/utils"; // reuse shared helpers
+import {Bracket, Player, Match, createTwoPlayerTournament, createFourPlayerTournament, reportMatchResult } from "../pages/tournament/TournamentEngine";
+import { ensureMeFirst } from "../pages/tournament/utils"; // reuse shared helpers
 import { resetTimer } from "../components/Timer";
-import { resetDifficulty, getDisplayName } from "../tournament/InitTournamentLobby";
+import { resetDifficulty, getDisplayName } from "../pages/tournament/InitTournamentLobby";
 import { t } from "../services/lang/LangEngine";
 import DOMPurify from "dompurify";
 
 /**
  * Tournament Flow Controller
  *
- * This module manages the complete tournament flow including:
+ * Manage the tournament flow:
  * - Tournament bracket creation and management
  * - Match progression and result handling
- * - Overlay UI for match setup and results
+ * - Overlay UI for results and rounds
  * - Space key handling for game transitions
  * - Tie-breaker logic for tied matches
- * - Champion declaration and tournament completion
+ * - Champion declaration with Back to Arcade button
  */
 
 // Space-key overlay control (two-space flow: Space #1 hides overlay, Space #2
@@ -493,7 +486,7 @@ export function bootTournamentFlow() {
   (window as any).tournamentDifficulty = tournamentDifficulty;
 
   // Initialize timer display with correct difficulty time
-  const difficultyTimes = { easy: 8, medium: 30, hard: 20 }; // TODO (Yulia): Change easy back to 40 seconds
+  const difficultyTimes = { easy: 40, medium: 30, hard: 20 };
   const gameTime = difficultyTimes[tournamentDifficulty];
   resetTimer(gameTime);
 
