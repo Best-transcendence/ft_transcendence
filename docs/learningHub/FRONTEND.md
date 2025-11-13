@@ -212,3 +212,27 @@ id="email-field", etc.	DOM elements	Input fields referenced by login/signup logi
 | `[a-z0-9._-]` | Allowed characters: lowercase letters (`a–z`), digits (`0–9`), dot (`.`), underscore (`_`), and hyphen (`-`) |
 | `+`           | One or more of those allowed characters                                                                      |
 | `$`           | End of the string                                                                                            |
+
+
+# Data types
+
+| **Type**      | **Meaning**                                             |
+| ------------- | ------------------------------------------------------- |
+| **number**    | Any numeric value (integers, floats, `NaN`, `Infinity`) |
+| **string**    | Text values (`"hello"`)                                 |
+| **boolean**   | `true` or `false`                                       |
+| **null**      | “Empty value” (intentional absence)                     |
+| **undefined** | “Value not provided yet”                                |
+| **symbol**    | Unique identifiers                                      |
+| **bigint**    | Arbitrarily large integers (`123n`)                     |
+
+| **TS Type**                                  | **Meaning (Short)**                                   |
+| -------------------------------------------- | ----------------------------------------------------- |
+| **`any`**                                    | Anything allowed; no type checking.                   |
+| **`unknown`**                                | Like `any`, but you must check the type before using. |
+| **`void`**                                   | Function returns nothing.                             |
+| **`never`**                                  | Impossible value (unreachable).                       |
+| **`string[]`**                               | Array of strings.                                     |
+| **`Record<string, number>`**                 | Object with string keys and number values.            |
+| **Union** (`number \| string`)               | Value can be one of several types.                    |
+| **Literal** (`"easy" \| "medium" \| "hard"`) | Value must be exactly one of these fixed strings.     |
