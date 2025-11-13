@@ -236,3 +236,62 @@ id="email-field", etc.	DOM elements	Input fields referenced by login/signup logi
 | **`Record<string, number>`**                 | Object with string keys and number values.            |
 | **Union** (`number \| string`)               | Value can be one of several types.                    |
 | **Literal** (`"easy" \| "medium" \| "hard"`) | Value must be exactly one of these fixed strings.     |
+
+# Game frontend design logic
+| Element         | How its position is computed             |
+| --------------- | ---------------------------------------- |
+| **Net**         | Centered using `50% - halfWidth`         |
+| **Score1**      | X = 25% from left                        |
+| **Score2**      | X = 25% from right                       |
+| **Paddle1**     | X = 0% (default left)                    |
+| **Paddle2**     | X = 100% (right-0)                       |
+| **Ball**        | Approx center using left/top percentages |
+| **All heights** | Percentages of the game field            |
+
+
+| Operator    | Meaning (in simple words)           | Example                      |
+| ----------- | ----------------------------------- | ---------------------------- |
+| `===`       | is exactly equal to                 | `score === 0`                |
+| `!==`       | is NOT equal to                     | `key !== "w"`                |
+| `=`         | set a value                         | `let x = 5`                  |
+| `+=` / `-=` | add or subtract and save            | `s1 += 1`                    |
+| `++` / `--` | add 1 / subtract 1                  | `i++`                        |
+| `< > <= >=` | compare numbers                     | `remaining <= 3`             |
+| `!`         | NOT (flip true/false)               | `!running`                   |
+| `!!`        | turn something into true/false      | `!!value`                    |
+| `&&`        | AND (both must be true)             | `a && b`                     |
+| `\|\|`      | OR (use the first “real” value)     | `x                           |
+| `? :`       | short if/else                       | `age > 18 ? "adult" : "kid"` |
+| `?.`        | only use it if it exists            | `obj?.method()`              | 
+| `??`        | use fallback ONLY if null/undefined | `name ?? "Guest"`            |
+| `as`        | tell TypeScript a type              | `value as string`            |
+| `!` (TS)    | I promise this isn’t null           | `el!`                        |
+
+| Layer                       | What it thinks                               | Allows?                      |
+| --------------------------- | -------------------------------------------- | ---------------------------- |
+| **JavaScript runtime**      | `window` is a flexible object                | ✔ Yes, you can add anything  |
+| **TypeScript type checker** | `window` has a fixed set of known properties | ❌ No, you can’t add new ones |
+| `(window as any)`           | “turn off checking for window here”          | ✔ Yes, allowed               |
+
+Because TS tries to prevent mistakes like:
+```bash
+window.doccument // typo
+window.addEeventListener // typo
+(window as any).layoutTournamentRound = ... //new property added
+```
+
+# Tournament order
+1. You enter tournament game → initGameTournament()
+
+2. It sets up everything and calls prepareNewRound() → field reset, “Press Space” shown
+
+3. You (after overlays) press Space → beginTournamentRound() → timer + serveBall() + startGame()
+
+4. loop() runs every frame until:
+- time ends → game:timeup → _timeupHandler → show overlay & call tournamentTimeUp on continue
+
+5. Tournament system decides:
+- next round? → calls layoutTournamentRound() → prepareNewRound() → back to “Press Space”
+- or tournament done → shows champion; eventually you leave the game
+
+6. When leaving tournament → some controller calls destroyGame() → everything is cleaned up

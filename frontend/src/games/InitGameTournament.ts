@@ -2,21 +2,15 @@ import { MatchObject, saveMatch } from "../services/matchActions";
 import { startTimer } from "../components/Timer";
 import { registerTournamentGame } from "./GameController";
 
-// Overlay gating
-let modalActive = false;
-function isVisible(el: HTMLElement | null): boolean {
-  return !!el && !el.classList.contains("hidden");
-}
-
 /**
  * Tournament Game Controller
  * 
- * This module handles the initialization and control of tournament-style Pong games.
- * It provides a complete game loop with paddle physics, ball collision detection,
- * scoring system, and tournament-specific features like timed rounds.
+ * This module handles the initialization and control of tournament-style Pong game
+ * - game loop with paddle physics, ball collision detection, scoring system
+ * - extra: tournament-specific features like timed rounds.
  */
 
-// Difficulty configuration (from AI system)
+// Difficulty configuration (from AI system), constant object with 3 keys
 const DIFFICULTY = {
   easy: { 
     ballSpeed: 1.0, 
@@ -32,19 +26,33 @@ const DIFFICULTY = {
   }
 };
 
-// Global handler for game timeout events - prevents duplicate listeners across tournaments
+// handler for game timeout events, no duplicate listeners, set up the type and assign to null
 let _timeupHandler: ((e: Event) => void) | null = null;
 
-// Singleton guard - prevent multiple initializations
+// stop game from initalizes twice
 let _initialized = false;
+
+// Overlay gating
+let _modalActive = false;
+
+function isVisible(el: HTMLElement | null): boolean {
+  // Not in the page, not visible
+  if (!el) return false;
+
+  // Has the "hidden" class, not visible
+  if (el.classList.contains("hidden")) return false;
+
+  // Otherwise it's visible
+  return true;
+}
 
 /**
  * Initializes the tournament game system
  * 
- * Sets up the game canvas, event listeners, physics constants, and game state.
- * This function is called when entering a tournament game session.
+ * - Sets up the game canvas, event listeners, physics constants, and game state
+ * - Function is called when entering a tournament game session.
  */
-export function initGameTournament(): void {
+export function initGameTournament() {
   // Prevent multiple initializations
   if (_initialized) {
     console.log("=== TOURNAMENT GAME ALREADY INITIALIZED - SKIPPING ===");
@@ -54,10 +62,10 @@ export function initGameTournament(): void {
   console.log("=== INITIALIZING TOURNAMENT GAME ===");
   _initialized = true;
   
-  // Utility function to get DOM elements by ID with non-null assertion
+  //Get DOM elements by ID with non-null assertion
   const $ = (id: string) => document.getElementById(id)!;
 
-  // Game UI elements
+  // Game UI elements (using $)
   const paddle1 = $("paddle1");        // Left player paddle
   const paddle2 = $("paddle2");        // Right player paddle
   const ball = $("ball");              // Game ball
@@ -92,236 +100,237 @@ export function initGameTournament(): void {
   // Input state tracking
   let p1Up = false, p1Down = false, p2Up = false, p2Down = false;
 
-// Flag to prevent multiple keyboard event listeners from being bound
-let __keysBound = false;
-let __keydownHandler: ((e: KeyboardEvent) => void) | null = null;
-let __keyupHandler: ((e: KeyboardEvent) => void) | null = null;
+  // Flag to prevent multiple keyboard event listeners from being bound
+  let __keysBound = false; // connect keyboard
+  let __keydownHandler: ((e: KeyboardEvent) => void) | null = null; // push buttons on keyboard
+  let __keyupHandler: ((e: KeyboardEvent) => void) | null = null; // release buttons on keyboard
 
-/**
- * Destroys the tournament game completely
- * Removes all event listeners and resets state
- */
-function destroyGame() {
-  console.log("=== DESTROYING TOURNAMENT GAME (FULL CLEANUP) ===");
-  running = false;
-  if (animationFrameId) {
-    console.log("Cancelling animation frame:", animationFrameId);
-    cancelAnimationFrame(animationFrameId);
-    animationFrameId = 0;
-  }
+  /**
+  * Destroys the tournament game completely
+  * - Removes all event listeners and resets state
+  * - Cancel current loop ID (animationFramId) updated continously by browser for better CPU usage
+  */
+  function destroyGame() {
+    console.log("=== DESTROYING TOURNAMENT GAME (FULL CLEANUP) ===");
+    running = false;
+    if (animationFrameId) {
+      console.log("Cancelling animation frame:", animationFrameId);
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = 0;
+    }
   
-  // Remove keyboard event listeners
-  console.log("Removing keyboard listeners");
-  if (__keydownHandler) {
-    document.removeEventListener("keydown", __keydownHandler);
-    __keydownHandler = null;
-  }
-  if (__keyupHandler) {
-    document.removeEventListener("keyup", __keyupHandler);
-    __keyupHandler = null;
-  }
-  __keysBound = false;
-  
-  // Reset initialization flag
-  _initialized = false;
-  
-  console.log("=== TOURNAMENT GAME DESTROYED ===");
-}
+    // Remove keyboard event listeners
+    console.log("Removing keyboard listeners");
+    if (__keydownHandler) {
+      document.removeEventListener("keydown", __keydownHandler);
+      __keydownHandler = null;
+    }
+    if (__keyupHandler) {
+      document.removeEventListener("keyup", __keyupHandler);
+      __keyupHandler = null;
+    }
+    __keysBound = false; // no more bound
 
-/**
- * Stops the game loop (for pausing between rounds)
- * Does NOT remove event listeners - only stops the animation frame
- */
-function stopGame() {
-  console.log("=== PAUSING TOURNAMENT GAME ===");
-  running = false;
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-    animationFrameId = 0;
+    // Reset initialization flag
+    _initialized = false;
+  
+    console.log("=== TOURNAMENT GAME DESTROYED ===");
   }
-}
-// Expose stopGame globally for external tournament control
-(window as any).stopTournamentGame = stopGame;
 
-/**
- * Tournament round layout handler
- * Resets the field, scores, and shows the "Press Space" instruction
- * Called when a new tournament round begins
- */
-(window as any).layoutTournamentRound = () => {
+  /**
+   * Stops the game loop (for pausing between rounds)
+   * Does NOT remove event listeners - only stops the animation frame
+   */
+  function stopGame() {
+    console.log("=== PAUSING TOURNAMENT GAME ===");
+    running = false;
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = 0;
+    }
+  }
+  // Set up stopGame globally for external tournament control (e.g.: timer)
+  (window as any).stopTournamentGame = stopGame;
+
+  /**
+  * Tournament round layout handler
+  * Resets the field, scores, and shows the "Press Space" instruction
+  * Called when a new tournament round begins
+  */
+  (window as any).layoutTournamentRound = () => {
   // Reset field & scores, show the "Press Space" text
-  prepareNewRound();        // Combines: stopGame + resetScores + resetObjects + show startPress
-};
+    prepareNewRound();        // Combines: stopGame + resetScores + resetObjects + show startPress
+  };
 
 /**
  * Tournament round start handler
- * Begins the actual game round with timer and ball serving
- * Includes protection against starting multiple rounds simultaneously
+ * - Begins the actual game round with timer and ball serving
+ * - Includes protection against starting multiple rounds simultaneously
  */
-(window as any).beginTournamentRound = () => {
-  // Do nothing if a round is already running (space key protection)
-  if ((window as any).tournamentOverlayModal) return; 
-  if (running) return;
+  (window as any).beginTournamentRound = () => {
+    // Do nothing if a round is already running (space key protection)
+    if ((window as any).tournamentOverlayModal) return; 
+    if (running) return;
   
-  // Get game time from difficulty settings
-  const difficulty = (window as any).tournamentDifficulty || "medium";
-  const gameTime = DIFFICULTY[difficulty as keyof typeof DIFFICULTY].gameTime;
-  
-  startTimer(gameTime);     // Start timer based on difficulty
-  serveBall();              // Serve the ball with random direction
-  startGame();              // Begin the game loop
-};
+    // Get game time from difficulty settings
+    const difficulty = (window as any).tournamentDifficulty || "medium";
+    const gameTime = DIFFICULTY[difficulty as keyof typeof DIFFICULTY].gameTime;
 
-/**
- * Resets game objects to their initial positions and velocities
- * Does NOT reset scores - used for ball resets during gameplay
- */
-function resetObjects() {
-  // Reset paddle positions to center
-  p1Y = 37.5; p2Y = 37.5;
-  p1Vel = 0;  p2Vel = 0;
-  paddle1.style.top = p1Y + "%";
-  paddle2.style.top = p2Y + "%";
+    startTimer(gameTime);     // Start timer based on difficulty
+    serveBall();              // Serve the ball with random direction
+    startGame();              // Begin the game loop
+  };
 
-  // Place ball in center with no motion (waiting for serve)
-  ballX = 50 - BALL_W / 2;
-  ballY = 50 - BALL_H / 2;
-  ballVelX = 0; ballVelY = 0;
-  ball.style.left = ballX + "%";
-  ball.style.top  = ballY + "%";
-}
+  /**
+   * Resets game objects to their initial positions and velocities
+   * Does NOT reset scores - used for ball resets during gameplay
+   */
+  function resetObjects() {
+    // Reset paddle positions to center
+    p1Y = 37.5; p2Y = 37.5;
+    p1Vel = 0;  p2Vel = 0;
+    paddle1.style.top = p1Y + "%";
+    paddle2.style.top = p2Y + "%";
 
-/**
- * Resets both player scores to zero
- * Updates the score display elements
- */
-function resetScores() {
-  s1 = 0; s2 = 0;
-  lastServe = null; // Reset serve alternation for new round
-  score1.textContent = "0";
-  score2.textContent = "0";
-}
-
-/**
- * Prepares a new tournament round
- * Stops current game, resets scores and objects, shows start instruction
- */
-function prepareNewRound() {
-  stopGame();           // Stop any running game
-  resetScores();        // Reset scores to 0-0
-  resetObjects();       // Reset paddles and ball positions
-  startPress.classList.remove("hidden");  // Show "Press Space" instruction
-}
-
-/**
- * Serves the ball with a random direction
- * Sets initial velocity with consistent speed regardless of angle
- * Alternates serve direction each time for fairness
- * Speed is based on tournament difficulty
- */
-function serveBall() {
-  // Get difficulty from tournament settings
-  const difficulty = (window as any).tournamentDifficulty || "medium";
-  const speed = DIFFICULTY[difficulty as keyof typeof DIFFICULTY].ballSpeed;
-  
-  // Random angle between -45 and 45 degrees (in radians)
-  const angleVariation = (Math.random() - 0.5) * Math.PI / 2;  // ±45°
-  
-  // Alternate serve direction for fairness
-  const direction = lastServe === "left" ? 1 : lastServe === "right" ? -1 : (Math.random() > 0.5 ? 1 : -1);
-  lastServe = direction === 1 ? "right" : "left";
-  
-  // Calculate velocity components for consistent speed
-  ballVelX = direction * speed * Math.cos(angleVariation);
-  ballVelY = speed * Math.sin(angleVariation);
-}
-
-/**
- * Starts the game loop
- * Includes protection against multiple starts and cleanup of previous frames
- */
-function startGame() {
-  if (running) return;                 // Prevent starting multiple games
-  console.log("=== STARTING TOURNAMENT GAME ===");
-  running = true;
-  startPress.classList.add("hidden");  // Hide start instruction
-
-  // Clean up any existing animation frame
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-    animationFrameId = 0;
+    // Place ball in center with no motion (waiting for serve)
+    ballX = 50 - BALL_W / 2;
+    ballY = 50 - BALL_H / 2;
+    ballVelX = 0; ballVelY = 0;
+    ball.style.left = ballX + "%";
+    ball.style.top  = ballY + "%";
   }
+
+  /**
+  * Resets both player scores to zero
+  * Updates the score display elements
+  */
+  function resetScores() {
+    s1 = 0; s2 = 0;
+    lastServe = null; // Reset serve alternation for new round
+    score1.textContent = "0";
+    score2.textContent = "0";
+  }
+
+  /**
+  * Prepares a new tournament round
+  * Stops current game, resets scores and objects, shows start instruction
+  */
+  function prepareNewRound() {
+    stopGame();           // Stop any running game
+    resetScores();        // Reset scores to 0-0
+    resetObjects();       // Reset paddles and ball positions
+    startPress.classList.remove("hidden");  // Show "Press Space" instruction
+  }
+
+  /**
+  * Serves the ball with a random direction
+  * Sets initial velocity with consistent speed regardless of angle
+  * Alternates serve direction each time for fairness
+  * Speed is based on tournament difficulty
+  */
+ function serveBall() {
+    // Get difficulty from tournament settings
+    const difficulty = (window as any).tournamentDifficulty || "medium";
+    const speed = DIFFICULTY[difficulty as keyof typeof DIFFICULTY].ballSpeed;
   
-  // Serve ball if it's not already moving
-  if (ballVelX === 0 && ballVelY === 0) serveBall();
-
-  // Start the game loop
-  animationFrameId = requestAnimationFrame(loop);
-  console.log("Tournament game loop started, animationFrameId:", animationFrameId);
-}
-
-// Remove any previous timeout handler to prevent duplicates across tournaments
-if (_timeupHandler) {
-  window.removeEventListener("game:timeup", _timeupHandler);
-  _timeupHandler = null;
-}
-
-/**
- * Game timeout event handler
- * Called when the tournament round timer expires
- * Reads current scores from DOM and notifies tournament system
- */
-_timeupHandler = () => {
-  console.log("=== TOURNAMENT TIME UP ===");
-  stopGame();  // Stop the game loop
-
-  // Read current scores from DOM elements
-  const l = Number(score1?.textContent ?? 0);  // Left player score
-  const r = Number(score2?.textContent ?? 0);  // Right player score
-  console.log("Final scores: Left =", l, "Right =", r);
-
-  // Get player names and data from tournament system
-  const players = (window as any).tournamentCurrentPlayers;
-  const leftName = players?.left || "Player 1";
-  const rightName = players?.right || "Player 2";
-  const leftPlayer = players?.leftPlayer;
-  const rightPlayer = players?.rightPlayer;
-
-  console.log("=== TOURNAMENT MATCH SAVING DEBUG ===");
-  console.log("=== TOURNAMENT MATCH SAVE DEBUG ===");
-  console.log("Left player:", leftPlayer);
-  console.log("Right player:", rightPlayer);
-  console.log("Left authenticated:", leftPlayer?.isAuthenticated);
-  console.log("Right authenticated:", rightPlayer?.isAuthenticated);
-  console.log("Tournament current players:", (window as any).tournamentCurrentPlayers);
+    // Random angle between -45 and 45 degrees (in radians)
+    const angleVariation = (Math.random() - 0.5) * Math.PI / 2;  // ±45°
   
-  // Save match if both players are authenticated (regardless of who the logged-in user is)
-  if (leftPlayer?.isAuthenticated && rightPlayer?.isAuthenticated) {
-    // Check tournament mode from seed to determine match type
-    const seed = JSON.parse(localStorage.getItem("tournamentSeed") || "{}");
-    const tournamentMode = seed.mode; // "2" or "4"
-    
-    let matchType: string;
-    if (tournamentMode === "2") {
-      matchType = "TOURNAMENT_1V1";
-    } else {
-      // 4-player tournament
-      const currentMatch = (window as any).tournamentCurrentMatch;
-      const isFinal = currentMatch?.round === 2;
-      matchType = isFinal ? "TOURNAMENT_FINAL" : "TOURNAMENT_INTERMEDIATE";
+    // Alternate serve direction for fairness, left or right or random if it's first
+    const direction = lastServe === "left" ? 1 : lastServe === "right" ? -1 : (Math.random() > 0.5 ? 1 : -1);
+    lastServe = direction === 1 ? "right" : "left";
+  
+    // Calculate velocity components for consistent speed, side and angle
+    ballVelX = direction * speed * Math.cos(angleVariation);
+    ballVelY = speed * Math.sin(angleVariation);
+  }
+
+  /**
+   * Starts the game loop
+   * Includes protection against multiple starts and cleanup of previous frames
+   */
+  function startGame() {
+    if (running) return;                 // Prevent starting multiple games
+    console.log("=== STARTING TOURNAMENT GAME ===");
+    running = true; // set up start
+    startPress.classList.add("hidden");  // Hide press space instruction
+
+    // Clean up any existing animation frame
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = 0;
     }
-    
-    console.log("Tournament mode:", tournamentMode);
-    console.log("Match type:", matchType);
-    
-    const matchData: MatchObject = {
-      type: matchType,
-      date: new Date().toISOString(),
-      player1Id: leftPlayer.authUserId!,
-      player2Id: rightPlayer.authUserId!,
-      player1Score: l,
-      player2Score: r,
-    };
+  
+      // Serve ball if it's not already moving
+      if (ballVelX === 0 && ballVelY === 0) serveBall();
+
+      // Start the game loop
+      animationFrameId = requestAnimationFrame(loop);
+      console.log("Tournament game loop started, animationFrameId:", animationFrameId);
+    }
+
+    // Remove any previous timeout handler to prevent duplicates across tournaments
+    if (_timeupHandler) {
+      window.removeEventListener("game:timeup", _timeupHandler);
+      _timeupHandler = null;
+    }
+
+  /**
+  * Game timeout event handler
+  * Called when the tournament round timer expires
+  * Reads current scores from DOM and notifies tournament system
+   */
+  _timeupHandler = () => {
+    console.log("=== TOURNAMENT TIME UP ===");
+    stopGame();  // Stop the game loop
+
+    // Read current scores from DOM elements
+    const l = Number(score1?.textContent ?? 0);  // Left player score
+    const r = Number(score2?.textContent ?? 0);  // Right player score
+    console.log("Final scores: Left =", l, "Right =", r);
+
+    // Get player names and data from tournament system
+    const players = (window as any).tournamentCurrentPlayers;
+    const leftName = players?.left || "Player 1";
+    const rightName = players?.right || "Player 2";
+    const leftPlayer = players?.leftPlayer;
+    const rightPlayer = players?.rightPlayer;
+
+    console.log("=== TOURNAMENT MATCH SAVING DEBUG ===");
+    console.log("=== TOURNAMENT MATCH SAVE DEBUG ===");
+    console.log("Left player:", leftPlayer);
+    console.log("Right player:", rightPlayer);
+    console.log("Left authenticated:", leftPlayer?.isAuthenticated);
+    console.log("Right authenticated:", rightPlayer?.isAuthenticated);
+    console.log("Tournament current players:", (window as any).tournamentCurrentPlayers);
+  
+    // Save match if both players are authenticated (regardless of who the logged-in user is)
+    if (leftPlayer?.isAuthenticated && rightPlayer?.isAuthenticated) {
+      // Check tournament mode from seed to determine match type
+		const seed = JSON.parse(localStorage.getItem("tournamentSeed") || "{}");
+		const tournamentMode = seed.mode; // "2" or "4"
+
+		let matchType: string;
+		if (tournamentMode === "2") {
+		matchType = "TOURNAMENT_1V1";
+		} else {
+		// 4-player tournament
+		const currentMatch = (window as any).tournamentCurrentMatch;
+		const isFinal = currentMatch?.round === 2;
+		matchType = isFinal ? "TOURNAMENT_FINAL" : "TOURNAMENT_INTERMEDIATE";
+		}
+		
+		console.log("Tournament mode:", tournamentMode);
+		console.log("Match type:", matchType);
+		
+		const matchData: MatchObject = {
+		type: matchType,
+		date: new Date().toISOString(),
+		player1Id: leftPlayer.authUserId!,
+		player2Id: rightPlayer.authUserId!,
+		player1Score: l,
+		player2Score: r,
+		};
     
     console.log("Saving match data:", matchData);
     
@@ -330,57 +339,57 @@ _timeupHandler = () => {
     }).catch(err => 
       console.error("Failed to save tournament match:", err)
     );
-  } else {
-    console.log("Skipping match save - not both players authenticated");
-  }
+	} else {
+		console.log("Skipping match save - not both players authenticated");
+	}
 
-  // Show time up overlay with winner
-  const timeUpOverlay = document.getElementById("timeUpOverlay");
-  const winnerText = document.getElementById("winnerText");
+	// Show time up overlay with winner
+	const timeUpOverlay = document.getElementById("timeUpOverlay");
+	const winnerText = document.getElementById("winnerText");
   
-  if (timeUpOverlay && winnerText) {
-    // Determine winner
-    if (l > r) {
-      winnerText.textContent = `${leftName} won 🏆`;
-      console.log("Winner:", leftName);
-    } else if (r > l) {
-      winnerText.textContent = `${rightName} won 🏆`;
-      console.log("Winner:", rightName);
-    } else {
-      winnerText.textContent = "It's a tie! 🤝";
-      console.log("Result: Tie");
-    }
-    timeUpOverlay.classList.remove("hidden");
-	// block keyboard while overlay is up
-	modalActive = true;
-  }
+	if (timeUpOverlay && winnerText) {
+		// Determine winner
+		if (l > r) {
+		winnerText.textContent = `${leftName} won 🏆`;
+		console.log("Winner:", leftName);
+		} else if (r > l) {
+		winnerText.textContent = `${rightName} won 🏆`;
+		console.log("Winner:", rightName);
+		} else {
+		winnerText.textContent = "It's a tie! 🤝";
+		console.log("Result: Tie");
+		}
+		timeUpOverlay.classList.remove("hidden");
+		// block keyboard while overlay is up
+		_modalActive = true;
+	}
 
-  // Set up continue button to hide overlay and notify tournament system
-  const continueBtn = document.getElementById("continueToResults");
-  if (continueBtn) {
-    // Remove old listeners
-    const newBtn = continueBtn.cloneNode(true) as HTMLButtonElement;
-    continueBtn.parentNode?.replaceChild(newBtn, continueBtn);
-    
-    newBtn.addEventListener("click", () => {
-      console.log("Continue button clicked, hiding overlay");
-      timeUpOverlay?.classList.add("hidden");
+	// Set up continue button to hide overlay and notify tournament system
+	const continueBtn = document.getElementById("continueToResults");
+	if (continueBtn) {
+		// Remove old listeners
+		const newBtn = continueBtn.cloneNode(true) as HTMLButtonElement;
+		continueBtn.parentNode?.replaceChild(newBtn, continueBtn); // new listener
+		
+		newBtn.addEventListener("click", () => {
+			console.log("Continue button clicked, hiding overlay");
+			timeUpOverlay?.classList.add("hidden");
 
-	// allow keys again (you’ll likely navigate away right after)
-     modalActive = false;
-      
-      // Notify tournament system of round completion with final scores
-      const timeUp = (window as any).tournamentTimeUp;
-      if (typeof timeUp === "function") {
-        console.log("Calling tournamentTimeUp with scores:", l, r);
-        timeUp(l, r);
-      }
-    });
-  }
-};
+			// allow keys again (you’ll likely navigate away right after)
+			_modalActive = false;
+			
+			// Notify tournament system of round completion with final scores
+			const timeUp = (window as any).tournamentTimeUp;
+			if (typeof timeUp === "function") {
+				console.log("Calling tournamentTimeUp with scores:", l, r);
+				timeUp(l, r);
+			}
+	    });
+	}
+  };
 
-// Register the timeout handler
-window.addEventListener("game:timeup", _timeupHandler);
+  // Register the timeout handler
+  window.addEventListener("game:timeup", _timeupHandler);
 
   // Bind keyboard controls only once to prevent duplicate listeners
   if (!__keysBound) {
@@ -389,29 +398,30 @@ window.addEventListener("game:timeup", _timeupHandler);
     // Keyboard input handler for game controls
     __keydownHandler = (e: KeyboardEvent) => {
 
-	// block Space + movement while overlay is visible
-	const ov = document.getElementById("timeUpOverlay");
-	const modalFromTournament = !!(window as any).tournamentOverlayModal;
-    if (modalActive || isVisible(ov) || modalFromTournament) {
-		if (e.code === "Space" || ["ArrowUp","ArrowDown","w","s","W","S"].includes(e.key)) {
-		e.preventDefault();
-		e.stopPropagation();
+		// block Space + movement while overlay is visible
+		const modalOverlay = document.getElementById("timeUpOverlay");
+		const modalFromTournament = !!(window as any).tournamentOverlayModal;
+		if (_modalActive || isVisible(modalOverlay) || modalFromTournament) {
+			if (e.code === "Space" || ["ArrowUp","ArrowDown","w","s","W","S"].includes(e.key)) {
+				e.preventDefault(); // no submit or reload
+				e.stopPropagation(); // don't trigger any parent containter
+			}
+			return;
 		}
-		return;
-	}
 
-	// Space bar: Start game round (only when not running)
-	if (e.code === "Space" && !running) {
-		(window as any).beginTournamentRound?.();
-	}
-      
-      // Player 1 controls (WASD)
-      if (e.key === "w") p1Up = true;
-      if (e.key === "s") p1Down = true;
-      
-      // Player 2 controls (Arrow keys)
-      if (e.key === "ArrowUp") p2Up = true;
-      if (e.key === "ArrowDown") p2Down = true;
+		// Space bar: Start game round (only when not running)
+		if (e.code === "Space" && !running) {
+			(window as any).beginTournamentRound?.(); //if the function set up
+		}
+		
+		// Player 1 controls (WASD)
+		if (e.key === "w") p1Up = true;
+		if (e.key === "s") p1Down = true;
+		
+		// Player 2 controls (Arrow keys)
+		if (e.key === "ArrowUp") p2Up = true;
+		if (e.key === "ArrowDown") p2Down = true;
+
     };
     document.addEventListener("keydown", __keydownHandler);
 
@@ -420,7 +430,7 @@ window.addEventListener("game:timeup", _timeupHandler);
 	 // block movement key-ups while overlay is visible
 		const ov = document.getElementById("timeUpOverlay");
 		const modalFromTournament = !!(window as any).tournamentOverlayModal;
-		if (modalActive || isVisible(ov) || modalFromTournament) {
+		if (_modalActive || isVisible(ov) || modalFromTournament) {
 			if (["ArrowUp","ArrowDown","w","s","W","S"].includes(e.key)) {
 			e.preventDefault();
 			e.stopPropagation();
