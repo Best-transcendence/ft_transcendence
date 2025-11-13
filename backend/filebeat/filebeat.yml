@@ -1,3 +1,20 @@
+# ============================================================================
+# FILEBEAT CONFIGURATION
+# ============================================================================
+# Filebeat is a log shipper that collects logs from Docker containers
+# and sends them to Logstash for processing.
+#
+# HOW IT WORKS:
+# 1. Filebeat monitors Docker containers automatically (autodiscover)
+# 2. It reads log files from each container
+# 3. Adds metadata (container name, service type, etc.)
+# 4. Sends logs to Logstash on port 5044
+#
+# AUTODISCOVER:
+# Filebeat automatically finds new containers and starts collecting their logs.
+# We configure it to only collect from our application services.
+# ============================================================================
+
 filebeat.autodiscover:
   providers:
     - type: docker
@@ -11,7 +28,13 @@ filebeat.autodiscover:
               host: "unix:///var/run/docker.sock"
           - add_kubernetes_metadata: ~
 
-# Only collect logs from our application containers
+# ============================================================================
+# SERVICE-SPECIFIC CONFIGURATIONS
+# ============================================================================
+# We configure Filebeat to collect logs from specific services and add
+# a "service" field to each log entry. This makes it easy to filter logs
+# by service in Kibana (e.g., "show only auth-service logs").
+# ============================================================================
 filebeat.autodiscover.providers:
   - type: docker
     hints.enabled: true
@@ -89,11 +112,19 @@ filebeat.autodiscover.providers:
                   fields:
                     service: "frontend-service"
 
-# Output to Logstash
+# ============================================================================
+# OUTPUT CONFIGURATION
+# ============================================================================
+# Send all collected logs to Logstash for processing.
+# Logstash will parse, transform, and enrich the logs before storing in Elasticsearch.
 output.logstash:
   hosts: ["logstash:5044"]
 
-# Logging configuration
+# ============================================================================
+# FILEBEAT LOGGING
+# ============================================================================
+# Filebeat's own logs (for debugging Filebeat itself).
+# Keeps 7 days of Filebeat logs, stored in /var/log/filebeat.
 logging.level: info
 logging.to_files: true
 logging.files:
