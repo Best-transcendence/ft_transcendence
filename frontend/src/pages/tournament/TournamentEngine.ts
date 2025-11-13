@@ -1,9 +1,9 @@
 /**
  * Tournament Engine
  * 
- * Provides core logic for TournamentFlow: ,
- * bracket creation, match management, result processing
- * 2-player and 4-player with different formats (best-of-1 and best-of-3)
+ * - core logic for TournamentFlow: ,
+ * - bracket creation, match management, result processing
+ * - 2-player + 4-player with different formats (best-of-1 and best-of-3)
  */
 
 /**

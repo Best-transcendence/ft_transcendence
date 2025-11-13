@@ -1,3 +1,19 @@
+# SPA
+- website that loads only one HTML page, and then updates the content using JavaScript without reloading the page (not multiple MPA)
+
+# DOM - Document Object Model.
+- When the browser loads your HTML, it turns it into a tree of JavaScript objects.
+- Each tag (<div>, <button>, <input>, etc.) becomes a DOM element.
+HTML in TS
+```bash
+<div id="box" class="card">Hello</div>
+```
+
+Javascript
+```bash
+const el = document.getElementById("box");
+```
+
 # npm install
 
 - code: is the design (the unique creation).
@@ -33,6 +49,11 @@ display: flex;
 # .postcssrc.json
 - Settings for the CSS processing pipeline
 - tailwindcss: Plugin that generates your utility classes
+
+# vite.config.ts
+- Vite is the development server
+- build tool for your frontend
+- this configuration controls how server behaves in Docker
 
 # tsconfig.json
 - what kind of JavaScript to output, which files to check, and how strict to be
@@ -280,7 +301,7 @@ window.addEeventListener // typo
 (window as any).layoutTournamentRound = ... //new property added
 ```
 
-# Tournament order
+# Tournament game order
 1. You enter tournament game → initGameTournament()
 
 2. It sets up everything and calls prepareNewRound() → field reset, “Press Space” shown
@@ -295,3 +316,30 @@ window.addEeventListener // typo
 - or tournament done → shows champion; eventually you leave the game
 
 6. When leaving tournament → some controller calls destroyGame() → everything is cleaned up
+
+# Tournament flow order
+1. Lobby: you pick players, difficulty → lobby saves tournamentSeed to localStorage.
+
+2. Tournament page: bootTournamentFlow() runs.
+- cleans old stuff (teardownTournamentFlow)
+- loads tournamentSeed
+- builds Bracket with matches
+- finds currentMatch
+- shows overlay “Round X: A vs B”
+- waits for Space → overlay hides, game starts
+
+3. Game runs and on end calls:
+- window.reportTournamentGameResult(name) or
+- window.tournamentTimeUp(leftScore, rightScore)
+
+4. TournamentFlow:
+- updates wins, decides match winner
+
+either:
+- shows next overlay (next round or next match), or
+- if all done → showChampion(name)
+
+5. Player clicks Back to Arcade → teardownTournamentFlow() → router sends to #intro.
+
+Bracket = “the whole tournament state”
+Match = one pair of players inside that bracket.

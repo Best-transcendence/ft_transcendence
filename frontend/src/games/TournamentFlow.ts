@@ -50,6 +50,7 @@ function attachSpaceToStart() {
       detachSpaceHandler();
     }
   };
+  // Space to close the overlay before the game reacts to Space, capture sooner than game would react
   window.addEventListener("keydown", spaceHandler, { capture: true });
 }
 
@@ -65,14 +66,14 @@ type SeedPayload = {
 };
 
 /**
- * Loads tournament seed data from localStorage
+ * Loads tournament seed data from localStorage, from InitTournamentLobby
  * @returns {SeedPayload | null} Tournament configuration or null if not found/invalid
  */
 function loadSeed(): SeedPayload | null {
   try {
-    const raw = localStorage.getItem("tournamentSeed");
+    const raw = localStorage.getItem("tournamentSeed"); // load value and check if it's not empty
     if (!raw) return null;
-    return JSON.parse(raw);
+    return JSON.parse(raw); // convert back to data structure
   } catch {
     return null;
   }
@@ -399,12 +400,13 @@ function acceptGameResult(winnerName: string) {
 
 /**
  * Initializes the tournament flow system
- * Creates tournament bracket, sets up event handlers, and displays first match
+ * - Tournament bracket, event handlers, and displays first match
  */
 export function bootTournamentFlow() {
   teardownTournamentFlow();   // Start fresh every time
-  inTieBreaker = false;
+  inTieBreaker = false;   // sign later if there's going to be a tie
 
+  //
   const seed = loadSeed();
   if (!seed) return;
 
@@ -525,32 +527,33 @@ export function bootTournamentFlow() {
 }
 
 /**
- * Cleans up tournament flow system and resets all state
- * Removes event handlers, DOM elements, and global references
+ * - Cleans up tournament flow system and resets all state
+ * - Removes event handlers, elements, and global references
  */
 export function teardownTournamentFlow() {
-  // Reset difficulty to medium when leaving tournament
+  // Reset difficulty to medium
   resetDifficulty();
 
-  // Stop the game loop
+  // Stop the game loop, check if there is a function saved on window called stopTournamentGame (InitGameTournament)
   if (typeof (window as any).stopTournamentGame === 'function') {
     (window as any).stopTournamentGame();
   }
 
-  // Remove space key capture handler
+  // Stop listening space
   detachSpaceHandler();
 
-  // Remove overlay DOM from previous session
+  // Remove overlay from previous session
   if (overlay && overlay.isConnected) {
     try { overlay.remove(); } catch {}
   }
   overlay = null;
+
   // elements to default
   nameLeftEl = nameRightEl = roundLabelEl = championEl = null;
 
-  // no modal (overlays)
-  overlayModal = false;
-  (window as any).tournamentOverlayModal = false;
+  // no modal (overlays) 
+  overlayModal = false; // private inside the file
+  (window as any).tournamentOverlayModal = false; // global (InitGameTournament)
 
   // Clear global hooks so a new session starts clean
   (window as any).tournamentCurrentPlayers = undefined;
