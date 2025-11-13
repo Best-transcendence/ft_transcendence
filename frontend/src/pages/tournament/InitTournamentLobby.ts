@@ -1,7 +1,7 @@
 import { Player } from "./TournamentEngine";
 import { Mode, myName, myPlayer, shuffle, ensureMeFirst, sortForRender, byId, currentMax } from "./utils";
-import { verifyUserForTournament } from "../services/api";
-import { t } from "../services/lang/LangEngine";
+import { verifyUserForTournament } from "../../services/api";
+import { t } from "../../services/lang/LangEngine";
 import DOMPurify from "dompurify";
 
 /**

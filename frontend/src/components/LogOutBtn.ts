@@ -9,7 +9,6 @@ export function logOutBtn()
 	logoutBtn?.addEventListener("click", () =>
 	{
 		localStorage.removeItem("jwt");
-		//TODO : Make sure it fits Websocket implementation
 	    disconnectSocket();
 		window.location.hash = "login";
 	});

@@ -486,7 +486,7 @@ export function bootTournamentFlow() {
   (window as any).tournamentDifficulty = tournamentDifficulty;
 
   // Initialize timer display with correct difficulty time
-  const difficultyTimes = { easy: 8, medium: 30, hard: 20 }; // TODO (Yulia): Change easy back to 40 seconds
+  const difficultyTimes = { easy: 40, medium: 30, hard: 20 };
   const gameTime = difficultyTimes[tournamentDifficulty];
   resetTimer(gameTime);
 

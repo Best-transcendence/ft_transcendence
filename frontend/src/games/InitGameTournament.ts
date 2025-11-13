@@ -14,7 +14,7 @@ import { registerTournamentGame } from "./GameController";
 const DIFFICULTY = {
   easy: { 
     ballSpeed: 1.0, 
-    gameTime: 8 // TODO (Yulia): Change back to 40 seconds
+    gameTime: 40
   },
   medium: { 
     ballSpeed: 1.5, 
