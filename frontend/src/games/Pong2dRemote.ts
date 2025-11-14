@@ -326,20 +326,14 @@ export function initRemoteGame(roomId: string) {
   document.addEventListener("keyup", keyupHandler);
 
   // Add navigation cleanup listeners
-  const handleBeforeUnload = () => {
-    leaveRemoteGame();
-  };
-
   const handleHashChange = () => {
     leaveRemoteGame();
   };
 
-  window.addEventListener("beforeunload", handleBeforeUnload);
   window.addEventListener("hashchange", handleHashChange);
 
   // Store handlers for cleanup
   (window as any).gameNavigationHandlers = {
-    handleBeforeUnload,
     handleHashChange,
   };
 
