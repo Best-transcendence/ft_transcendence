@@ -49,16 +49,16 @@ export type Difficulty = "easy" | "medium" | "hard";
  */
 export type Bracket = {
   players: Player[];       // All tournament participants (order matters for pairing)
-  rounds: Round[];         // Tournament rounds (round 1, then round 2 if applicable)
+  rounds: Round[];         // Tournament rounds (round 1, 2, 3)
   championId?: string;     // Tournament champion (set when final is decided)
   difficulty?: Difficulty; // Tournament difficulty (affects ball speed and game time)
 };
 
 // Internal utilities for match creation and ID generation
-let uidCounter = 0;  // Counter for unique match IDs
+let uidCounter = 0;  // Counter for unique match IDs, counting
 
 /**
- * Generates a unique match ID using timestamp and counter
+ * Generates a unique match(m_) ID using timestamp and counter
  * @returns {string} Unique match identifier
  */
 const uid = () => `m_${Date.now()}_${uidCounter++}`;
@@ -101,7 +101,7 @@ export function createTwoPlayerTournament(players: [Player, Player]): Bracket {
   return {
     players,
     rounds: [
-      { round: 1, matches: [makeMatch(1, 0, players[0], players[1], 3)] },
+      { round: 1, matches: [makeMatch(1, 0, players[0], players[1], 3)] }, // one round first and bestof3 match
     ],
   };
 }
@@ -113,14 +113,12 @@ export function createTwoPlayerTournament(players: [Player, Player]): Bracket {
  * @param players - Array of exactly 4 players
  * @returns {Bracket} Tournament bracket with semifinals and final structure
  */
-export function createFourPlayerTournament(
-  players: [Player, Player, Player, Player]
-): Bracket {
+export function createFourPlayerTournament( players: [Player, Player, Player, Player] ): Bracket {
   const [p1, p2, p3, p4] = players;
   return {
     players,
     rounds: [
-      { round: 1, matches: [makeMatch(1, 0, p1, p2, 1), makeMatch(1, 1, p3, p4, 1)] },
+      { round: 1, matches: [makeMatch(1, 0, p1, p2, 1), makeMatch(1, 1, p3, p4, 1)] }, // everbody has their one round, one bestof again each others
     ],
   };
 }
@@ -128,15 +126,14 @@ export function createFourPlayerTournament(
 /**
  * Calculates the number of wins needed to win a match
  * @param bestOf - Match format (1 for single, 3 for Bo3)
- * @returns {number} Number of wins needed to clinch the match
+ * @returns {number} Number of wins needed to win the match
  */
 function winsNeeded(bestOf: number) {
-  // e.g. Bo3 → 2 wins to clinch, Bo1 → 1 win to clinch
+  // Bo3: 2 wins to win, Bo1: 1 win to win
   return Math.floor(bestOf / 2) + 1;
 }
 
 // Match result processing and bracket advancement
-
 /**
  * Processes a single game result and updates tournament state
  * 
@@ -149,13 +146,13 @@ function winsNeeded(bestOf: number) {
  * @param winnerId - ID of the winning player
  */
 export function reportMatchResult(
-  bracket: Bracket,
+  bracket: Bracket, // Bracket structure
   matchId: string,
   winnerId: string
 ) {
   // Find the match by ID across all rounds
-  const match = bracket.rounds.reduce<Match[]>((acc, r) => acc.concat(r.matches), []).find(m => m.id === matchId);
-  if (!match || match.winnerId) return; // Ignore invalid or already-decided matches
+  const match = bracket.rounds.reduce<Match[]>((acc, r) => acc.concat(r.matches), []).find(m => m.id === matchId);// Take all round all matches inside each round, combine them into one list, find a specific match by id
+  if (!match || match.winnerId) return; // Ignore invalid (empty match) or already played match with a winner
 
   // Update win count for the winning player
   if (winnerId === match.playerA.id) match.winsA++;
@@ -170,8 +167,6 @@ export function reportMatchResult(
 }
 
 /**
- * Advances the tournament bracket based on completed matches
- * 
  * Handles bracket progression for 4-player tournaments:
  * - Creates the final round when both semifinals are complete
  * - Sets the tournament champion when the final is decided
@@ -181,15 +176,15 @@ export function reportMatchResult(
 function advance(bracket: Bracket) {
   // 4-player tournament: create final when both semifinals are complete
   const semis = bracket.rounds.find(r => r.round === 1);
-  if (semis && semis.matches.length === 2) {
-    const bothDone = semis.matches.every(m => m.winnerId);
+  if (semis && semis.matches.length === 2) { // both exist
+    const bothDone = semis.matches.every(m => m.winnerId); // every semi got a winner
     const finalExists = !!bracket.rounds.find(r => r.round === 2);
 
-    if (bothDone && !finalExists) {
+    if (bothDone && !finalExists) { // both finished
       const semi1 = semis.matches[0];
       const semi2 = semis.matches[1];
 
-      if (!semi1 || !semi2) return;
+      if (!semi1 || !semi2) return; // safety check
 
       // Get the winners of both semifinals
       const w1 = semi1.winnerId === semi1.playerA.id ? semi1.playerA : semi1.playerB;
@@ -201,6 +196,6 @@ function advance(bracket: Bracket) {
   }
 
   // Set tournament champion when final is decided
-  const final = bracket.rounds.find(r => r.round === 2)?.matches[0];
-  if (final?.winnerId) bracket.championId = final.winnerId;
+  const final = bracket.rounds.find(r => r.round === 2)?.matches[0]; // found if the second round happened for final
+  if (final?.winnerId) bracket.championId = final.winnerId; // set up champion ID
 }
