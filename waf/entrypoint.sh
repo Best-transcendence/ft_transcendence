@@ -1,4 +1,8 @@
 #!/bin/sh
+
+#NO_VAULT: this whole file must only be used if using Vault
+# it copies the certs from vault into the container context
+
 set -e
 
 # Fetch secrets from Vault

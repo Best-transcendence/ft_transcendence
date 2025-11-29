@@ -13,7 +13,7 @@ import Vault from 'node-vault';
 //dotenv.config();
 
 // Create Fastify server instance with logging
-const app = Fastify({ 
+const app = Fastify({
   logger: true,
   trustProxy: false // Don't trust proxy headers, always use HTTP
 });
@@ -67,7 +67,7 @@ await app.register(fastifySwaggerUI, {
     const hostname = hostHeader.split(':')[0]; // Remove port if present
     swaggerObject.host = hostname;
     swaggerObject.schemes = ['https'];
-    
+
     // Set basePath for reverse proxy - API calls should go through gateway at /api/
     // Check X-Forwarded-Prefix to determine if accessed through WAF
     const forwardedPrefix = request?.headers?.['x-forwarded-prefix'];
@@ -115,7 +115,7 @@ const buildOrigins = () => {
 
   envUrls.forEach(url => {
     if (url) {
-      const normalized = normalizeUrl(url);
+      const normalized = normalizeUrl(jwturl);
       if (normalized && !origins.includes(normalized)) {
         origins.push(normalized);
       }
@@ -130,8 +130,9 @@ await app.register(fastifyCors, {
   credentials: true
 });
 
+// NO_VAULT - removing Vault query:
 // Register JWT plugin for token generation and verification
-const vault = Vault(
+/* const vault = Vault(
   {
     endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
     token: process.env.VAULT_TOKEN
@@ -148,7 +149,13 @@ catch (err)
   console.error('Failed to read JWT secret from Vault:', err);
   process.exit(1);
 }
-await app.register(fastifyJwt, { secret: jwtSecret });
+await app.register(fastifyJwt, { secret: jwtSecret }); */
+
+//NO_VAULT: retrieving JWT from env
+await app.register(fastifyJwt, {
+  secret: process.env.JWT_SECRET
+});
+
 
 // Register database plugin to connect to auth database
 app.register(databasePlugin);

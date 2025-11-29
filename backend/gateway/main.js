@@ -76,9 +76,9 @@ await app.register(fastifyCors, {
   credentials: true
 });
 
-// Register JWT plugin for token validation
+// NO_VAULT - removing Vault query:
 // Register JWT plugin for token generation and verification
-const vault = Vault(
+/* const vault = Vault(
   {
     endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
     token: process.env.VAULT_TOKEN
@@ -95,7 +95,12 @@ catch (err)
   console.error('Failed to read JWT secret from Vault:', err);
   process.exit(1);
 }
-await app.register(fastifyJwt, { secret: jwtSecret });
+await app.register(fastifyJwt, { secret: jwtSecret }); */
+
+//NO_VAULT: retrieving JWT from env
+await app.register(fastifyJwt, {
+  secret: process.env.JWT_SECRET
+});
 
 // Paths to exempt from jwt protection:
 const publicPaths = ['/auth', '/health', '/docs', '/favicon.ico'];
@@ -179,21 +184,21 @@ await app.register(fastifySwaggerUI, {
     const hostname = hostHeader.split(':')[0]; // Remove port if present
     swaggerObject.host = hostname;
     swaggerObject.schemes = ['https'];
-    
+
     // Set basePath for reverse proxy (WAF routes /api/ to gateway)
     // Check X-Forwarded-Prefix header or Referer to determine base path
     const forwardedPrefix = request?.headers?.['x-forwarded-prefix'];
     const referer = request?.headers?.referer || '';
     let basePath = '';
-    
+
     if (forwardedPrefix) {
       basePath = forwardedPrefix;
     } else if (referer.includes('/api/')) {
       basePath = '/api';
     }
-    
+
     swaggerObject.basePath = basePath;
-    
+
     // Remove the default tag and its routes
     if (swaggerObject.tags) {
       swaggerObject.tags = swaggerObject.tags.filter(tag => tag.name !== 'default');
