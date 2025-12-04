@@ -64,8 +64,107 @@ waf-certs:
 # Top-level commands
 # -----------------------------------------------------------------------------
 
-# Default target
-docker: update-env-ip
+up:
+	@echo "🚀 Starting all services..."
+	@$(MAKE) waf-certs
+	docker compose up -d
+	@echo "✅ All services started!"
+	@echo "📋 Frontend: https://$(LAN_IP)"
+
+clean:
+	@echo "🧹 Cleaning up ALL Docker resources and local data..."
+	docker compose down -v --rmi all 2>/dev/null || true
+	@echo "🧹 Pruning Docker system..."
+	docker system prune -a -f --volumes
+	docker builder prune -a -f
+	@echo "🗑️  Removing local DB files..."
+	@rm -f backend/user-service/data/*.db backend/user-service/data/*.db-journal || true
+	@rm -f backend/auth-service/data/*.db backend/auth-service/data/*.db-journal || true
+	@rm -f backend/ws-service/data/*.db backend/ws-service/data/*.db-journal || true
+	@rm -f *.db *.db-journal || true
+	@echo "🗑️  Removing Prisma leftovers..."
+	@rm -rf backend/auth-service/prisma backend/user-service/prisma backend/prisma prisma generated/prisma || true
+	@find backend -type d -name "prisma" -exec rm -rf {} + 2>/dev/null || true
+	@find backend -type f -path "*/prisma/*.db" -delete 2>/dev/null || true
+	@find backend -type f -path "*/prisma/*.db-journal" -delete 2>/dev/null || true
+	@echo "🧹 Removing frontend build artifacts..."
+	@rm -rf frontend/dist frontend/node_modules/.vite frontend/.vite frontend/.cache || true
+	@echo "🧹 Removing backend build artifacts..."
+	@find backend -type d -name "dist" -exec rm -rf {} + 2>/dev/null || true
+	@find backend -type f -name "*.tsbuildinfo" -delete 2>/dev/null || true
+	@find backend -type d -name ".cache" -exec rm -rf {} + 2>/dev/null || true
+	@find backend -type d -path "*/node_modules/.cache" -exec rm -rf {} + 2>/dev/null || true
+	@echo "🧹 Removing logs..."
+	@find backend -type f -name "*.log" -delete 2>/dev/null || true
+	@rm -f *.log
+	@rm -rf logs
+	@echo "🧹 Removing WAF certificates..."
+	@rm -rf waf/certs
+	@echo "✅ Full cleanup complete!"
+
+help:
+	@echo "🚀 ft_transcendence - Docker Management"
+	@echo
+	@echo "🎯 Main commands:"
+	@echo "  make restart-logs      - Stop, build, start all services and follow logs (no Vault)"
+	@echo "  make build             - Build all Docker images"
+	@echo "  make up                - Start all services"
+	@echo "  make down              - Stop all services"
+	@echo "  make logs              - Follow logs from all services"
+	@echo "  make restart           - Restart all services (including Vault)"
+	@echo "  make restart-services  - Restart services only (preserve Vault state)"
+	@echo "  make clean             - Clean all Docker resources and local DBs"
+	@echo "  make status            - Show service status"
+	@echo
+	@echo "Rebuild:"
+	@echo "  make clear-cache       - Clear frontend build cache"
+	@echo "  make rebuild-frontend  - Rebuild frontend only (no cache)"
+	@echo "  make rebuild-all       - Rebuild ALL services (no cache)"
+	@echo
+	@echo "ELK:"
+	@echo "  make up-elk            - Start ELK stack (ES + Logstash + Kibana + Filebeat)"
+	@echo "Dev / Vault:"
+	@echo "  make dev              - Clean + build + auto-unseal + start"
+	@echo "  make start            - Build + auto-unseal + start (no clean)"
+	@echo "  make save-vault-keys  - Store Vault unseal keys for automation"
+	@echo "  make auto-unseal      - Unseal Vault using stored keys (.vault-keys)"
+
+# -----------------------------------------------------------------------------
+# Basic lifecycle
+# -----------------------------------------------------------------------------
+
+build:
+	@echo "🔨 Building all Docker images..."
+	@$(MAKE) waf-certs
+	docker compose build
+
+down:
+	@echo "🛑 Stopping all services..."
+	docker compose down
+
+logs:
+	@echo "📋 Following logs from all services (Ctrl+C to stop)..."
+	docker compose logs -f
+
+restart: down
+	@echo "🚀 Starting all services..."
+	@echo "🔐 Starting Vault first..."
+	@docker compose up -d vault-service 2>/dev/null || true
+	@sleep 5
+	@echo "🚀 Starting other services..."
+	docker compose up -d
+	@echo "✅ All services restarted!"
+	@echo "📋 Frontend: https://$(LAN_IP)"
+
+restart-services:
+	@echo "🔄 Restarting services (preserving Vault)..."
+	@docker compose restart user-service auth-service gateway-service ws-service frontend waf elasticsearch logstash kibana filebeat 2>/dev/null || \
+		(docker compose up -d user-service auth-service gateway-service ws-service frontend waf elasticsearch logstash kibana filebeat)
+	@docker compose up -d kibana-setup
+	@echo "✅ Services restarted!"
+	@echo "📋 Frontend: https://$(LAN_IP)"
+
+estart-logs: update-env-ip
 	@echo "🐳 Building and starting all services with Docker Compose..."
 	@echo "🛑 Stopping existing containers if running..."
 	docker compose down 2>/dev/null || true
@@ -99,147 +198,6 @@ docker: update-env-ip
 	@echo
 	@echo "📋 Following logs (Ctrl+C to stop)..."
 	docker compose logs -f
-
-docker-with-vault: update-env-ip
-	@echo "🐳 Building and starting all services with Docker Compose (with Vault)..."
-	@echo "🛑 Stopping existing containers if running..."
-	docker compose down 2>/dev/null || true
-	@echo "🧹 Cleaning up individual service containers..."
-	docker stop user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true
-	docker rm   user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true
-	@echo "🧹 Cleaning up existing network..."
-	docker network rm ft_transcendence_network 2>/dev/null || true
-	@echo "🔨 Building images if needed..."
-	@$(MAKE) waf-certs
-	docker compose build
-	@echo "🔐 Starting Vault first..."
-	docker compose up -d vault-service
-	@sleep 5
-	@echo "🔍 Checking Vault status..."
-	@status=$$(docker exec vault_service vault status 2>/dev/null | grep -E "Sealed|Initialized" || echo ""); \
-	if [ -z "$$status" ]; then \
-		echo "⚠️  Vault is starting up. Wait a few seconds and try 'make dev' or 'make start'."; \
-	elif echo "$$status" | grep -q "Initialized.*false"; then \
-		echo "⚠️  Vault is not initialized! Initialize it manually inside the container, then run 'make save-vault-keys'."; \
-	elif echo "$$status" | grep -q "Sealed.*true"; then \
-		echo "❌ Vault is sealed! Run 'make save-vault-keys' (if not done), then 'make dev' or 'make start' to auto-unseal."; \
-	else \
-		echo "✅ Vault is ready!"; \
-	fi
-	@echo "🚀 Starting all other services..."
-	docker compose up -d
-	@echo "✅ All services started!"
-	@echo
-	@echo "📋 Services available at:"
-	@echo "  Frontend:     https://$(LAN_IP)"
-	@echo "  Gateway:      https://$(LAN_IP)/api/"
-	@echo "  WebSocket:    wss://$(LAN_IP)/ws/"
-	@echo "  Kibana:       https://$(LAN_IP)/kibana/"
-	@echo "  Vault:        http://vault-service:8200"
-	@echo
-	@echo "📋 Following logs (Ctrl+C to stop)..."
-	docker compose logs -f
-
-help:
-	@echo "🚀 ft_transcendence - Docker Management"
-	@echo
-	@echo "🎯 Main commands:"
-	@echo "  make docker            - Stop, build, start all services and follow logs (no Vault)"
-	@echo "  make docker-with-vault - Same as above, but starts Vault too"
-	@echo "  make build             - Build all Docker images"
-	@echo "  make up                - Start all services"
-	@echo "  make down              - Stop all services"
-	@echo "  make logs              - Follow logs from all services"
-	@echo "  make restart           - Restart all services (including Vault)"
-	@echo "  make restart-services  - Restart services only (preserve Vault state)"
-	@echo "  make clean             - Clean all Docker resources and local DBs"
-	@echo "  make status            - Show service status"
-	@echo
-	@echo "Rebuild:"
-	@echo "  make clear-cache       - Clear frontend build cache"
-	@echo "  make rebuild-frontend  - Rebuild frontend only (no cache)"
-	@echo "  make rebuild-all       - Rebuild ALL services (no cache)"
-	@echo
-	@echo "ELK:"
-	@echo "  make up-elk            - Start ELK stack (ES + Logstash + Kibana + Filebeat)"
-	@echo "Dev / Vault:"
-	@echo "  make dev              - Clean + build + auto-unseal + start"
-	@echo "  make start            - Build + auto-unseal + start (no clean)"
-	@echo "  make save-vault-keys  - Store Vault unseal keys for automation"
-	@echo "  make auto-unseal      - Unseal Vault using stored keys (.vault-keys)"
-
-# -----------------------------------------------------------------------------
-# Basic lifecycle
-# -----------------------------------------------------------------------------
-
-build:
-	@echo "🔨 Building all Docker images..."
-	@$(MAKE) waf-certs
-	docker compose build
-
-up:
-	@echo "🚀 Starting all services..."
-	@$(MAKE) waf-certs
-	docker compose up -d
-	@echo "✅ All services started!"
-	@echo "📋 Frontend: https://$(LAN_IP)"
-
-down:
-	@echo "🛑 Stopping all services..."
-	docker compose down
-
-logs:
-	@echo "📋 Following logs from all services (Ctrl+C to stop)..."
-	docker compose logs -f
-
-restart: down
-	@echo "🚀 Starting all services..."
-	@echo "🔐 Starting Vault first..."
-	@docker compose up -d vault-service 2>/dev/null || true
-	@sleep 5
-	@echo "🚀 Starting other services..."
-	docker compose up -d
-	@echo "✅ All services restarted!"
-	@echo "📋 Frontend: https://$(LAN_IP)"
-
-restart-services:
-	@echo "🔄 Restarting services (preserving Vault)..."
-	@docker compose restart user-service auth-service gateway-service ws-service frontend waf elasticsearch logstash kibana filebeat 2>/dev/null || \
-		(docker compose up -d user-service auth-service gateway-service ws-service frontend waf elasticsearch logstash kibana filebeat)
-	@docker compose up -d kibana-setup
-	@echo "✅ Services restarted!"
-	@echo "📋 Frontend: https://$(LAN_IP)"
-
-clean:
-	@echo "🧹 Cleaning up ALL Docker resources and local data..."
-	docker compose down -v --rmi all 2>/dev/null || true
-	@echo "🧹 Pruning Docker system..."
-	docker system prune -a -f --volumes
-	docker builder prune -a -f
-	@echo "🗑️  Removing local DB files..."
-	@rm -f backend/user-service/data/*.db backend/user-service/data/*.db-journal || true
-	@rm -f backend/auth-service/data/*.db backend/auth-service/data/*.db-journal || true
-	@rm -f backend/ws-service/data/*.db backend/ws-service/data/*.db-journal || true
-	@rm -f *.db *.db-journal || true
-	@echo "🗑️  Removing Prisma leftovers..."
-	@rm -rf backend/auth-service/prisma backend/user-service/prisma backend/prisma prisma generated/prisma || true
-	@find backend -type d -name "prisma" -exec rm -rf {} + 2>/dev/null || true
-	@find backend -type f -path "*/prisma/*.db" -delete 2>/dev/null || true
-	@find backend -type f -path "*/prisma/*.db-journal" -delete 2>/dev/null || true
-	@echo "🧹 Removing frontend build artifacts..."
-	@rm -rf frontend/dist frontend/node_modules/.vite frontend/.vite frontend/.cache || true
-	@echo "🧹 Removing backend build artifacts..."
-	@find backend -type d -name "dist" -exec rm -rf {} + 2>/dev/null || true
-	@find backend -type f -name "*.tsbuildinfo" -delete 2>/dev/null || true
-	@find backend -type d -name ".cache" -exec rm -rf {} + 2>/dev/null || true
-	@find backend -type d -path "*/node_modules/.cache" -exec rm -rf {} + 2>/dev/null || true
-	@echo "🧹 Removing logs..."
-	@find backend -type f -name "*.log" -delete 2>/dev/null || true
-	@rm -f *.log
-	@rm -rf logs
-	@echo "🧹 Removing WAF certificates..."
-	@rm -rf waf/certs
-	@echo "✅ Full cleanup complete!"
 
 status:
 	@echo "📊 Service Status:"
