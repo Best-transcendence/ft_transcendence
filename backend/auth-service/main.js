@@ -115,7 +115,7 @@ const buildOrigins = () => {
 
   envUrls.forEach(url => {
     if (url) {
-      const normalized = normalizeUrl(jwturl);
+      const normalized = normalizeUrl(url);
       if (normalized && !origins.includes(normalized)) {
         origins.push(normalized);
       }
