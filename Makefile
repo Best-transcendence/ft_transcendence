@@ -24,6 +24,46 @@ docker:
 	docker rm user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true
 	@echo "🧹 Cleaning up existing network..."
 	docker network rm ft_transcendence_network 2>/dev/null || true
+
+	@echo "🔨 Building images if needed..."
+	docker compose build
+
+	@echo ""
+	@echo "🚀 Starting all other services..."
+	docker compose up -d
+	@echo "✅ All services started!"
+	@echo ""
+	@echo "📋 Services available at:"
+	@echo "  Frontend:     https://$(LAN_IP)"
+	@echo "  Gateway:      https://$(LAN_IP)/api/"
+	@echo "  WebSocket:    wss://$(LAN_IP)/ws/"
+	@echo "  Kibana:       https://$(LAN_IP)/kibana/"
+	@echo ""
+	@echo "📚 API Documentation (Swagger):"
+	@echo "  Gateway:      https://$(LAN_IP)/api/docs"
+	@echo "  Auth Service: https://$(LAN_IP)/auth-docs/"
+	@echo "  User Service: https://$(LAN_IP)/user-docs/"
+	@echo "  WS Service:   https://$(LAN_IP)/ws-docs/"
+	@echo ""
+	@echo "🔍 Logging & Monitoring:"
+	@echo "  Elasticsearch: https://$(LAN_IP)/elasticsearch/"
+	@echo "  Kibana:        https://$(LAN_IP)/kibana/"
+	@echo ""
+	@echo "🔧 Internal Services:"
+	@echo "  # Vault disabled — previously at: http://vault-service:8200"
+	@echo ""
+	@echo "📋 Following logs (Press Ctrl+C to stop following logs, containers keep running)..."
+	docker compose logs -f
+
+docker-vault:
+	@echo "🐳 Building and starting all services with Docker Compose..."
+	@echo "🛑 Stopping existing containers if running..."
+	docker compose down 2>/dev/null || true
+	@echo "🧹 Cleaning up individual service containers..."
+	docker stop user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true
+	docker rm user_service auth_service gateway_service ws_service frontend_service elasticsearch logstash kibana filebeat kibana_setup 2>/dev/null || true
+	@echo "🧹 Cleaning up existing network..."
+	docker network rm ft_transcendence_network 2>/dev/null || true
 	@echo "🔨 Building images if needed..."
 	docker compose build
 	@echo "🔐 Starting Vault first..."
