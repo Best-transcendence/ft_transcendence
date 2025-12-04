@@ -323,12 +323,12 @@ function setupDashboardCarousel(
    */
   function placeArrows() {
     if (!cardEl || !prevBtn || !nextBtn) return;
-    
+
     // Get card's position and dimensions on the page
     const rect = cardEl.getBoundingClientRect();
     const gap = 16;  // Space between card and arrows (in pixels)
     const arrowW = 24;  // Arrow width (for left positioning calculation)
-    const y = rect.top + rect.height / 2;  // Vertical center of card
+    const y = rect.top + rect.height * 0.35;  // Vertical center of card
 
     // Position previous arrow to the left of the card
     prevBtn.style.top = `${y}px`;

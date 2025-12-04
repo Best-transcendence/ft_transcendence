@@ -64,7 +64,7 @@ waf-certs:
 # Top-level commands
 # -----------------------------------------------------------------------------
 
-up:
+up: update-env-ip
 	@echo "🚀 Starting all services..."
 	@$(MAKE) waf-certs
 	docker compose up -d
@@ -133,7 +133,7 @@ help:
 # Basic lifecycle
 # -----------------------------------------------------------------------------
 
-build:
+build: update-env-ip
 	@echo "🔨 Building all Docker images..."
 	@$(MAKE) waf-certs
 	docker compose build
@@ -164,7 +164,7 @@ restart-services:
 	@echo "✅ Services restarted!"
 	@echo "📋 Frontend: https://$(LAN_IP)"
 
-estart-logs: update-env-ip
+restart-logs: update-env-ip
 	@echo "🐳 Building and starting all services with Docker Compose..."
 	@echo "🛑 Stopping existing containers if running..."
 	docker compose down 2>/dev/null || true
