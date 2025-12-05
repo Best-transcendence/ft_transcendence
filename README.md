@@ -29,7 +29,6 @@
 - [12. Browser Support](#12-browser-support-minor-browser)
 - [13. Service URLs](#13-service-urls)
 - [14. What We Did *Not* Implement](#14-what-we-did-not-implement)
-- [15. Repository Structure](#15-repository-structure)
 
 ---
 
