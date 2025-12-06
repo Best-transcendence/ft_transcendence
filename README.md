@@ -142,7 +142,7 @@ ft_transcendence/
 ```text
 Browser (HTTPS) 
    → WAF (NGINX + ModSecurity) 
-   → Gateway Service (Node/Express)
+   → Gateway Service (Node)
       → Auth Service (JWT issuance / login)
       → User Service (profiles, stats, matches)
       → WS Service (WebSocket upgrade coordination)
