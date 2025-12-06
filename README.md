@@ -2,6 +2,9 @@
 
 > Online multiplayer Pong platform with microservices, tournament matchmaking system, AI opponent, dashboard, full i18n language translation, WAF + ModSecurity, ELK stack and optionally Vault protection - built for the 42 **ft_transcendence** project.
 
+I had the pleasure of working with [**Yulia**](https://github.com/leanor13), [**Juan**](https://github.com/martinzx13) and [**Camille**](https://github.com/CamilleJMBouvet). I learned a lot about modern web development, architecture, and building scalable systems.
+I’m incredibly grateful for such a supportive and motivated team. 👏
+
 ---
 
 ## Table of Contents
@@ -29,7 +32,11 @@
 - [11. Internationalization (i18n)](#11-internationalization-i18n-minor-language)
 - [12. Browser Support](#12-browser-support-minor-browser)
 - [13. Service URLs](#13-service-urls)
-
+- [14. Credits](#14-credits)
+- [15. Connect](#15-connect)
+- [16. License](#16-license)
+- [17. System Compatibility](#17-system-compatibility)
+- 
 ---
 
 ## 1. Usage
@@ -559,3 +566,16 @@ Assuming the WAF resolves to https://<LAN_IP> (printed by the Makefile):
   `https://<LAN_IP>/elasticsearch/`
 
 ---
+
+## 14. Credits
+I had the pleasure of working with [**Yulia**](https://github.com/leanor13), [**Juan**](https://github.com/martinzx13) and [**Camille**](https://github.com/CamilleJMBouvet) on our ft_transcendence project. I'm really proud of how we combined our skills, supported each other, and turned our teamwork into a project we’re all proud of. 🌟
+
+## 15. Connect
+If you have any questions or suggestions, feel free to connect:
+🔗 [LinkedIn: Valentina Nguyen](https://www.linkedin.com/in/valentina-nguyen-t/) 🙋‍♀️
+
+## 16. License
+This project is licensed under the MIT License. See LICENSE for details.
+
+## 17. System Compatibility
+This project was developed and tested on macOS and Linux (Ubuntu).
