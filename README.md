@@ -57,14 +57,11 @@ The entire app runs in **Docker** using `docker-compose`, with a `Makefile` prov
 ft_transcendence/
 ├── Makefile                 # Main dev & deployment workflows (Vault, Docker, etc.)
 ├── docker-compose.yml       # All services (WAF, Vault, backend, frontend, ELK)
-├── start-dev.sh             # Extra port/process cleanup helper (used by `make clean`)
 ├── backend/
 │   ├── auth-service/        # JWT login/register, auth API, SQLite db
 │   ├── user-service/        # Profiles, stats, matches, SQLite db
 │   ├── ws-service/          # WebSocket game engine & rooms
 │   ├── gateway/             # Single HTTP entrypoint, routing to microservices
-│   ├── ELK_eval.md          # ELK evaluation notes
-│   └── README_eval.md       # Backend evaluation-focused documentation
 ├── frontend/
 │   ├── index.html
 │   ├── vite.config.ts
@@ -82,7 +79,6 @@ ft_transcendence/
 │   ├── Dockerfile
 │   ├── nginx.conf
 │   ├── modsecurity.conf
-│   └── README.md
 ├── vault/
 │   └── README.md            # Manual Vault setup instructions
 └── docs/
