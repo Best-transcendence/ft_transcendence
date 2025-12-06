@@ -91,15 +91,6 @@ ft_transcendence/
 
 According to the subject, we implemented:
 
-### Mandatory ft_transcendence requirements
-
-- ✅ Real-time Pong game in the browser
-- ✅ User accounts, persistent profiles, and stats
-- ✅ Play history and basic matchmaking
-- ✅ Secure architecture (HTTPS at the WAF level, JWT, etc.)
-
-### Extra modules implemented
-
 - **Major – Backend**  
   Full microservice backend: auth, user, gateway, websockets, all containerized.
 
@@ -135,11 +126,6 @@ According to the subject, we implemented:
 
 - **Minor – Language**  
   Internationalization with multiple locales in `frontend/src/services/lang/Translations.ts`.
-
-### Not implemented
-
-- ❌ **OAuth** (no Google/42API/etc. login)  
-- ❌ **2FA** (we only use JWT; no two-factor authentication)
 
 ---
 
