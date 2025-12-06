@@ -34,20 +34,25 @@
 
 ## 1. Usage
 
-This project is a full-stack, production-style **Pong** web application featuring:
+1️⃣ **Clone the repository**
 
-- **Account system** with JWT-based authentication
-- **Remote multiplayer**, matchmaking, and live WebSocket games
-- **AI opponent** with multiple difficulty levels
-- **Statistics dashboard** with charts & match history
-- **Microservices** architecture for backend
-- **WAF (NGINX + ModSecurity)** in front of everything
-- **HashiCorp Vault** for secret management
-- **Full ELK stack** (Elasticsearch, Logstash, Kibana, Filebeat) for logs
-- **Internationalized frontend** with multiple languages
-- **Single-page app** frontend (TypeScript + Vite), fully browser-based
+```bash
+git clone https://github.com/ngtina99/ft_transcendence.git
+cd ft_transcendence
+```
 
-The entire app runs in **Docker** using `docker-compose`, with a `Makefile` providing developer-friendly workflows.
+2️⃣ Build the server
+
+```bash
+make
+```
+
+4️⃣ Access the server
+
+In a browser: 
+```text
+https://<YOUR_LAN_IP>
+```
 
 ### 1.1 Repository Structure
 
