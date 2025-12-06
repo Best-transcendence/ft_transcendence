@@ -1,12 +1,12 @@
 # ft_transcendence
 
-> Online multiplayer Pong platform with microservices, WAF + ModSecurity, Vault, ELK stack, AI opponent, dashboard, and full i18n — built for the 42 **ft_transcendence** project.
+> Online multiplayer Pong platform with microservices, tournament matchmaking system, WAF + ModSecurity, Vault, ELK stack, AI opponent, dashboard, and full i18n — built for the 42 **ft_transcendence** project.
 
 ---
 
 ## Table of Contents
 
-- [1. Project Overview](#1-project-overview)
+- [1. Usage](#1-usage)
    - [1.1 Repository Structure](#11-repository-structure)
 - [2. Implemented 42 Subject Modules](#2-implemented-42-subject-modules)
 - [3. High-Level Architecture](#3-high-level-architecture)
@@ -32,9 +32,7 @@
 
 ---
 
-Usage
-
-## 1. Project Overview
+## 1. Usage
 
 This project is a full-stack, production-style **Pong** web application featuring:
 
