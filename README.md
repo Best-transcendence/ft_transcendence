@@ -1,6 +1,6 @@
 # ft_transcendence
 
-> Online multiplayer Pong platform with microservices, tournament matchmaking system, AI opponent, dashboard, full i18n language translation, WAF + ModSecurity, ELK stack and optionally Vault protection - built for the 42 **ft_transcendence** project.
+> A full-stack online Pong application built on microservices, offering tournament matchmaking, a human-behaviour simulation engine for single-player gameplay, a dedicated WebSocket real-time service, an administrative dashboard, centralized logging/monitoring with ELK, and a WAF-secured infrastructure - built for the 42 **ft_transcendence** project.
 
 I had the pleasure of working with [**Yulia**](https://github.com/leanor13), [**Juan**](https://github.com/martinzx13) and [**Camille**](https://github.com/CamilleJMBouvet). I learned a lot about modern web development, architecture, and building scalable systems.
 I’m incredibly grateful for such a supportive and motivated team. 👏
