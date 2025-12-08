@@ -7,7 +7,7 @@ I’m incredibly grateful for such a supportive and motivated team. 👏
 
 <div align="center">
 
-### 🎬 Watch the video  
+### 🎬 Watch the demo  
 > Click the image to play on YouTube  
 
 [![▶️ Play Video](https://img.youtube.com/vi/rxooRe8V1Bw/0.jpg)](https://www.youtube.com/watch?v=rxooRe8V1Bw)
