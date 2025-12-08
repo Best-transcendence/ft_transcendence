@@ -5,7 +5,14 @@
 I had the pleasure of working with [**Yulia**](https://github.com/leanor13), [**Juan**](https://github.com/martinzx13) and [**Camille**](https://github.com/CamilleJMBouvet). I learned a lot about modern web development, architecture, and building scalable systems.
 I’m incredibly grateful for such a supportive and motivated team. 👏
 
-[![▶️ Watch the Video on YouTube](https://img.youtube.com/vi/rxooRe8V1Bw/hqdefault.jpg)](https://www.youtube.com/watch?v=rxooRe8V1Bw)
+<div align="center">
+
+### 🎬 Watch the video  
+> Click the image to play on YouTube  
+
+[![▶️ Play Video](https://img.youtube.com/vi/rxooRe8V1Bw/0.jpg)](https://www.youtube.com/watch?v=rxooRe8V1Bw)
+
+</div>
 
 ---
 
