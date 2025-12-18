@@ -1,31 +1,4 @@
 services:
-  # =============================================================================
-  # Vault (dev) - HashiCorp Vault server
-  # =============================================================================
-  vault-service:
-    image: hashicorp/vault:1.14.0
-    container_name: vault_service
-    cap_add:
-      - IPC_LOCK
-    ports:
-      - "8200:8200"
-    env_file:
-      - .env
-    environment:
-    - VAULT_TOKEN=${VAULT_TOKEN:-}
-    volumes:
-      - ./vault:/vault/config
-      - ./vault/data:/vault/file
-    command:
-      - "server"
-    restart: unless-stopped
-    networks:
-      - ft_transcendence_network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sSf http://127.0.0.1:8200/v1/sys/health || exit 0"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
 
   # =============================================================================
   # BACKEND SERVICES
@@ -49,9 +22,6 @@ services:
       - "${USER_SERVICE_PORT}"
     volumes:
       - user_data:/app/data
-    depends_on:
-      vault-service:
-        condition: service_healthy
     networks:
       - ft_transcendence_network
     restart: unless-stopped
@@ -82,8 +52,6 @@ services:
     volumes:
       - auth_data:/app/data
     depends_on:
-      vault-service:
-        condition: service_healthy
       user-service:
         condition: service_healthy
     networks:
@@ -115,8 +83,6 @@ services:
     expose:
       - "${GATEWAY_PORT}"
     depends_on:
-      vault-service:
-        condition: service_healthy
       auth-service:
         condition: service_healthy
       user-service:
@@ -151,8 +117,6 @@ services:
     expose:
       - "${WS_PORT}"
     depends_on:
-      vault-service:
-        condition: service_healthy
       auth-service:
         condition: service_healthy
       user-service:
@@ -360,9 +324,8 @@ services:
       - ./waf/modsecurity.conf:/etc/nginx/templates/modsecurity.d/setup.conf.template:ro
       - ./waf/crs:/etc/nginx/modsec/crs:ro
       - ./waf/exception-rules.conf:/etc/nginx/modsec/exception-rules.conf:ro
+      - ./waf/certs:/etc/nginx/certs:ro
     depends_on:
-      vault-service:
-        condition: service_healthy
       gateway-service:
         condition: service_healthy
       ws-service:

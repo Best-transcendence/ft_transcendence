@@ -7,7 +7,8 @@ const onlineUsers = new Map();
 
 export async function registerWebsocketHandlers(wss, app) {
 
-  const vault = Vault(
+// NO_VAULT - removing Vault query:
+/*   const vault = Vault(
     {
       endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
       token: process.env.VAULT_TOKEN
@@ -23,8 +24,11 @@ export async function registerWebsocketHandlers(wss, app) {
   {
     console.error('Failed to read JWT secret from Vault:', err);
     process.exit(1);
-  }
+  } */
 
+	await app.register(fastifyJwt, {
+	  secret: process.env.JWT_SECRET
+	});
   const roomHandlers = registerRoomHandlers(wss, onlineUsers, app);
   const gameHandlers = registerGameHandlers(wss, onlineUsers, app);
 
@@ -34,7 +38,12 @@ export async function registerWebsocketHandlers(wss, app) {
     app.log.info({ token: token || 'MISSING' }, 'Incoming WS token');
 
     try {
-	  const payload = jwt.verify(token, jwtSecret);
+		// NO_VAULT: removing jwtSecret variable
+	  /* const payload = jwt.verify(token, jwtSecret); */
+
+	  // NO_VAULT: replacing it with jwt fetch from env:
+	  const payload = jwt.verify(token, process.env.JWT_SECRET);
+
       ws.user = payload;
 
       // Guardar el usuario conectado

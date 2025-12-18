@@ -85,7 +85,8 @@ function broadcastLobby() {
 export async function registerWebsocketHandlers(wss, app) {
   const logger = createLogger(app.log);
 
-	const vault = Vault(
+  // NO_VAULT - removing Vault query:
+/* 	const vault = Vault(
 	{
 		endpoint: process.env.VAULT_ADDR || 'http://127.0.0.1:8200',
 		token: process.env.VAULT_TOKEN,
@@ -108,7 +109,7 @@ export async function registerWebsocketHandlers(wss, app) {
 		});
 		console.error('Failed to read JWT secret from Vault:', err);
 		process.exit(1);
-	}
+	} */
 
   const roomHandlers = registerRoomHandlers(wss, onlineUsers, app);
   const gameHandlers = registerGameHandlers(wss, onlineUsers, app);
@@ -132,7 +133,12 @@ export async function registerWebsocketHandlers(wss, app) {
     // Verify & normalize JWT
     let decoded;
     try {
-      decoded = jwt.verify(token, jwtSecret);
+	// NO_VAULT: removing jwtSecret variable
+	  /* const payload = jwt.verify(token, jwtSecret); */
+
+	  // NO_VAULT: replacing it with jwt fetch from env:
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+
     } catch (err) {
       const correlationId = `ws-auth-${Date.now()}`;
       logger.error(correlationId, `Invalid WebSocket Token — closing: ${err.message}`, {
