@@ -91,7 +91,7 @@ export function DashboardPage(): string {
          It uses a "card" design with a purple glow effect.
          The content inside will change as users navigate through different views.
     -->
-    <div class="relative flex justify-center items-center w-full min-h-[60vh]">
+    <div class="relative flex justify-center items-start w-full min-h-[60vh] pt-4">
       <!-- CARD: The main dashboard card with rounded corners and shadow -->
       <div id="dashboard-card"
         class="bg-slate-900 backdrop-blur-md rounded-2xl w-[90%] max-w-[700px]
@@ -323,12 +323,12 @@ function setupDashboardCarousel(
    */
   function placeArrows() {
     if (!cardEl || !prevBtn || !nextBtn) return;
-    
+
     // Get card's position and dimensions on the page
     const rect = cardEl.getBoundingClientRect();
     const gap = 16;  // Space between card and arrows (in pixels)
     const arrowW = 24;  // Arrow width (for left positioning calculation)
-    const y = rect.top + rect.height / 2;  // Vertical center of card
+    const y = rect.top + rect.height * 0.35;  // Vertical center of card
 
     // Position previous arrow to the left of the card
     prevBtn.style.top = `${y}px`;
