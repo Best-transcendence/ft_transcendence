@@ -1,4 +1,3 @@
-<!-- TODO: update aligned with the project -->
 
 # 🏓 ft_transcendence - Real-time Pong Tournament Platform
 

@@ -267,9 +267,9 @@ export function initRemoteGame(roomId: string) {
 
   // Set a timeout to detect if room join fails (room doesn't exist)
   joinTimeout = setTimeout(() => {
-    console.log("Room join timeout - room may not exist, redirecting to 404");
-    window.location.hash = "lobby"; // Redirect to 404 page
-  }, 1000); // 5 second timeout
+    console.log("Room join timeout - room may not exist, redirecting");
+    window.location.replace("#lobby"); // Redirect to lobby
+  }, 1000); // 1 second timeout
 
   // remove old handlers if they exist
   if (keydownHandler) document.removeEventListener("keydown", keydownHandler);
@@ -326,20 +326,14 @@ export function initRemoteGame(roomId: string) {
   document.addEventListener("keyup", keyupHandler);
 
   // Add navigation cleanup listeners
-  const handleBeforeUnload = () => {
-    leaveRemoteGame();
-  };
-
   const handleHashChange = () => {
     leaveRemoteGame();
   };
 
-  window.addEventListener("beforeunload", handleBeforeUnload);
   window.addEventListener("hashchange", handleHashChange);
 
   // Store handlers for cleanup
   (window as any).gameNavigationHandlers = {
-    handleBeforeUnload,
     handleHashChange,
   };
 
